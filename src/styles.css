@@ -41,7 +41,7 @@ body {
   display: block;
   width: min(100vw, calc(100vh * 16 / 9));
   aspect-ratio: 16 / 9;
-  background: var(--color-bg-deep);
+  background: radial-gradient(circle at 50% 30%, #0b1a30 0%, var(--color-bg-deep) 70%);
 }
 
 .overlay-root {
@@ -53,18 +53,361 @@ body {
 }
 
 .screen {
+  width: min(100%, 1100px);
+  padding: 2rem;
   text-align: center;
 }
 
+.panel {
+  background: color-mix(in srgb, var(--color-panel) 82%, transparent);
+  border: 1px solid var(--color-panel-border);
+  border-radius: 14px;
+  padding: 1.75rem 2.5rem;
+  box-shadow: 0 0 24px rgba(27, 189, 227, 0.15);
+  display: inline-block;
+  min-width: 360px;
+}
+
+.screen-heading {
+  color: var(--color-player);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  margin: 0 0 1.2rem;
+}
+
+.screen-hint {
+  color: var(--color-muted);
+  letter-spacing: 0.14em;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  margin-top: 1.2rem;
+}
+
+/* --- Title --- */
 .title-logo {
-  font-size: 4rem;
+  font-size: 4.5rem;
   letter-spacing: 0.08em;
   color: var(--color-player);
   margin: 0;
+  text-shadow: 0 0 22px rgba(87, 234, 255, 0.5);
 }
 
 .title-tagline {
   color: var(--color-muted);
   letter-spacing: 0.3em;
   text-transform: uppercase;
+}
+
+.title-teaser {
+  color: var(--color-feedback);
+  letter-spacing: 0.16em;
+  font-size: 0.9rem;
+}
+
+/* --- Menus --- */
+.menu-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 1.2rem;
+  align-items: stretch;
+}
+
+.menu-horizontal {
+  flex-direction: row;
+  justify-content: center;
+}
+
+.menu-action {
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 0.7rem 1.4rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: 0.95rem;
+  color: var(--color-text);
+  background: rgba(11, 26, 48, 0.6);
+  transition: all 0.12s ease;
+}
+
+.menu-action[data-focused="true"] {
+  border-color: var(--color-player);
+  color: var(--color-player);
+  box-shadow: 0 0 14px rgba(87, 234, 255, 0.4);
+  background: rgba(27, 189, 227, 0.12);
+}
+
+.settings-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 2rem;
+  text-align: left;
+}
+
+.settings-value {
+  color: var(--color-feedback);
+}
+
+/* --- Tutorial --- */
+.control-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  text-align: left;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.control-row {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  border: 1px solid rgba(27, 189, 227, 0.25);
+  border-radius: 8px;
+  padding: 0.6rem 0.9rem;
+}
+
+.control-input {
+  min-width: 130px;
+  color: var(--color-player);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+}
+
+.control-body {
+  display: flex;
+  flex-direction: column;
+}
+
+.control-name {
+  color: var(--color-text);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+
+.control-desc {
+  color: var(--color-muted);
+  font-size: 0.85rem;
+}
+
+/* --- Playing HUD --- */
+.screen-playing {
+  align-self: start;
+  width: 100%;
+  padding: 1.2rem;
+  text-align: left;
+}
+
+.hud {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.hud-hearts {
+  font-size: 1.3rem;
+  letter-spacing: 0.15rem;
+}
+
+.heart-full {
+  color: var(--color-enemy);
+}
+
+.heart-empty {
+  color: rgba(255, 63, 98, 0.3);
+}
+
+.hud-hp {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.3rem;
+}
+
+.hud-hpbar {
+  width: 160px;
+  height: 10px;
+  background: rgba(255, 63, 98, 0.2);
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.hud-hpbar-fill {
+  height: 100%;
+  background: var(--color-enemy);
+}
+
+.hud-label {
+  color: var(--color-muted);
+  letter-spacing: 0.18em;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
+
+.hud-value {
+  font-size: 1.8rem;
+  font-weight: 700;
+}
+
+.hud-center {
+  text-align: center;
+}
+
+.hud-right {
+  text-align: right;
+}
+
+.hud-action-state {
+  margin-top: 0.6rem;
+  color: var(--color-player);
+  letter-spacing: 0.1em;
+}
+
+.parry-strip {
+  display: flex;
+  gap: 0.4rem;
+  justify-content: center;
+  margin-top: auto;
+  position: absolute;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.parry-zone {
+  padding: 0.25rem 0.7rem;
+  border-radius: 5px;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+}
+
+.parry-early {
+  background: rgba(255, 63, 98, 0.2);
+  color: var(--color-enemy);
+}
+
+.parry-perfect {
+  background: rgba(57, 246, 176, 0.2);
+  color: var(--color-effect);
+}
+
+.parry-late {
+  background: rgba(255, 63, 98, 0.2);
+  color: var(--color-enemy);
+}
+
+/* --- Game Over --- */
+.gameover-title {
+  color: var(--color-enemy);
+  font-size: 2.6rem;
+  letter-spacing: 0.1em;
+  margin: 0 0 1rem;
+  text-shadow: 0 0 18px rgba(255, 63, 98, 0.5);
+}
+
+.final-score-value {
+  display: block;
+  font-size: 3rem;
+  font-weight: 800;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: center;
+  gap: 2.5rem;
+  margin: 1.2rem 0;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-value {
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+.stat-label {
+  color: var(--color-muted);
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+/* --- Highscores --- */
+.hs-tabs {
+  display: flex;
+  gap: 0.6rem;
+  justify-content: center;
+  margin-bottom: 0.8rem;
+}
+
+.hs-tab {
+  padding: 0.35rem 1rem;
+  border-radius: 6px;
+  border: 1px solid rgba(27, 189, 227, 0.3);
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.hs-tab-active {
+  color: var(--color-player);
+  border-color: var(--color-player);
+}
+
+.hs-status {
+  color: var(--color-muted);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.8rem;
+}
+
+.score-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 420px;
+}
+
+.score-row {
+  display: grid;
+  grid-template-columns: 60px 1fr 90px 110px;
+  gap: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  text-align: left;
+  border-radius: 5px;
+}
+
+.score-header {
+  color: var(--color-muted);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+}
+
+.score-score,
+.score-waves {
+  text-align: right;
+}
+
+.score-you {
+  background: rgba(87, 234, 255, 0.12);
+  border: 1px solid var(--color-player);
+  color: var(--color-player);
+}
+
+/* --- Mobile warning --- */
+.warning-icon {
+  font-size: 3rem;
+  color: var(--color-enemy);
+}
+
+.warning-body {
+  color: var(--color-muted);
+  max-width: 360px;
+  margin: 0.6rem auto 0;
+  line-height: 1.5;
 }
