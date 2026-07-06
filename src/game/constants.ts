@@ -1,0 +1,14 @@
+export const GAME_WIDTH = 1280;
+export const GAME_HEIGHT = 720;
+export const TARGET_FPS = 30;
+export const STEP_MS = 1000 / TARGET_FPS;
+export const PLAYER_X = 640;
+export const GROUND_Y = 520;
+export const LEFT_SPAWN_X = 70;
+export const RIGHT_SPAWN_X = 1210;
+export const LEFT_COMBAT_LIMIT = 180;
+export const RIGHT_COMBAT_LIMIT = 1100;
+export const MAX_ACTIVE_THREAT_WEIGHT = 6;
+export const MAX_ACTIVE_TANKS = 2;
+export const LEVEL_ID = "Neon-Sector 04";
+export const TITLE_TAGLINE = "ONE KEY. ENDLESS FIGHT.";

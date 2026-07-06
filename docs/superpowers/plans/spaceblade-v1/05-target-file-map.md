@@ -1,0 +1,85 @@
+# Target File Map
+
+The final project must use this layout.
+
+```text
+Spaceblade/
+  index.html
+  package.json
+  tsconfig.json
+  vite.config.ts
+  README.md
+  src/
+    main.ts
+    styles.css
+    app/
+      App.ts
+      createAppRoot.ts
+      types.ts
+      appFlow.test.ts
+    game/
+      constants.ts
+      input/
+        inputConfig.ts
+        inputParser.ts
+        inputParser.test.ts
+      player/
+        playerConfig.ts
+        playerStateMachine.ts
+        playerStateMachine.test.ts
+        playerRenderer.ts
+        playerSandboxScene.ts
+      enemies/
+        enemyStats.ts
+        enemyFactory.ts
+        enemyLogic.ts
+        enemyLogic.test.ts
+        enemyTelegraphs.ts
+      rendering/
+        canvasRoot.ts
+        canvasRoot.test.ts
+        camera.ts
+        backgroundLayers.ts
+        effects.ts
+        effects.test.ts
+      audio/
+        soundBus.ts
+        soundBus.test.ts
+      run/
+        runState.ts
+        waveTable.ts
+        waveTable.test.ts
+        spawnScheduler.ts
+        scoreSystem.ts
+        scoreSystem.test.ts
+        gameLoop.ts
+      scenes/
+        mainGameScene.ts
+        sceneRouter.ts
+    lib/
+      firebase/
+        config.ts
+        leaderboardClient.ts
+    state/
+      leaderboard/
+        leaderboardService.ts
+        leaderboardService.test.ts
+      persistence/
+        localStorageStore.ts
+        localStorageStore.test.ts
+    ui/
+      renderShell.ts
+      screenState.ts
+      screenState.test.ts
+      navigation/
+        spaceMenuController.ts
+        spaceMenuController.test.ts
+      screens/
+        titleScreen.ts
+        tutorialScreen.ts
+        pauseScreen.ts
+        settingsScreen.ts
+        gameOverScreen.ts
+        highscoresScreen.ts
+        mobileWarningScreen.ts
+```

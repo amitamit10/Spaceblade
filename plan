@@ -1,0 +1,16 @@
+Spaceblade planning entrypoint
+
+Primary design spec:
+- `docs/superpowers/specs/spaceblade/00-index.md`
+
+Primary implementation plan:
+- `docs/superpowers/plans/spaceblade-v1/00-index.md`
+
+Locked direction:
+- One-key 2D browser action game for the Hack Club OneKey challenge
+- Full mockup-inspired UX flow in v1
+- Quality-first phased build: UI -> player -> enemies -> environment -> run structure -> online leaderboard -> integration
+- Online scope limited to low-cost leaderboard support
+- Backend target: Firebase free tier
+- Tech direction: Vite + TypeScript + HTML Canvas + DOM overlays
+- Performance target: stable 30 FPS
