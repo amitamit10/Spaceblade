@@ -14,6 +14,8 @@ import { createEffectSystem } from "../rendering/effects";
 import { createSoundBus } from "../audio/soundBus";
 import type { Scene } from "./sceneRouter";
 
+const PAUSE_HOLD_MS = 900;
+
 const ENEMY_COLORS: Record<EnemyActor["type"], string> = {
   grunt: "#ff6a6a",
   runner: "#ff3f62",
@@ -23,56 +25,98 @@ const ENEMY_COLORS: Record<EnemyActor["type"], string> = {
   boss: "#ff2d55",
 };
 
-export type MainGameScene = Scene & {
-  getState(): RunState;
+export type MainGameCallbacks = {
+  onEnd?: (state: RunState) => void;
+  onPauseRequest?: () => void;
 };
 
+export type MainGameScene = Scene & {
+  getState(): RunState;
+  pause(): void;
+  resume(): void;
+};
+
+const hasRaf = (): boolean => typeof requestAnimationFrame === "function";
+
 /**
- * The full playable run: input -> player -> enemies -> waves -> render. Runs
- * its own animation loop and reports the final state through `onEnd`.
+ * The full playable run. Uses an internal clock (`performance.now()` minus
+ * accumulated paused time) so every absolute timer — enemy impacts, i-frames —
+ * stays consistent across pause/resume.
  */
 export function createMainGameScene(
   canvas: HTMLCanvasElement,
   settings: SettingsState,
-  onEnd?: (state: RunState) => void,
+  callbacks: MainGameCallbacks = {},
 ): MainGameScene {
-  const ctx = canvas.getContext("2d");
+  let ctx: CanvasRenderingContext2D | null = null;
+  try {
+    ctx = canvas.getContext("2d");
+  } catch {
+    ctx = null; // Canvas 2D unavailable (e.g. jsdom); scene runs headless.
+  }
   const parser = createInputParser();
-  const startNow = performance.now();
-  const player = createPlayerStateMachine(startNow);
-  const controller = createRunController(startNow);
   const camera = createCamera();
   const effects = createEffectSystem();
   const sound = createSoundBus(() => settings.volume);
-  const loop = createGameLoop(controller, player, {
-    effects,
-    camera,
-    sound,
-    rng: Math.random,
-  });
+
+  let pausedOffset = 0;
+  let pauseStartedAt: number | null = null;
+  const sceneNow = (): number => performance.now() - pausedOffset;
+
+  const startNow = sceneNow();
+  const player = createPlayerStateMachine(startNow);
+  const controller = createRunController(startNow);
+  const loop = createGameLoop(controller, player, { effects, camera, sound, rng: Math.random });
 
   let running = false;
   let ended = false;
   let last = startNow;
   let rafId = 0;
+  let downAt: number | null = null;
+  let pauseArmed = false;
 
   const onKeyDown = (e: KeyboardEvent): void => {
     if (e.code !== "Space") return;
     e.preventDefault();
-    parser.keyDown(performance.now());
+    const now = sceneNow();
+    downAt = now;
+    pauseArmed = false;
+    parser.keyDown(now);
   };
   const onKeyUp = (e: KeyboardEvent): void => {
     if (e.code !== "Space") return;
     e.preventDefault();
-    const action = parser.keyUp(performance.now());
-    if (action) loop.processInput(action, performance.now());
+    const now = sceneNow();
+    downAt = null;
+    pauseArmed = false;
+    const action = parser.keyUp(now);
+    if (action) loop.processInput(action, now);
+  };
+
+  const addInput = (): void => {
+    window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("keyup", onKeyUp);
+  };
+  const removeInput = (): void => {
+    window.removeEventListener("keydown", onKeyDown);
+    window.removeEventListener("keyup", onKeyUp);
   };
 
   const frame = (nowPerf: number): void => {
     if (!running) return;
-    const now = nowPerf;
+    const now = nowPerf - pausedOffset;
     const dt = Math.min(now - last, STEP_MS * 3);
     last = now;
+
+    // Hold-to-pause: a sustained hold while idle/charging requests a pause.
+    if (downAt !== null && !pauseArmed && now - downAt >= PAUSE_HOLD_MS) {
+      const st = player.getSnapshot().state;
+      if (st === "idle" || st === "charging") {
+        pauseArmed = true;
+        callbacks.onPauseRequest?.();
+        return;
+      }
+    }
 
     const held = parser.peekHeldAction(now);
     if (held) loop.processInput(held, now);
@@ -86,10 +130,11 @@ export function createMainGameScene(
     if (!ended && controller.state.status !== "running") {
       ended = true;
       sound.stopAmbient();
-      onEnd?.(controller.state);
+      callbacks.onEnd?.(controller.state);
+      return;
     }
 
-    rafId = requestAnimationFrame(frame);
+    if (hasRaf()) rafId = requestAnimationFrame(frame);
   };
 
   const render = (context: CanvasRenderingContext2D, now: number): void => {
@@ -111,18 +156,37 @@ export function createMainGameScene(
     start: () => {
       if (running) return;
       running = true;
-      last = performance.now();
-      window.addEventListener("keydown", onKeyDown);
-      window.addEventListener("keyup", onKeyUp);
+      last = sceneNow();
+      addInput();
       sound.play("ambient");
-      rafId = requestAnimationFrame(frame);
+      if (hasRaf()) rafId = requestAnimationFrame(frame);
     },
     stop: () => {
       running = false;
-      cancelAnimationFrame(rafId);
-      window.removeEventListener("keydown", onKeyDown);
-      window.removeEventListener("keyup", onKeyUp);
+      if (hasRaf()) cancelAnimationFrame(rafId);
+      removeInput();
       sound.stopAmbient();
+    },
+    pause: () => {
+      if (!running) return;
+      running = false;
+      if (hasRaf()) cancelAnimationFrame(rafId);
+      removeInput();
+      sound.stopAmbient();
+      pauseStartedAt = performance.now();
+    },
+    resume: () => {
+      if (pauseStartedAt === null) return;
+      pausedOffset += performance.now() - pauseStartedAt;
+      pauseStartedAt = null;
+      parser.reset();
+      downAt = null;
+      pauseArmed = false;
+      running = true;
+      last = sceneNow();
+      addInput();
+      sound.play("ambient");
+      if (hasRaf()) rafId = requestAnimationFrame(frame);
     },
   };
 }
@@ -135,7 +199,6 @@ function drawEnemyBody(ctx: CanvasRenderingContext2D, enemy: EnemyActor): void {
   ctx.save();
   ctx.globalAlpha = enemy.state === "stunned" ? 0.5 : 1;
 
-  // Shadow.
   ctx.fillStyle = "#02040a";
   ctx.globalAlpha *= 0.35;
   ctx.beginPath();
@@ -163,14 +226,22 @@ function drawCanvasHud(ctx: CanvasRenderingContext2D, state: RunState): void {
   ctx.fillStyle = "#ff3f62";
   ctx.font = "20px system-ui, sans-serif";
   ctx.textAlign = "left";
-  ctx.fillText("HP " + "♥".repeat(state.hearts), 20, 34);
+  ctx.fillText("HP " + "♥".repeat(Math.max(state.hearts, 0)), 20, 34);
 
   ctx.fillStyle = "#f4fbff";
   ctx.textAlign = "center";
   ctx.font = "bold 22px system-ui, sans-serif";
   ctx.fillText(`WAVE ${state.wave}`, GAME_WIDTH / 2, 34);
 
+  if (state.combo >= 2) {
+    ctx.fillStyle = "#ffe45c";
+    ctx.font = "16px system-ui, sans-serif";
+    ctx.fillText(`COMBO x${state.combo}`, GAME_WIDTH / 2, 58);
+  }
+
+  ctx.fillStyle = "#f4fbff";
   ctx.textAlign = "right";
+  ctx.font = "bold 22px system-ui, sans-serif";
   ctx.fillText(`SCORE ${state.score.toLocaleString()}`, GAME_WIDTH - 20, 34);
 
   if (state.status === "gameOver") drawCenterBanner(ctx, "DEPLOY FAILED", "#ff3f62");

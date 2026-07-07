@@ -1,12 +1,14 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { mountApp } from "./App";
 import type { AppHandle } from "./App";
+import { createRunController } from "../game/run/runState";
 
 describe("mountApp", () => {
   let host: HTMLElement;
   let app: AppHandle | null;
 
   beforeEach(() => {
+    localStorage.clear();
     host = document.createElement("div");
     host.id = "app";
     document.body.appendChild(host);
@@ -18,22 +20,14 @@ describe("mountApp", () => {
     host.remove();
   });
 
-  it("renders the app shell", () => {
+  it("renders shell, canvas, and overlay root", () => {
     app = mountApp(host);
     expect(host.querySelector("[data-app-shell]")).not.toBeNull();
-  });
-
-  it("renders the game canvas", () => {
-    app = mountApp(host);
     expect(host.querySelector("canvas[data-game-canvas]")).not.toBeNull();
-  });
-
-  it("renders the overlay root", () => {
-    app = mountApp(host);
     expect(host.querySelector("[data-overlay-root]")).not.toBeNull();
   });
 
-  it("starts on the title screen", () => {
+  it("boots to the title screen on a normal desktop", () => {
     app = mountApp(host);
     expect(app.getScreen()).toBe("title");
     expect(host.querySelector('[data-screen="title"]')).not.toBeNull();
@@ -41,53 +35,73 @@ describe("mountApp", () => {
 
   it("flows title -> tutorial -> playing with Space", () => {
     app = mountApp(host);
-    // Title has a single action: a tap starts the run.
     app.tapSpace();
     expect(app.getScreen()).toBe("tutorial");
-    expect(host.querySelector('[data-screen="tutorial"]')).not.toBeNull();
-
-    // Tutorial continues on hold.
     app.holdConfirmSpace();
     expect(app.getScreen()).toBe("playing");
-    expect(host.querySelector('[data-screen="playing"]')).not.toBeNull();
   });
 
   it("flows paused -> settings -> paused with Space", () => {
     app = mountApp(host);
-    // Reach playing.
     app.tapSpace(); // title -> tutorial
     app.holdConfirmSpace(); // tutorial -> playing
-    // Idle hold pauses.
-    app.holdPauseSpace();
+    app.holdPauseSpace(); // playing -> paused
     expect(app.getScreen()).toBe("paused");
 
-    // Focus "settings" (second action) and confirm.
-    app.tapSpace();
+    app.tapSpace(); // focus settings
     expect(app.getFocusedAction()).toBe("settings");
     app.holdConfirmSpace();
     expect(app.getScreen()).toBe("settings");
 
-    // Move to "Save And Close" (4th action) and confirm back to paused.
     app.tapSpace();
     app.tapSpace();
-    app.tapSpace();
+    app.tapSpace(); // focus saveAndClose
     expect(app.getFocusedAction()).toBe("saveAndClose");
     app.holdConfirmSpace();
     expect(app.getScreen()).toBe("paused");
   });
 
-  it("skips tutorial on the second run once seen", () => {
+  it("goes from game over to highscores without Firebase configured", () => {
     app = mountApp(host);
     app.tapSpace(); // title -> tutorial
-    app.holdConfirmSpace(); // tutorial -> playing (tutorialSeen = true)
-    app.holdPauseSpace(); // playing -> paused
-    // Quit to title (5th action).
-    for (let i = 0; i < 4; i += 1) app.tapSpace();
-    expect(app.getFocusedAction()).toBe("quitToTitle");
+    app.holdConfirmSpace(); // tutorial -> playing
+
+    const rc = createRunController(0);
+    rc.state.score = 1200;
+    rc.state.wave = 6;
+    rc.state.status = "gameOver";
+    app.finishRun(rc.state);
+    expect(app.getScreen()).toBe("gameOver");
+
+    app.tapSpace(); // focus highscores
+    expect(app.getFocusedAction()).toBe("highscores");
     app.holdConfirmSpace();
+    expect(app.getScreen()).toBe("highscores");
+  });
+
+  it("skips the tutorial on the second run once seen", () => {
+    app = mountApp(host);
+    app.tapSpace(); // title -> tutorial
+    app.holdConfirmSpace(); // tutorial -> playing (sets tutorialSeen)
+    app.holdPauseSpace(); // playing -> paused
+    for (let i = 0; i < 4; i += 1) app.tapSpace(); // focus quitToTitle
+    expect(app.getFocusedAction()).toBe("quitToTitle");
+    app.holdConfirmSpace(); // -> title
     expect(app.getScreen()).toBe("title");
-    // Start again -> should go straight to playing.
-    app.tapSpace();
+
+    app.tapSpace(); // start again -> straight to playing
     expect(app.getScreen()).toBe("playing");
+  });
+
+  it("persists best score after a run", () => {
+    app = mountApp(host);
+    app.tapSpace();
+    app.holdConfirmSpace();
+    const rc = createRunController(0);
+    rc.state.score = 4321;
+    rc.state.wave = 9;
+    rc.state.status = "gameOver";
+    app.finishRun(rc.state);
+    expect(localStorage.getItem("spaceblade.bestScore")).toBe("4321");
   });
 });

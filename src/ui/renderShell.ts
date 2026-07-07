@@ -74,47 +74,19 @@ export function actionButton(id: string, label: string, focusedAction: string | 
 }
 
 /**
- * In-game HUD overlay. The playing screen has no dedicated file in the target
- * map because it renders on top of the canvas; it lives here with the shell.
+ * In-game overlay. The live HUD (hearts/wave/score/combo) is drawn on the
+ * canvas by the game scene, so this overlay only carries the decorative parry
+ * timing strip. It has no dedicated file in the target map because it renders
+ * on top of the canvas; it lives here with the shell.
  */
-function renderPlayingScreen(model: ScreenModel): HTMLElement {
-  const { hud } = model;
-  const hearts = el("div", { class: "hud-hearts" });
-  for (let i = 0; i < hud.maxHearts; i += 1) {
-    hearts.append(
-      el("span", { class: i < hud.hearts ? "heart heart-full" : "heart heart-empty", text: "♥" }),
-    );
-  }
-
-  const hpBar = el("div", { class: "hud-hpbar" }, [
-    el("div", { class: "hud-hpbar-fill", style: `width:${Math.round(hud.hpPct * 100)}%` }),
-  ]);
-
+function renderPlayingScreen(_model: ScreenModel): HTMLElement {
   const parryStrip = el("div", { class: "parry-strip", "data-parry-strip": "" }, [
     el("span", { class: "parry-zone parry-early", text: "TOO EARLY" }),
     el("span", { class: "parry-zone parry-perfect", text: "PERFECT" }),
     el("span", { class: "parry-zone parry-late", text: "TOO LATE" }),
   ]);
 
-  return el("div", { class: "screen screen-playing", "data-screen": "playing" }, [
-    el("div", { class: "hud" }, [
-      el("div", { class: "hud-left" }, [
-        hearts,
-        el("div", { class: "hud-hp" }, [el("span", { class: "hud-label", text: "HP" }), hpBar]),
-      ]),
-      el("div", { class: "hud-center" }, [
-        el("div", { class: "hud-label", text: "WAVE" }),
-        el("div", { class: "hud-value", "data-hud": "wave", text: String(hud.wave) }),
-      ]),
-      el("div", { class: "hud-right" }, [
-        el("div", { class: "hud-label", text: "SCORE" }),
-        el("div", { class: "hud-value", "data-hud": "score", text: String(hud.score) }),
-      ]),
-    ]),
-    el("div", { class: "hud-action-state", "data-hud": "action", text: hud.actionState }),
-    el("div", { class: "damage-layer", "data-damage-layer": "" }),
-    parryStrip,
-  ]);
+  return el("div", { class: "screen screen-playing", "data-screen": "playing" }, [parryStrip]);
 }
 
 const RENDERERS: Record<GameScreen, (model: ScreenModel) => HTMLElement> = {
