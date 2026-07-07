@@ -8,7 +8,7 @@ import { drawEnemyPixel } from "../enemies/enemySprites";
 import { createRunController } from "../run/runState";
 import type { RunState } from "../run/runState";
 import { createGameLoop, themeForWave } from "../run/gameLoop";
-import { drawBackground } from "../rendering/backgroundLayers";
+import { drawPixelBackground } from "../rendering/pixelBackground";
 import { createCamera } from "../rendering/camera";
 import { createEffectSystem } from "../rendering/effects";
 import { createSoundBus } from "../audio/soundBus";
@@ -130,7 +130,7 @@ export function createMainGameScene(
 
   const render = (context: CanvasRenderingContext2D, now: number): void => {
     camera.apply(context, now, settings.screenShakeEnabled);
-    drawBackground(context, themeForWave(controller.state.wave), now);
+    drawPixelBackground(context, themeForWave(controller.state.wave), now);
     for (const enemy of controller.state.activeEnemies) {
       if (enemy.state === "dead") continue;
       drawEnemyTelegraph(context, enemy, now);
