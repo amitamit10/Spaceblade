@@ -34,6 +34,7 @@ export function renderGameOverScreen(model: ScreenModel): HTMLElement {
         stat("Enemies Defeated", String(defeated)),
         stat("Grade", grade ?? "—"),
       ]),
+      el("p", { class: "submit-status", "data-submit": model.submitOutcome ?? "", text: submitLabel(model.submitOutcome) }),
       el(
         "div",
         { class: "menu-list menu-horizontal" },
@@ -41,4 +42,19 @@ export function renderGameOverScreen(model: ScreenModel): HTMLElement {
       ),
     ]),
   ]);
+}
+
+function submitLabel(outcome: ScreenModel["submitOutcome"]): string {
+  switch (outcome) {
+    case "submitted":
+      return "Score submitted to leaderboard";
+    case "skipped":
+      return "Score too low to rank";
+    case "offline":
+      return "Offline — score saved locally";
+    case "disabled":
+      return "Leaderboard offline";
+    default:
+      return "";
+  }
 }

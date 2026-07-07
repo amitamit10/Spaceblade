@@ -336,6 +336,18 @@ body {
   text-transform: uppercase;
 }
 
+.submit-status {
+  color: var(--color-effect);
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  min-height: 1rem;
+}
+
+.submit-status[data-submit="disabled"],
+.submit-status[data-submit="offline"] {
+  color: var(--color-muted);
+}
+
 /* --- Highscores --- */
 .hs-tabs {
   display: flex;

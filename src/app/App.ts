@@ -80,6 +80,7 @@ export function mountApp(host: HTMLElement, initialScreen: GameScreen = "title")
       hud: { hearts: 3, maxHearts: 3, hpPct: 0.7, wave: 12, score: 3450, actionState: "Idle" },
       runStats: screenState.get() === "gameOver" ? sampleRunStats : null,
       leaderboard,
+      submitOutcome: null,
     };
   }
 

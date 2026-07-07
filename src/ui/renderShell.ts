@@ -1,4 +1,5 @@
 import type { GameScreen, SettingsState, RunStats, LeaderboardEntry } from "../app/types";
+import type { SubmitOutcome } from "../state/leaderboard/leaderboardService";
 import { renderTitleScreen } from "./screens/titleScreen";
 import { renderTutorialScreen } from "./screens/tutorialScreen";
 import { renderPauseScreen } from "./screens/pauseScreen";
@@ -33,6 +34,8 @@ export type ScreenModel = {
   hud: HudView;
   runStats: RunStats | null;
   leaderboard: LeaderboardView;
+  /** Outcome of the run-end leaderboard submission, shown on game over. */
+  submitOutcome: SubmitOutcome | null;
 };
 
 type ElProps = Record<string, string> & { text?: string };

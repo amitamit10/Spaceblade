@@ -1,0 +1,42 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /leaderboardScores/{scoreId} {
+      allow read: if true;
+      allow create: if
+        request.resource.data.keys().hasOnly([
+          'playerName',
+          'score',
+          'wave',
+          'enemiesDefeated',
+          'parries',
+          'grade',
+          'clientRunId',
+          'createdAt'
+        ]) &&
+        request.resource.data.playerName is string &&
+        request.resource.data.playerName.size() >= 1 &&
+        request.resource.data.playerName.size() <= 16 &&
+        request.resource.data.score is int &&
+        request.resource.data.score >= 100 &&
+        request.resource.data.score <= 999999 &&
+        request.resource.data.wave is int &&
+        request.resource.data.wave >= 1 &&
+        request.resource.data.wave <= 15 &&
+        request.resource.data.enemiesDefeated is int &&
+        request.resource.data.enemiesDefeated >= 0 &&
+        request.resource.data.enemiesDefeated <= 500 &&
+        request.resource.data.parries is int &&
+        request.resource.data.parries >= 0 &&
+        request.resource.data.parries <= 500 &&
+        (
+          request.resource.data.grade == null ||
+          request.resource.data.grade in ['B', 'C', 'A', 'S', 'SS', 'SSS']
+        ) &&
+        request.resource.data.clientRunId is string &&
+        request.resource.data.clientRunId.size() >= 8 &&
+        request.resource.data.clientRunId.size() <= 80;
+      allow update, delete: if false;
+    }
+  }
+}
