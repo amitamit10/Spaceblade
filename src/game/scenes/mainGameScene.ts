@@ -2,7 +2,7 @@ import type { SettingsState } from "../../app/types";
 import { STEP_MS, GAME_WIDTH, GROUND_Y } from "../constants";
 import { createInputParser } from "../input/inputParser";
 import { createPlayerStateMachine } from "../player/playerStateMachine";
-import { drawPlayer } from "../player/playerRenderer";
+import { drawPlayerPixel } from "../player/playerSprites";
 import type { EnemyActor } from "../enemies/enemyFactory";
 import { drawEnemyTelegraph } from "../enemies/enemyTelegraphs";
 import { createRunController } from "../run/runState";
@@ -145,7 +145,7 @@ export function createMainGameScene(
       drawEnemyTelegraph(context, enemy, now);
       drawEnemyBody(context, enemy);
     }
-    drawPlayer(context, player.getSnapshot(), now);
+    drawPlayerPixel(context, player.getSnapshot(), now);
     effects.draw(context, now, settings.reducedEffectsEnabled);
     camera.restore(context);
     drawCanvasHud(context, controller.state);

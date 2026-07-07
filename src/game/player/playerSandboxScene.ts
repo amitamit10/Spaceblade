@@ -1,6 +1,6 @@
 import { createInputParser } from "../input/inputParser";
 import { createPlayerStateMachine } from "./playerStateMachine";
-import { drawPlayer } from "./playerRenderer";
+import { drawPlayerPixel } from "./playerSprites";
 import { GAME_WIDTH, GAME_HEIGHT, GROUND_Y } from "../constants";
 
 export type Scene = {
@@ -42,7 +42,7 @@ export function createPlayerSandboxScene(canvas: HTMLCanvasElement): Scene {
 
     if (ctx) {
       drawArena(ctx);
-      drawPlayer(ctx, player.getSnapshot(), now);
+      drawPlayerPixel(ctx, player.getSnapshot(), now);
     }
     rafId = requestAnimationFrame(frame);
   };
