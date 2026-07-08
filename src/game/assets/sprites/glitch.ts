@@ -7,7 +7,7 @@ export const GLITCH_SHEET: SpriteSheetDef = {
   frameHeight: 80,
   scale: 3,
   anchorX: 40,
-  anchorY: 72,
+  anchorY: 79,
   defaultFacing: "right",
   animations: {
     walk: { row: 0, frames: 6, frameDurationMs: 75, loop: true },

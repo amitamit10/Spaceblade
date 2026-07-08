@@ -7,7 +7,7 @@ export const RUNNER_SHEET: SpriteSheetDef = {
   frameHeight: 64,
   scale: 3,
   anchorX: 32,
-  anchorY: 58,
+  anchorY: 63,
   defaultFacing: "right",
   animations: {
     walk: { row: 0, frames: 6, frameDurationMs: 80, loop: true },

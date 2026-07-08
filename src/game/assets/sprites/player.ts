@@ -7,7 +7,7 @@ export const PLAYER_SHEET: SpriteSheetDef = {
   frameHeight: 96,
   scale: 3,
   anchorX: 48,
-  anchorY: 86,
+  anchorY: 95,
   defaultFacing: "right",
   animations: {
     idle: { row: 0, frames: 4, frameDurationMs: 130, loop: true },

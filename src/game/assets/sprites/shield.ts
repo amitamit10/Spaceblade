@@ -7,7 +7,7 @@ export const SHIELD_SHEET: SpriteSheetDef = {
   frameHeight: 80,
   scale: 3,
   anchorX: 40,
-  anchorY: 72,
+  anchorY: 79,
   defaultFacing: "right",
   animations: {
     walk: { row: 0, frames: 4, frameDurationMs: 110, loop: true },

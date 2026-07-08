@@ -7,7 +7,7 @@ export const TANK_SHEET: SpriteSheetDef = {
   frameHeight: 96,
   scale: 3,
   anchorX: 48,
-  anchorY: 86,
+  anchorY: 95,
   defaultFacing: "right",
   animations: {
     walk: { row: 0, frames: 4, frameDurationMs: 120, loop: true },

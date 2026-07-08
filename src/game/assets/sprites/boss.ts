@@ -7,7 +7,7 @@ export const BOSS_SHEET: SpriteSheetDef = {
   frameHeight: 160,
   scale: 3,
   anchorX: 80,
-  anchorY: 146,
+  anchorY: 159,
   defaultFacing: "right",
   animations: {
     walk: { row: 0, frames: 4, frameDurationMs: 130, loop: true },

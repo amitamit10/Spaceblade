@@ -5,6 +5,7 @@ import { ALL_SPRITE_SHEETS } from "../assets/sprites";
 import { validateSheetGeometry, validateSpriteSheetDef } from "./spriteManifest";
 import {
   findEmptyUsedCells,
+  findFeetRow,
   findNonEmptyCells,
   getRuntimeSpritePackPaths,
   readPngMetadata,
@@ -71,6 +72,19 @@ describe("runtime sprite pack", () => {
       const strayCells = nonEmptyCells.filter(({ row, col }) => !usedCells.has(`${row}:${col}`));
 
       expect(strayCells, `${sheet.id} should not draw into unused cells`).toEqual([]);
+    }
+  });
+
+  it("aligns each manifest anchorY with the sprite's actual feet row so actors stand on the ground", () => {
+    for (const sheet of ALL_SPRITE_SHEETS) {
+      const absPath = resolve(process.cwd(), "public", sheet.src.replace(/^\//, ""));
+      // Row 0 is the grounded neutral pose (idle/walk) for every actor sheet.
+      const feetRow = findFeetRow(absPath, sheet.frameWidth, sheet.frameHeight, 0);
+      expect(feetRow, `${sheet.id} row 0 should contain sprite pixels`).toBeGreaterThan(0);
+      expect(
+        Math.abs(sheet.anchorY - feetRow),
+        `${sheet.id} anchorY (${sheet.anchorY}) should match its feet row (${feetRow}) so feet land on the ground line`,
+      ).toBeLessThanOrEqual(2);
     }
   });
 

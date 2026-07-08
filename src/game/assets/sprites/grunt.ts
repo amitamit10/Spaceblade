@@ -7,7 +7,7 @@ export const GRUNT_SHEET: SpriteSheetDef = {
   frameHeight: 64,
   scale: 3,
   anchorX: 32,
-  anchorY: 58,
+  anchorY: 63,
   defaultFacing: "right",
   animations: {
     walk: { row: 0, frames: 4, frameDurationMs: 110, loop: true },

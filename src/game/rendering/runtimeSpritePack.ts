@@ -215,6 +215,40 @@ export function findEmptyUsedCells(
   return emptyUsedCells;
 }
 
+/**
+ * Bottom-most opaque pixel row (relative to the frame top) across every column
+ * of a single sheet row. This is where the character's feet sit, which the
+ * manifest `anchorY` must match so feet land on the ground line at render time.
+ * Returns -1 if the row band is fully transparent.
+ */
+export function findFeetRow(
+  absPath: string,
+  frameWidth: number,
+  frameHeight: number,
+  sheetRow: number,
+): number {
+  const { width, height, colorType, bpp, pixels } = decodePng(absPath);
+  const cols = Math.floor(width / frameWidth);
+  const startY = sheetRow * frameHeight;
+  if (startY + frameHeight > height) return -1;
+
+  let feet = -1;
+  for (let y = 0; y < frameHeight; y += 1) {
+    for (let col = 0; col < cols; col += 1) {
+      const startX = col * frameWidth;
+      for (let x = startX; x < startX + frameWidth; x += 1) {
+        const pixelIndex = (startY + y) * width + x;
+        if (alphaAt(pixels, pixelIndex, colorType, bpp) > 16) {
+          if (y > feet) feet = y;
+          break;
+        }
+      }
+    }
+  }
+
+  return feet;
+}
+
 export function getRuntimeSpritePackPaths(
   sheets: RuntimeSpriteSheetLike[],
 ): string[] {
