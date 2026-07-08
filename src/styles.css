@@ -371,6 +371,10 @@ body {
   border-color: var(--color-player);
 }
 
+.hs-tab-focused {
+  box-shadow: 0 0 0 2px rgba(57, 246, 176, 0.28);
+}
+
 .hs-status {
   color: var(--color-muted);
   font-size: 0.78rem;

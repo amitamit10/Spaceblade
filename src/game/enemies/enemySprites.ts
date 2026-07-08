@@ -1,8 +1,18 @@
 import type { PixelSprite } from "../rendering/pixelSprite";
 import { drawSprite } from "../rendering/pixelSprite";
 import { frameForTime } from "../rendering/animation";
+import { frameIndexForLoop, frameIndexForOneShot, progressFromTimes } from "../rendering/spriteAnimator";
+import { drawSheetFrame } from "../rendering/spriteSheetRenderer";
+import { getSpriteSheet } from "../rendering/spriteSheetLoader";
 import type { EnemyActor } from "./enemyFactory";
 import type { EnemyType } from "../../app/types";
+import type { SpriteAnimationDef, SpriteSheetDef } from "../rendering/spriteManifest";
+import { BOSS_SHEET } from "../assets/sprites/boss";
+import { GLITCH_SHEET } from "../assets/sprites/glitch";
+import { GRUNT_SHEET } from "../assets/sprites/grunt";
+import { RUNNER_SHEET } from "../assets/sprites/runner";
+import { SHIELD_SHEET } from "../assets/sprites/shield";
+import { TANK_SHEET } from "../assets/sprites/tank";
 
 const SCALE_BY_TYPE: Record<EnemyType, number> = {
   grunt: 4,
@@ -11,6 +21,15 @@ const SCALE_BY_TYPE: Record<EnemyType, number> = {
   tank: 5,
   glitch: 4,
   boss: 7,
+};
+
+const SHEETS: Record<EnemyType, SpriteSheetDef> = {
+  grunt: GRUNT_SHEET,
+  runner: RUNNER_SHEET,
+  shield: SHIELD_SHEET,
+  tank: TANK_SHEET,
+  glitch: GLITCH_SHEET,
+  boss: BOSS_SHEET,
 };
 
 const sprite = (
@@ -412,12 +431,82 @@ function spriteFor(enemy: EnemyActor, now: number): PixelSprite {
   return frames[frameForTime(now, 220, frames.length)];
 }
 
+type EnemySheetPose = {
+  key: keyof SpriteSheetDef["animations"];
+  frameIndex: number;
+};
+
+function oneShotFrame(now: number, startedAt: number, totalDurationMs: number, anim: SpriteAnimationDef): number {
+  return frameIndexForOneShot(progressFromTimes(now, startedAt, totalDurationMs), anim);
+}
+
+export function getEnemySheetPose(enemy: EnemyActor, now: number): EnemySheetPose {
+  const def = SHEETS[enemy.type];
+  const startedAt = enemy.stateChangedAt;
+  switch (enemy.state) {
+    case "spawning":
+    case "approaching":
+      return { key: "walk", frameIndex: frameIndexForLoop(now, def.animations.walk) };
+    case "windup": {
+      const anim = def.animations.windup;
+      const total = enemy.nextImpactAt !== null ? Math.max(anim.frameDurationMs, enemy.nextImpactAt - startedAt) : anim.frames * anim.frameDurationMs;
+      return { key: "windup", frameIndex: oneShotFrame(now, startedAt, total, anim) };
+    }
+    case "recovering": {
+      const attackAnim = def.animations.attack;
+      const recoverAnim = def.animations.recover;
+      const total = enemy.stunnedUntil !== null
+        ? Math.max(attackAnim.frameDurationMs + recoverAnim.frameDurationMs, enemy.stunnedUntil - startedAt)
+        : attackAnim.frames * attackAnim.frameDurationMs + recoverAnim.frames * recoverAnim.frameDurationMs;
+      const elapsed = Math.max(0, now - startedAt);
+      const attackBudget = Math.max(attackAnim.frameDurationMs * attackAnim.frames, Math.round(total * 0.45));
+      if (elapsed < attackBudget) {
+        return { key: "attack", frameIndex: oneShotFrame(now, startedAt, attackBudget, attackAnim) };
+      }
+      return {
+        key: "recover",
+        frameIndex: oneShotFrame(now, startedAt + attackBudget, Math.max(recoverAnim.frameDurationMs, total - attackBudget), recoverAnim),
+      };
+    }
+    case "stunned": {
+      const anim = def.animations.hurt;
+      const total = enemy.stunnedUntil !== null
+        ? Math.max(anim.frameDurationMs * anim.frames, enemy.stunnedUntil - startedAt)
+        : anim.frameDurationMs * anim.frames;
+      return { key: "hurt", frameIndex: oneShotFrame(now, startedAt, total, anim) };
+    }
+    case "dead": {
+      const anim = def.animations.dead;
+      return { key: "dead", frameIndex: oneShotFrame(now, startedAt, anim.frameDurationMs * anim.frames, anim) };
+    }
+    case "attacking": {
+      const anim = def.animations.attack;
+      return { key: "attack", frameIndex: oneShotFrame(now, startedAt, anim.frameDurationMs * anim.frames, anim) };
+    }
+    default:
+      return { key: "walk", frameIndex: frameIndexForLoop(now, def.animations.walk) };
+  }
+}
+
 /** Draws an enemy as a pixel-art sprite for its type and current state. */
 export function drawEnemyPixel(
   ctx: CanvasRenderingContext2D,
   enemy: EnemyActor,
   now: number,
 ): void {
+  const def = SHEETS[enemy.type];
+  const sheet = getSpriteSheet(def);
+  if (sheet) {
+    const pose = getEnemySheetPose(enemy, now);
+    const anim = def.animations[pose.key];
+
+    ctx.save();
+    ctx.globalAlpha = enemy.state === "stunned" ? 0.5 : 1;
+    drawSheetFrame(ctx, sheet, def, anim, pose.frameIndex, enemy.x, enemy.y + 30, enemy.facing);
+    ctx.restore();
+    return;
+  }
+
   const sprite = spriteFor(enemy, now);
   const scale = SCALE_BY_TYPE[enemy.type] ?? 4;
   ctx.save();

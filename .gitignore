@@ -1,5 +1,9 @@
 node_modules/
 dist/
+test-results/
+tmp/
+.kilo/
+imeges/
 .env
 .env.local
 *.log

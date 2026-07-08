@@ -4,6 +4,8 @@ import { enemyStats } from "../enemies/enemyStats";
 import { killScore, waveClearBonus, streakBonusAt, gradeForScore } from "./scoreSystem";
 import { getWaveEntry, waveClearThreshold } from "./waveTable";
 
+const WAVE_START_GRACE_MS = 900;
+
 export type RunStatus = "ready" | "running" | "waveClear" | "gameOver" | "victory";
 
 export type RunState = {
@@ -56,7 +58,7 @@ export function createRunController(now: number): RunController {
     enemiesDefeated: 0,
     parries: 0,
     activeEnemies: [],
-    nextSpawnAt: now,
+    nextSpawnAt: now + WAVE_START_GRACE_MS,
     startedAt: now,
     endedAt: null,
   };
@@ -118,7 +120,7 @@ export function createRunController(now: number): RunController {
       }
     },
 
-    tryAdvanceWave: () => {
+    tryAdvanceWave: (now) => {
       const entry = getWaveEntry(state.wave);
       if (entry.includesBoss) return { advanced: false, clean: false };
       const ready =
@@ -133,6 +135,7 @@ export function createRunController(now: number): RunController {
       defeated = 0;
       spawned = 0;
       state.status = "running";
+      state.nextSpawnAt = now + WAVE_START_GRACE_MS;
       return { advanced: true, clean };
     },
 

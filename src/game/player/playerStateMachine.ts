@@ -17,6 +17,7 @@ export type PlayerSnapshot = {
 
 export type PlayerStateMachine = {
   applyAction(action: InputAction, now: number): PlayerSnapshot;
+  face(facing: Facing): PlayerSnapshot;
   applyDamage(now: number): PlayerSnapshot;
   update(now: number): PlayerSnapshot;
   getSnapshot(): PlayerSnapshot;
@@ -113,6 +114,7 @@ export function createPlayerStateMachine(now: number): PlayerStateMachine {
       busyUntil = Infinity;
     } else {
       begin("hurt", time, playerConfig.hurtLockMs);
+      invulnerableUntil = time + playerConfig.hurtLockMs;
     }
     return snapshot();
   };
@@ -122,5 +124,10 @@ export function createPlayerStateMachine(now: number): PlayerStateMachine {
     return snapshot();
   };
 
-  return { applyAction, applyDamage, update, getSnapshot: snapshot };
+  const face = (next: Facing): PlayerSnapshot => {
+    if (state !== "dead") facing = next;
+    return snapshot();
+  };
+
+  return { applyAction, face, applyDamage, update, getSnapshot: snapshot };
 }

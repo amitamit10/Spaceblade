@@ -19,6 +19,7 @@ export type EnemyActor = {
     | "dead";
   facing: Facing;
   shielded: boolean;
+  stateChangedAt: number;
   nextImpactAt: number | null;
   stunnedUntil: number | null;
 };
@@ -39,6 +40,7 @@ export function createEnemy(
     state: "spawning",
     facing: side === "left" ? "right" : "left",
     shielded: type === "shield",
+    stateChangedAt: 0,
     nextImpactAt: null,
     stunnedUntil: null,
   };

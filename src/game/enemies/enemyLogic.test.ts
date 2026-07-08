@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { createEnemy } from "./enemyFactory";
 import { resolveHit, isParryWindow, enterWindup, teleportGlitch } from "./enemyLogic";
+import { enemyStats } from "./enemyStats";
 
 describe("resolveHit", () => {
   it("kills a grunt with any single hit", () => {
@@ -35,6 +36,13 @@ describe("resolveHit", () => {
     expect(resolveHit(tank, "quick", 0)).toBe("damaged");
     expect(tank.hp).toBe(1);
     expect(resolveHit(tank, "heavy", 100)).toBe("killed");
+  });
+
+  it("gives damaged durable enemies a recovery timer", () => {
+    const tank = createEnemy("t", "tank", "left");
+    expect(resolveHit(tank, "quick", 250)).toBe("damaged");
+    expect(tank.state).toBe("recovering");
+    expect(tank.stunnedUntil).toBe(250 + enemyStats.tank.recoveryMs);
   });
 
   it("stuns a tank on parry without damaging it", () => {

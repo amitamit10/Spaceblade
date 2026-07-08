@@ -79,6 +79,33 @@ describe("mountApp", () => {
     expect(app.getScreen()).toBe("highscores");
   });
 
+  it("lets highscores switch to the local Friends tab with Space", async () => {
+    localStorage.setItem("spaceblade.bestScore", "900");
+    localStorage.setItem("spaceblade.bestWave", "4");
+    localStorage.setItem("spaceblade.playerName", "Amit");
+    app = mountApp(host);
+    app.tapSpace(); // title -> tutorial
+    app.holdConfirmSpace(); // tutorial -> playing
+    const rc = createRunController(0);
+    rc.state.score = 900;
+    rc.state.wave = 4;
+    rc.state.status = "gameOver";
+    app.finishRun(rc.state);
+    app.tapSpace(); // focus highscores from game over
+    app.holdConfirmSpace();
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(host.querySelector(".hs-tab-active")?.textContent).toBe("Global");
+
+    app.tapSpace(); // focus friends
+    expect(app.getFocusedAction()).toBe("friends");
+    app.holdConfirmSpace();
+
+    expect(host.querySelector(".hs-tab-active")?.textContent).toBe("Friends");
+    expect(host.querySelector("[data-you='true']")?.textContent).toContain("Amit");
+    expect(host.querySelectorAll("[data-you='true']")).toHaveLength(1);
+  });
+
   it("skips the tutorial on the second run once seen", () => {
     app = mountApp(host);
     app.tapSpace(); // title -> tutorial

@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="660" height="520" viewBox="0 0 660 520">
+  <rect width="660" height="520" fill="#0f1117"/>
+  <rect x="180" y="40" width="480" height="480" fill="#161b22"/>
+  <text x="20" y="26" fill="#e6edf3" font-family="monospace" font-size="20">glitch.png 480x480 | frame 80x80 | rows 6 | cols 6</text>
+  <g fill="#8b949e" font-family="monospace" font-size="18">
+    <text x="212" y="28">0</text><text x="292" y="28">1</text><text x="372" y="28">2</text><text x="452" y="28">3</text><text x="532" y="28">4</text><text x="612" y="28">5</text>
+    <text x="16" y="92">0 walk (6)</text>
+    <text x="16" y="172">1 windup (3)</text>
+    <text x="16" y="252">2 attack (4)</text>
+    <text x="16" y="332">3 recover (2)</text>
+    <text x="16" y="412">4 hurt (2)</text>
+    <text x="16" y="492">5 dead (3)</text>
+  </g>
+  <g stroke="#30363d" stroke-width="1">
+    <line x1="180" y1="40" x2="180" y2="520"/><line x1="260" y1="40" x2="260" y2="520"/><line x1="340" y1="40" x2="340" y2="520"/><line x1="420" y1="40" x2="420" y2="520"/><line x1="500" y1="40" x2="500" y2="520"/><line x1="580" y1="40" x2="580" y2="520"/><line x1="660" y1="40" x2="660" y2="520"/>
+    <line x1="180" y1="40" x2="660" y2="40"/><line x1="180" y1="120" x2="660" y2="120"/><line x1="180" y1="200" x2="660" y2="200"/><line x1="180" y1="280" x2="660" y2="280"/><line x1="180" y1="360" x2="660" y2="360"/><line x1="180" y1="440" x2="660" y2="440"/><line x1="180" y1="520" x2="660" y2="520"/>
+  </g>
+</svg>

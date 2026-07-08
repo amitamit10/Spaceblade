@@ -7,7 +7,7 @@
 Spaceblade is a browser action game built for the Hack Club **OneKey** challenge: every interaction — menus, combat, pause, settings — is driven by a single key. You are locked to the center of the arena while enemies pour in from both sides; you read their red attack telegraphs and answer with slashes, heavy shockwaves, dodges, and perfectly-timed parries.
 
 - Fixed internal resolution `1280 x 720`, scaled responsively to any 16:9 viewport.
-- Rendered on one HTML Canvas with procedural vector art (no sprite assets required).
+- Rendered on one HTML Canvas with code-authored pixel sprites and tiled backgrounds.
 - Pure-TypeScript simulation, fully unit tested; menus are DOM overlays.
 - Optional online leaderboard on Firebase Firestore (free tier). The game is fully playable with no backend configured.
 
@@ -35,6 +35,12 @@ Requirements: Node 18+ and npm.
 npm install
 npm run dev      # start the dev server (http://localhost:5173)
 npm test         # run the unit + integration tests (vitest)
+npm run test:art       # run sprite verification plus the browser motion test
+npm run test:motion    # run the browser title -> tutorial -> playing motion check
+npm run test:sprites   # run the focused shipped-sprite verification suite
+npm run verify:art     # full art verification + production build
+npm run verify:motion  # browser motion check + production build verification
+npm run verify:sprites # sprite suite + production build verification
 npm run build    # type-check and build the production bundle to dist/
 npm run preview  # preview the production build
 ```
@@ -48,6 +54,17 @@ The leaderboard is **optional** and read-mostly:
 - Local best score, best wave, settings, tutorial-seen flag, and player name are stored in `localStorage`.
 - With no Firebase configuration the highscores screen shows a **disabled** state; on a network error it shows **offline**. Gameplay is never blocked by the network.
 - The **Friends** tab shows your local best only (there is no account system in v1).
+
+## Character Sprite Sheets
+
+Runtime character art is prepared to load from sprite sheets using one explicit contract per actor:
+
+- Each actor uses one PNG sheet plus one TypeScript manifest under `src/game/assets/sprites/`.
+- The manifest defines frame size, anchor point, draw scale, facing, and animation rows explicitly.
+- If a sheet is missing or fails to load, the game falls back to the built-in procedural renderer.
+- The current runtime sheets for the player, all five standard enemies, and the boss already live in `public/sprites/`.
+- `src/game/rendering/runtimeSpritePack.test.ts` verifies manifest uniqueness, runtime sheet/file sync, shipped sprite-sheet dimensions, alpha preservation, and used/unused cell occupancy against the manifests.
+- The current `imeges/` folder is reference art only and is not used as the runtime asset source.
 
 ## Firebase Setup
 

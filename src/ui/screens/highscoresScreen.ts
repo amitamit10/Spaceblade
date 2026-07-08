@@ -2,7 +2,7 @@ import { el, actionButton } from "../renderShell";
 import type { ScreenModel } from "../renderShell";
 import type { LeaderboardEntry } from "../../app/types";
 
-export const HIGHSCORES_ACTIONS = ["return"] as const;
+export const HIGHSCORES_ACTIONS = ["global", "friends", "return"] as const;
 
 const STATUS_TEXT: Record<string, string> = {
   online: "Online · global leaderboard",
@@ -21,13 +21,22 @@ function entryRow(rank: string, entry: LeaderboardEntry, isYou: boolean): HTMLEl
 
 export function renderHighscoresScreen(model: ScreenModel): HTMLElement {
   const { leaderboard } = model;
-  const tabs = (["global", "friends"] as const).map((tab) =>
-    el("span", {
-      class: leaderboard.tab === tab ? "hs-tab hs-tab-active" : "hs-tab",
+  const tabs = (["global", "friends"] as const).map((tab) => {
+    const classes = [
+      "hs-tab",
+      leaderboard.tab === tab ? "hs-tab-active" : "",
+      model.focusedAction === tab ? "hs-tab-focused" : "",
+    ]
+      .filter(Boolean)
+      .join(" ");
+    return el("span", {
+      class: classes,
       "data-tab": tab,
+      "data-action": tab,
+      "data-focused": String(model.focusedAction === tab),
       text: tab === "global" ? "Global" : "Friends",
-    }),
-  );
+    });
+  });
 
   const header = el("div", { class: "score-row score-header" }, [
     el("span", { class: "score-rank", text: "RANK" }),
@@ -41,7 +50,8 @@ export function renderHighscoresScreen(model: ScreenModel): HTMLElement {
   );
 
   const list = el("div", { class: "score-list" }, [header, ...rows]);
-  if (leaderboard.you) {
+  const hasYouRow = leaderboard.you ? leaderboard.entries.includes(leaderboard.you) : false;
+  if (leaderboard.you && !hasYouRow) {
     list.append(entryRow("—", leaderboard.you, true));
   }
 
