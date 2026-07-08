@@ -39,7 +39,7 @@
   - `src/game/rendering/spriteSheetLoader.ts`
   - actor manifest files under `src/game/assets/sprites/`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Create `src/game/rendering/spriteManifest.test.ts`:
 
@@ -101,13 +101,13 @@ describe("validateSheetGeometry", () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npm test -- --run src/game/rendering/spriteManifest.test.ts`
 
 Expected: FAIL with module-not-found for `./spriteManifest`.
 
-- [ ] **Step 3: Implement the contract and validators**
+- [x] **Step 3: Implement the contract and validators**
 
 Create `src/game/rendering/spriteManifest.ts`:
 
@@ -173,13 +173,13 @@ export function validateSheetGeometry(
 }
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 Run: `npm test -- --run src/game/rendering/spriteManifest.test.ts`
 
 Expected: PASS (6 tests).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/game/rendering/spriteManifest.ts src/game/rendering/spriteManifest.test.ts
@@ -206,7 +206,7 @@ git commit -m "feat: add sprite sheet manifest contract"
   - `clearSpriteSheetCache(): void`
   - `drawSheetFrame(ctx, sheet, def, animation, frameIndex, cx, yBase, facing): void`
 
-- [ ] **Step 1: Write the failing loader test**
+- [x] **Step 1: Write the failing loader test**
 
 Create `src/game/rendering/spriteSheetLoader.test.ts`:
 
@@ -236,7 +236,7 @@ describe("spriteSheetLoader", () => {
 });
 ```
 
-- [ ] **Step 2: Write the failing renderer test**
+- [x] **Step 2: Write the failing renderer test**
 
 Create `src/game/rendering/spriteSheetRenderer.test.ts`:
 
@@ -266,13 +266,13 @@ describe("drawSheetFrame", () => {
 });
 ```
 
-- [ ] **Step 3: Run the tests to verify they fail**
+- [x] **Step 3: Run the tests to verify they fail**
 
 Run: `npm test -- --run src/game/rendering/spriteSheetLoader.test.ts src/game/rendering/spriteSheetRenderer.test.ts`
 
 Expected: FAIL with module-not-found errors.
 
-- [ ] **Step 4: Implement the loader**
+- [x] **Step 4: Implement the loader**
 
 Create `src/game/rendering/spriteSheetLoader.ts`:
 
@@ -328,7 +328,7 @@ export function clearSpriteSheetCache(): void {
 }
 ```
 
-- [ ] **Step 5: Implement the frame renderer**
+- [x] **Step 5: Implement the frame renderer**
 
 Create `src/game/rendering/spriteSheetRenderer.ts`:
 
@@ -371,13 +371,13 @@ export function drawSheetFrame(
 }
 ```
 
-- [ ] **Step 6: Run the tests to verify they pass**
+- [x] **Step 6: Run the tests to verify they pass**
 
 Run: `npm test -- --run src/game/rendering/spriteSheetLoader.test.ts src/game/rendering/spriteSheetRenderer.test.ts`
 
 Expected: PASS (2 tests).
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/game/rendering/spriteSheetLoader.ts src/game/rendering/spriteSheetLoader.test.ts src/game/rendering/spriteSheetRenderer.ts src/game/rendering/spriteSheetRenderer.test.ts
@@ -396,7 +396,7 @@ git commit -m "feat: add sprite sheet loader and renderer"
   - `frameIndexForOneShot(progress: number, anim: SpriteAnimationDef): number`
   - `progressFromTimes(now: number, startedAt: number, totalDurationMs: number): number`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Create `src/game/rendering/spriteAnimator.test.ts`:
 
@@ -428,13 +428,13 @@ describe("spriteAnimator", () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npm test -- --run src/game/rendering/spriteAnimator.test.ts`
 
 Expected: FAIL with module-not-found for `./spriteAnimator`.
 
-- [ ] **Step 3: Implement the helper**
+- [x] **Step 3: Implement the helper**
 
 Create `src/game/rendering/spriteAnimator.ts`:
 
@@ -460,13 +460,13 @@ export function progressFromTimes(now: number, startedAt: number, totalDurationM
 }
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `npm test -- --run src/game/rendering/spriteAnimator.test.ts`
 
 Expected: PASS (3 tests).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/game/rendering/spriteAnimator.ts src/game/rendering/spriteAnimator.test.ts
@@ -502,7 +502,7 @@ git commit -m "feat: add sprite animation helpers"
   - `ALL_SPRITE_SHEETS: SpriteSheetDef[]`
   - `drawPlayerPixel(...)` upgraded to prefer sheet rendering and fallback to current baked-grid sprites when unavailable
 
-- [ ] **Step 1: Add the failing player manifest/render test**
+- [x] **Step 1: Add the failing player manifest/render test**
 
 Update `src/game/player/playerSprites.test.ts`:
 
@@ -519,13 +519,13 @@ it("exports a valid player sprite-sheet manifest with full animation coverage", 
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npm test -- --run src/game/player/playerSprites.test.ts`
 
 Expected: FAIL with module-not-found for `../assets/sprites/player`.
 
-- [ ] **Step 3: Create the actor manifests**
+- [x] **Step 3: Create the actor manifests**
 
 Create `src/game/assets/sprites/player.ts`:
 
@@ -590,7 +590,7 @@ export const ALL_SPRITE_SHEETS = [
 ];
 ```
 
-- [ ] **Step 4: Upgrade `drawPlayerPixel` to use the sheet when loaded**
+- [x] **Step 4: Upgrade `drawPlayerPixel` to use the sheet when loaded**
 
 Inside `src/game/player/playerSprites.ts`, preserve the current procedural sprites and add this flow:
 
@@ -626,7 +626,7 @@ if (sheet) {
 // Existing procedural fallback path stays below unchanged.
 ```
 
-- [ ] **Step 5: Prime sheets on scene start**
+- [x] **Step 5: Prime sheets on scene start**
 
 In `src/game/scenes/mainGameScene.ts`, import `ALL_SPRITE_SHEETS` and `primeSpriteSheet`, then in `start()`:
 
@@ -634,19 +634,19 @@ In `src/game/scenes/mainGameScene.ts`, import `ALL_SPRITE_SHEETS` and `primeSpri
 for (const def of ALL_SPRITE_SHEETS) primeSpriteSheet(def);
 ```
 
-- [ ] **Step 6: Run targeted tests**
+- [x] **Step 6: Run targeted tests**
 
 Run: `npm test -- --run src/game/player/playerSprites.test.ts src/game/scenes/mainGameScene.test.ts`
 
 Expected: PASS.
 
-- [ ] **Step 7: Run the build**
+- [x] **Step 7: Run the build**
 
 Run: `npm run build`
 
 Expected: PASS.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add src/game/assets/sprites src/game/player/playerSprites.ts src/game/scenes/mainGameScene.ts src/game/player/playerSprites.test.ts
@@ -672,7 +672,7 @@ git commit -m "feat: integrate player sprite sheets with fallback"
 - Produces:
   - `drawEnemyPixel(...)` upgraded to prefer sheet rendering and fallback to current procedural sprites
 
-- [ ] **Step 1: Add the failing manifest coverage test**
+- [x] **Step 1: Add the failing manifest coverage test**
 
 Update `src/game/enemies/enemySprites.test.ts`:
 
@@ -696,13 +696,13 @@ it("exports valid enemy manifests with required animation keys", () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npm test -- --run src/game/enemies/enemySprites.test.ts`
 
 Expected: FAIL until enemy manifests exist and export the expected names.
 
-- [ ] **Step 3: Upgrade `drawEnemyPixel` to use sprite sheets first**
+- [x] **Step 3: Upgrade `drawEnemyPixel` to use sprite sheets first**
 
 In `src/game/enemies/enemySprites.ts`, add a per-type manifest map:
 
@@ -742,25 +742,25 @@ if (sheet) {
 // Existing procedural fallback path stays below unchanged.
 ```
 
-- [ ] **Step 4: Run targeted tests**
+- [x] **Step 4: Run targeted tests**
 
 Run: `npm test -- --run src/game/enemies/enemySprites.test.ts src/game/scenes/mainGameScene.test.ts`
 
 Expected: PASS.
 
-- [ ] **Step 5: Run the full suite**
+- [x] **Step 5: Run the full suite**
 
 Run: `npm test -- --run`
 
 Expected: PASS.
 
-- [ ] **Step 6: Run the build**
+- [x] **Step 6: Run the build**
 
 Run: `npm run build`
 
 Expected: PASS.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/game/enemies/enemySprites.ts src/game/enemies/enemySprites.test.ts src/game/assets/sprites
@@ -780,7 +780,7 @@ git commit -m "feat: integrate enemy sprite sheets with fallback"
   - updated runtime asset instructions in README
   - decision on whether procedural fallback remains or can be retired
 
-- [ ] **Step 1: Document the sprite-sheet contract in README**
+- [x] **Step 1: Document the sprite-sheet contract in README**
 
 Add a short section:
 
@@ -793,7 +793,7 @@ anchor point, scale, facing, and animation rows.
 If a sheet is missing or fails to load, the game falls back to the built-in procedural renderer.
 ```
 
-- [ ] **Step 2: Run manual QA in the browser**
+- [x] **Step 2: Run manual QA in the browser**
 
 Run: `npm run dev`
 
@@ -806,12 +806,12 @@ Verify:
 - no blurry scaling
 - fallback still works if a sheet path is broken
 
-- [ ] **Step 3: Keep or retire fallback intentionally**
+- [x] **Step 3: Keep or retire fallback intentionally**
 
 If all actor sheets are complete and aligned, remove obsolete procedural-only code.
 If not, keep fallback and ship with that explicit safety net. Do not remove fallback partially.
 
-- [ ] **Step 4: Run final verification**
+- [x] **Step 4: Run final verification**
 
 Run:
 - `npm test -- --run`
@@ -819,7 +819,7 @@ Run:
 
 Expected: both PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add README.md src/game/player/playerSprites.ts src/game/enemies/enemySprites.ts
