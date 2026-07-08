@@ -7,12 +7,19 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "test": "vitest"
+    "test": "vitest",
+    "test:art": "npm run test:sprites && npm run test:motion",
+    "test:motion": "playwright test --config=playwright.config.cjs --reporter=line",
+    "test:sprites": "vitest --run src/game/rendering/runtimeSpritePack.test.ts src/game/player/playerSprites.test.ts src/game/enemies/enemySprites.test.ts src/game/rendering/spriteManifest.test.ts src/game/rendering/spriteSheetLoader.test.ts src/game/enemies/enemyLogic.test.ts",
+    "verify:art": "npm run test:art && npm run build",
+    "verify:motion": "npm run test:motion && npm run build",
+    "verify:sprites": "npm run test:sprites && npm run build"
   },
   "dependencies": {
     "firebase": "^11.0.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
     "@types/node": "^22.0.0",
     "jsdom": "^25.0.0",
     "typescript": "^5.6.0",

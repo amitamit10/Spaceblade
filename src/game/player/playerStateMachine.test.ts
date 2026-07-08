@@ -10,6 +10,14 @@ describe("createPlayerStateMachine", () => {
     expect(s.facing).toBe("right");
   });
 
+  it("can update facing without changing the current action", () => {
+    const p = createPlayerStateMachine(0);
+    p.applyAction("holdStart", 100);
+    const s = p.face("left");
+    expect(s.state).toBe("charging");
+    expect(s.facing).toBe("left");
+  });
+
   it("moves idle -> slashing -> idle after active plus recovery", () => {
     const p = createPlayerStateMachine(0);
     expect(p.applyAction("tap", 0).state).toBe("slashing");
@@ -54,6 +62,13 @@ describe("createPlayerStateMachine", () => {
     const p = createPlayerStateMachine(0);
     p.applyAction("doubleTap", 0); // invulnerable until 350
     expect(p.applyDamage(100).hearts).toBe(3);
+  });
+
+  it("becomes temporarily invulnerable during hurt recovery after taking a hit", () => {
+    const p = createPlayerStateMachine(0);
+    expect(p.applyDamage(0).hearts).toBe(2);
+    expect(p.applyDamage(200).hearts).toBe(2);
+    expect(p.applyDamage(420).hearts).toBe(1);
   });
 
   it("dies on the third damage event", () => {

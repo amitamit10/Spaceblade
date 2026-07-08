@@ -1,9 +1,13 @@
 import type { PixelSprite } from "../rendering/pixelSprite";
 import { drawSprite } from "../rendering/pixelSprite";
 import { frameForTime, frameForProgress } from "../rendering/animation";
+import { frameIndexForLoop, frameIndexForOneShot, progressFromTimes } from "../rendering/spriteAnimator";
+import { drawSheetFrame } from "../rendering/spriteSheetRenderer";
+import { getSpriteSheet } from "../rendering/spriteSheetLoader";
 import type { PlayerSnapshot } from "./playerStateMachine";
 import { playerConfig } from "./playerConfig";
 import { PLAYER_X, GROUND_Y } from "../constants";
+import { PLAYER_SHEET } from "../assets/sprites/player";
 
 const PLAYER_SCALE = 4;
 
@@ -261,6 +265,35 @@ export function drawPlayerPixel(
   snapshot: PlayerSnapshot,
   now: number,
 ): void {
+  const sheet = getSpriteSheet(PLAYER_SHEET);
+  if (sheet) {
+    const animKey =
+      snapshot.state === "slashing"
+        ? "slash"
+        : snapshot.state === "charging"
+          ? "charge"
+          : snapshot.state === "heavySlashing"
+            ? "heavy"
+            : snapshot.state === "dodging"
+              ? "dodge"
+              : snapshot.state === "parrying"
+                ? "parry"
+                : snapshot.state === "hurt"
+                  ? "hurt"
+                  : snapshot.state === "dead"
+                    ? "dead"
+                    : "idle";
+    const anim = PLAYER_SHEET.animations[animKey];
+    const frameIndex = anim.loop
+      ? frameIndexForLoop(now, anim)
+      : frameIndexForOneShot(
+          progressFromTimes(now, snapshot.actionStartedAt, anim.frames * anim.frameDurationMs),
+          anim,
+        );
+    drawSheetFrame(ctx, sheet, PLAYER_SHEET, anim, frameIndex, PLAYER_X, GROUND_Y + 30, snapshot.facing);
+    return;
+  }
+
   const flip = snapshot.facing === "left";
   const elapsed = now - snapshot.actionStartedAt;
   let sprite: PixelSprite;

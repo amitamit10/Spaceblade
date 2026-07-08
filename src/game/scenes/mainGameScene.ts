@@ -11,8 +11,10 @@ import { createGameLoop, themeForWave } from "../run/gameLoop";
 import { drawPixelBackground } from "../rendering/pixelBackground";
 import { createCamera } from "../rendering/camera";
 import { createEffectSystem } from "../rendering/effects";
+import { primeSpriteSheet } from "../rendering/spriteSheetLoader";
 import { createSoundBus } from "../audio/soundBus";
 import type { Scene } from "./sceneRouter";
+import { ALL_SPRITE_SHEETS } from "../assets/sprites";
 
 const PAUSE_HOLD_MS = 900;
 
@@ -99,10 +101,10 @@ export function createMainGameScene(
     const dt = Math.min(now - last, STEP_MS * 3);
     last = now;
 
-    // Hold-to-pause: a sustained hold while idle/charging requests a pause.
+    // Hold-to-pause: only an idle hold pauses; charging belongs to heavy slash.
     if (downAt !== null && !pauseArmed && now - downAt >= PAUSE_HOLD_MS) {
       const st = player.getSnapshot().state;
-      if (st === "idle" || st === "charging") {
+      if (st === "idle") {
         pauseArmed = true;
         callbacks.onPauseRequest?.();
         return;
@@ -148,6 +150,7 @@ export function createMainGameScene(
       if (running) return;
       running = true;
       last = sceneNow();
+      for (const def of ALL_SPRITE_SHEETS) primeSpriteSheet(def);
       addInput();
       sound.play("ambient");
       if (hasRaf()) rafId = requestAnimationFrame(frame);

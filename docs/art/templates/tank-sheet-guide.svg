@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="564" height="616" viewBox="0 0 564 616">
+  <rect width="564" height="616" fill="#0f1117"/>
+  <rect x="180" y="40" width="384" height="576" fill="#161b22"/>
+  <text x="20" y="26" fill="#e6edf3" font-family="monospace" font-size="20">tank.png 384x576 | frame 96x96 | rows 6 | cols 4</text>
+  <g fill="#8b949e" font-family="monospace" font-size="18">
+    <text x="220" y="28">0</text><text x="316" y="28">1</text><text x="412" y="28">2</text><text x="508" y="28">3</text>
+    <text x="16" y="100">0 walk (4)</text>
+    <text x="16" y="196">1 windup (4)</text>
+    <text x="16" y="292">2 attack (4)</text>
+    <text x="16" y="388">3 recover (2)</text>
+    <text x="16" y="484">4 hurt (2)</text>
+    <text x="16" y="580">5 dead (3)</text>
+  </g>
+  <g stroke="#30363d" stroke-width="1">
+    <line x1="180" y1="40" x2="180" y2="616"/><line x1="276" y1="40" x2="276" y2="616"/><line x1="372" y1="40" x2="372" y2="616"/><line x1="468" y1="40" x2="468" y2="616"/><line x1="564" y1="40" x2="564" y2="616"/>
+    <line x1="180" y1="40" x2="564" y2="40"/><line x1="180" y1="136" x2="564" y2="136"/><line x1="180" y1="232" x2="564" y2="232"/><line x1="180" y1="328" x2="564" y2="328"/><line x1="180" y1="424" x2="564" y2="424"/><line x1="180" y1="520" x2="564" y2="520"/><line x1="180" y1="616" x2="564" y2="616"/>
+  </g>
+</svg>

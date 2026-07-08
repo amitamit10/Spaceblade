@@ -9,6 +9,7 @@ import type { ScreenModel, LeaderboardView } from "../ui/renderShell";
 import { PAUSE_ACTIONS } from "../ui/screens/pauseScreen";
 import { SETTINGS_ACTIONS } from "../ui/screens/settingsScreen";
 import { GAME_OVER_ACTIONS } from "../ui/screens/gameOverScreen";
+import { HIGHSCORES_ACTIONS } from "../ui/screens/highscoresScreen";
 import { createLocalStore } from "../state/persistence/localStorageStore";
 import type { LocalStore } from "../state/persistence/localStorageStore";
 import { createLeaderboardClient } from "../lib/firebase/leaderboardClient";
@@ -31,7 +32,7 @@ const SCREEN_ACTIONS: Record<GameScreen, readonly string[]> = {
   paused: PAUSE_ACTIONS,
   settings: SETTINGS_ACTIONS,
   gameOver: GAME_OVER_ACTIONS,
-  highscores: ["return"],
+  highscores: HIGHSCORES_ACTIONS,
   mobileWarning: ["continue"],
 };
 
@@ -155,23 +156,46 @@ export function mountApp(host: HTMLElement, forcedScreen?: GameScreen): AppHandl
     if (next === "highscores") void loadHighscores();
   }
 
+  function buildLocalPlayerEntry(): LeaderboardView["you"] {
+    if (lastRunStats) {
+      return {
+        playerName: store.getPlayerName(),
+        score: lastRunStats.score,
+        wave: lastRunStats.wave,
+        enemiesDefeated: lastRunStats.enemiesDefeated,
+        parries: lastRunStats.parries,
+        grade: lastRunStats.grade,
+        createdAt: 0,
+        clientRunId: "you",
+      };
+    }
+    return localFriendsResult(store.getBestScore(), store.getBestWave(), store.getPlayerName())
+      .entries[0] ?? null;
+  }
+
   async function loadHighscores(): Promise<void> {
-    const result = await leaderboard.loadTopScores();
-    const you = lastRunStats
-      ? {
-          playerName: store.getPlayerName(),
-          score: lastRunStats.score,
-          wave: lastRunStats.wave,
-          enemiesDefeated: lastRunStats.enemiesDefeated,
-          parries: lastRunStats.parries,
-          grade: lastRunStats.grade,
-          createdAt: 0,
-          clientRunId: "you",
-        }
-      : localFriendsResult(store.getBestScore(), store.getBestWave(), store.getPlayerName())
-          .entries[0] ?? null;
-    leaderboardView = { state: result.fetchState, tab: "global", entries: result.entries, you };
+    leaderboardView = { ...leaderboardView, tab: "global" };
     if (screenState.get() === "highscores") render();
+    const result = await leaderboard.loadTopScores();
+    if (screenState.get() === "highscores" && leaderboardView.tab !== "global") return;
+    leaderboardView = {
+      state: result.fetchState,
+      tab: "global",
+      entries: result.entries,
+      you: buildLocalPlayerEntry(),
+    };
+    if (screenState.get() === "highscores") render();
+  }
+
+  function showFriendsHighscores(): void {
+    const result = localFriendsResult(store.getBestScore(), store.getBestWave(), store.getPlayerName());
+    leaderboardView = {
+      state: result.fetchState,
+      tab: "friends",
+      entries: result.entries,
+      you: result.entries[0] ?? null,
+    };
+    render();
   }
 
   function confirmAction(action: string): void {
@@ -225,8 +249,14 @@ export function mountApp(host: HTMLElement, forcedScreen?: GameScreen): AppHandl
         } else if (action === "quitToTitle") goToMenu("title");
         break;
       case "highscores":
-        goToMenu(highscoresReturnTo);
-        highscoresReturnTo = "title";
+        if (action === "return") {
+          goToMenu(highscoresReturnTo);
+          highscoresReturnTo = "title";
+        } else if (action === "global") {
+          void loadHighscores();
+        } else if (action === "friends") {
+          showFriendsHighscores();
+        }
         break;
       case "mobileWarning":
         goToMenu("title");

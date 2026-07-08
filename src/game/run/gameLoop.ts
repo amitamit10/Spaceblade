@@ -35,6 +35,8 @@ export function themeForWave(wave: number): SectorTheme {
 }
 
 const dirOf = (facing: "left" | "right"): number => (facing === "right" ? 1 : -1);
+const facingFor = (enemy: EnemyActor): "left" | "right" =>
+  enemy.x < PLAYER_X ? "left" : "right";
 
 /**
  * Drives one run: player input resolution, enemy AI + telegraphed attacks,
@@ -79,9 +81,20 @@ export function createGameLoop(
 
   const resolveMelee = (kind: AttackKind, now: number): void => {
     const range = kind === "quick" ? playerConfig.quickSlashRange : playerConfig.heavySlashRange;
+    const liveEnemies = controller.state.activeEnemies.filter((e) => e.state !== "dead");
+    const nearest = [...liveEnemies].sort(
+      (a, b) => Math.abs(a.x - PLAYER_X) - Math.abs(b.x - PLAYER_X),
+    )[0];
+    if (nearest) player.face(facingFor(nearest));
+
     const dir = dirOf(player.getSnapshot().facing);
-    const inRange = controller.state.activeEnemies
-      .filter((e) => e.state !== "dead" && Math.abs(e.x - PLAYER_X) <= range)
+    const inRange = liveEnemies
+      .filter((e) => {
+        const distance = e.x - PLAYER_X;
+        if (kind === "heavy") return Math.abs(distance) <= range;
+        const forwardDistance = distance * dir;
+        return forwardDistance >= 0 && forwardDistance <= range;
+      })
       .sort((a, b) => Math.abs(a.x - PLAYER_X) - Math.abs(b.x - PLAYER_X));
     const targets = kind === "quick" ? inRange.slice(0, 1) : inRange;
 
@@ -180,12 +193,16 @@ export function createGameLoop(
       if (enemy.state === "stunned" || enemy.state === "recovering") {
         if (enemy.stunnedUntil !== null && now >= enemy.stunnedUntil) {
           enemy.state = "approaching";
+          enemy.stateChangedAt = now;
           enemy.stunnedUntil = null;
         }
         continue;
       }
 
-      if (enemy.state === "spawning") enemy.state = "approaching";
+      if (enemy.state === "spawning") {
+        enemy.state = "approaching";
+        enemy.stateChangedAt = now;
+      }
 
       if (enemy.type === "glitch" && afterWave8) {
         const prev = lastTeleportAt.get(enemy.id) ?? now;
@@ -216,6 +233,7 @@ export function createGameLoop(
           effects.spawn("hitSpark", PLAYER_X, GROUND_Y - 20, now);
         }
         enemy.state = "recovering";
+        enemy.stateChangedAt = now;
         enemy.stunnedUntil = now + stats.recoveryMs;
         enemy.nextImpactAt = null;
       }

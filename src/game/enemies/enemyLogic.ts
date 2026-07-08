@@ -21,6 +21,7 @@ const GLITCH_TELEPORT_COOLDOWN_MS = 2200;
 /** Puts an enemy into its telegraphed windup with a concrete impact time. */
 export function enterWindup(enemy: EnemyActor, now: number): void {
   enemy.state = "windup";
+  enemy.stateChangedAt = now;
   enemy.nextImpactAt = now + enemyStats[enemy.type].windupMs;
 }
 
@@ -43,11 +44,14 @@ export function resolveHit(enemy: EnemyActor, kind: AttackKind, now: number): En
   const kill = (): EnemyHitResult => {
     enemy.hp = 0;
     enemy.state = "dead";
+    enemy.stateChangedAt = now;
+    enemy.stunnedUntil = null;
     enemy.nextImpactAt = null;
     return "killed";
   };
   const stun = (ms: number): EnemyHitResult => {
     enemy.state = "stunned";
+    enemy.stateChangedAt = now;
     enemy.stunnedUntil = now + ms;
     enemy.nextImpactAt = null;
     return "stunned";
@@ -56,6 +60,8 @@ export function resolveHit(enemy: EnemyActor, kind: AttackKind, now: number): En
     enemy.hp -= 1;
     if (enemy.hp <= 0) return kill();
     enemy.state = "recovering";
+    enemy.stateChangedAt = now;
+    enemy.stunnedUntil = now + enemyStats[enemy.type].recoveryMs;
     enemy.nextImpactAt = null;
     return "damaged";
   };
@@ -73,6 +79,7 @@ export function resolveHit(enemy: EnemyActor, kind: AttackKind, now: number): En
         if (enemy.shielded) {
           enemy.shielded = false;
           enemy.state = "recovering";
+          enemy.stateChangedAt = now;
           enemy.stunnedUntil = now + SHIELD_BASH_RECOVERY_MS;
           enemy.nextImpactAt = null;
           return "shieldBroken";
@@ -111,6 +118,8 @@ export function teleportGlitch(
   enemy.x = nextSide === "left" ? LEFT_COMBAT_LIMIT + 40 : RIGHT_COMBAT_LIMIT - 40;
   enemy.facing = nextSide === "left" ? "right" : "left";
   enemy.state = "approaching";
+  enemy.stateChangedAt = now;
+  enemy.stunnedUntil = null;
   enemy.nextImpactAt = null;
   return now;
 }
