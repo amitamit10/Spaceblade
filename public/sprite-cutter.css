@@ -48,6 +48,7 @@ h2 { font-size: 15px; margin-bottom: 0; }
 .controls label { display: grid; gap: 5px; color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: .08em; }
 .controls input, .controls select { width: 100%; padding: 9px 7px; min-width: 0; }
 .file-picker input { padding: 7px; }
+.label-field { grid-column: span 2; }
 
 .workspace { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 16px; margin-top: 16px; }
 .panel { background: rgba(11,27,45,.9); border: 1px solid var(--line); box-shadow: 0 16px 50px rgba(0,0,0,.22); }
@@ -67,6 +68,11 @@ h2 { font-size: 15px; margin-bottom: 0; }
 .selection-data { margin: 0 18px 16px; padding: 10px; background: #081727; border-left: 2px solid var(--orange); color: var(--muted); font-size: 12px; min-height: 58px; }
 .actions { display: grid; gap: 8px; padding: 0 18px 16px; }
 .primary { background: var(--cyan-dark); border-color: var(--cyan); }
+.batch-box { margin: 0 18px 16px; border: 1px solid var(--line); background: #081727; }
+.batch-heading { display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; color: var(--cyan); font-size: 10px; letter-spacing: .12em; border-bottom: 1px solid var(--line); }
+.batch-heading button { padding: 3px 6px; font-size: 10px; }
+#batch-list { margin: 0; padding: 8px 10px 8px 28px; color: var(--muted); font-size: 11px; max-height: 150px; overflow: auto; }
+#batch-list li { padding: 2px 0; }
 
 @media (max-width: 1100px) {
   .controls { grid-template-columns: repeat(5, 1fr); }
@@ -81,6 +87,7 @@ h2 { font-size: 15px; margin-bottom: 0; }
   .tool-header { align-items: start; flex-direction: column; }
   .controls { grid-template-columns: repeat(2, 1fr); }
   .file-picker, .controls label:nth-child(2) { grid-column: span 2; }
+  .label-field { grid-column: span 2; }
   .canvas-wrap { min-height: 320px; padding: 8px; }
   .preview-panel { display: block; }
 }

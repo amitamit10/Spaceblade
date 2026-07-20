@@ -88,13 +88,16 @@ Runtime evidence checkpoint:
 - Partial damage on tanks and the boss selects their authored `hurt-XX.png`
   reaction, shows a floating `-1` damage label, and draws a short impact burst.
 - Charged energy shots travel as visible projectiles, resolve deterministic
-  collisions, break shields, and are covered by unit and browser regressions.
+  collisions, are blocked by raised shields, and are covered by unit and
+  browser regressions. A sword tap removes the shield so the counterplay stays
+  possible with one button.
 - Energy shots trigger a dedicated rising-pitch Web Audio cue without adding
   runtime audio assets or a network dependency.
 - Enemy damage triggers a distinct short generated cue once per HP decrease,
   keeping combat feedback readable without adding audio assets or server work.
-- Projectile impacts show explicit `ENERGY HIT` or `SHIELD BREAK` feedback in
-  the live HUD, with browser coverage for the normal hit path.
+- Projectile impacts show explicit `ENERGY HIT`, `ENERGY BLOCKED`, or
+  `SHIELD BREAK` feedback in the live HUD, with browser coverage for the normal
+  hit path.
 - Enemy and projectile presentation objects reuse bounded pools, and expired
   hit labels are destroyed to prevent long-run object accumulation.
 - The skyline has a live parallax offset separate from floor scroll, with a

@@ -331,7 +331,7 @@ describe("rebuild run model", () => {
     expect(impact.score).toBe(100);
   });
 
-  it("uses an energy projectile to break a shield without killing the shielded enemy", () => {
+  it("blocks an energy projectile while the shield is raised", () => {
     const run = createRebuildRun(0);
     run.enemies[0].type = "shield";
     run.enemies[0].x = 850;
@@ -341,8 +341,23 @@ describe("rebuild run model", () => {
     const impact = advanceRebuildRun(fired, 800);
 
     expect(impact.projectiles).toHaveLength(0);
-    expect(impact.enemies[0].shielded).toBe(false);
+    expect(impact.projectilesBlocked).toBe(1);
+    expect(impact.enemies[0].shielded).toBe(true);
+    expect(impact.enemies[0].hp).toBe(1);
     expect(impact.enemies[0].state).not.toBe("dead");
+  });
+
+  it("uses a sword tap to remove an energy shield", () => {
+    const run = createRebuildRun(0);
+    run.enemies[0].type = "shield";
+    run.enemies[0].x = 730;
+    run.enemies[0].shielded = true;
+
+    const broken = slashRebuildRun(run, 100);
+
+    expect(broken.enemies[0].shielded).toBe(false);
+    expect(broken.enemies[0].hp).toBe(1);
+    expect(broken.enemies[0].state).not.toBe("dead");
   });
 
   it("grants dodge invulnerability for the configured window", () => {
@@ -409,7 +424,7 @@ describe("rebuild run model", () => {
     expect(second.player.animation).toBe("dodge");
   });
 
-  it("blocks a quick slash until a heavy slash breaks the shield", () => {
+  it("requires sword timing before energy can damage a shield enemy", () => {
     const run = createRebuildRun(0);
     run.enemies[0].type = "shield";
     run.enemies[0].hp = 1;
@@ -417,14 +432,13 @@ describe("rebuild run model", () => {
     run.enemies[0].shielded = true;
     run.enemies[0].x = 730;
 
-    const blocked = slashRebuildRun(run, 100);
-    const fired = releaseChargeRebuildRun(startChargeRebuildRun(blocked, 400), 800, 400);
-    const broken = advanceRebuildRun(fired, 1100);
-    const killed = slashRebuildRun(broken, 1200);
+    const broken = slashRebuildRun(run, 100);
+    const blockedEnergy = releaseChargeRebuildRun(startChargeRebuildRun(advanceRebuildRun(broken, 500), 600), 1000, 400);
+    const afterImpact = advanceRebuildRun(blockedEnergy, 1200);
 
-    expect(blocked.enemies[0].hp).toBe(1);
+    expect(broken.enemies[0].hp).toBe(1);
     expect(broken.enemies[0].shielded).toBe(false);
-    expect(killed.enemies[0].state).toBe("dead");
+    expect(afterImpact.enemies[0].state).toBe("dead");
   });
 
   it("teleports a glitch only after wave eight and respects its cooldown", () => {
@@ -480,8 +494,8 @@ describe("rebuild run model", () => {
       const target = run.enemies.find((enemy) => enemy.state !== "dead");
       if (target) {
         if (target.shielded) {
-          run = releaseChargeRebuildRun(startChargeRebuildRun(run, now), now + 400, 400);
-          run = advanceRebuildRun(run, now + 900);
+          run = slashRebuildRun(run, now + 400);
+          run = advanceRebuildRun(run, now + 700);
         } else {
           run = slashRebuildRun(run, now + 400);
         }

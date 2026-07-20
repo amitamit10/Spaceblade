@@ -185,14 +185,15 @@ index.html
   `PERFECT PARRY · STUNNED` callout and green screen flash; failed defenses show
   a red `HIT` callout and flash, both respecting Reduced Effects.
 - Charged energy shots now exist as visible, deterministic projectiles: they
-  travel across the lane, resolve one collision on crossing, break shields,
-  damage multi-hit enemies, and expire without server work.
+  travel across the lane, resolve one collision on crossing, are blocked by
+  raised shields, damage multi-hit enemies, and expire without server work.
 - Energy shots have a distinct browser-safe rising-pitch cue, while sword,
   parry, impact, alert, boss, and ambient cues remain asset-free Web Audio.
 - Enemy damage now has its own short ascending metallic cue, triggered once per
   actual HP decrease so repeated render frames do not spam audio.
-- Projectile transitions now show explicit `ENERGY HIT` and `SHIELD BREAK`
-  callouts, so ranged combat feedback is distinct from sword damage.
+- Projectile transitions now show explicit `ENERGY HIT`, `ENERGY BLOCKED`, and
+  `SHIELD BREAK` callouts, so ranged combat feedback is distinct from sword
+  damage and teaches the player to switch back to the blade.
 - Pixel-tiled background, floor scroll, telegraphs, and death effects ship in
   the Phaser scene.
 - A low-alpha parallax skyline now advances independently from the floor,

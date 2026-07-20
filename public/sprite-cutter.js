@@ -23,8 +23,13 @@
   const selectionLabel = $("selection-label");
   const selectionData = $("selection-data");
   const downloadSelected = $("download-selected");
+  const addToBatch = $("add-to-batch");
   const downloadAll = $("download-all");
+  const downloadBatch = $("download-batch");
   const exportManifest = $("export-manifest");
+  const clearBatch = $("clear-batch");
+  const batchList = $("batch-list");
+  const frameLabel = $("frame-label");
   const fields = ["frame-width", "frame-height", "columns", "rows", "origin-x", "origin-y", "gap-x", "gap-y"];
   let image = null;
   let imageUrl = null;
@@ -32,6 +37,7 @@
   let selection = null;
   let dragStart = null;
   let manifest = [];
+  let batch = [];
 
   for (const field of fields) $(field).addEventListener("input", render);
 
@@ -113,11 +119,28 @@
   downloadSelected.addEventListener("click", () => {
     if (selection) downloadFrame(selection, selection.label || "frame");
   });
+  addToBatch.addEventListener("click", () => {
+    if (!selection) return;
+    const label = (frameLabel.value.trim() || selection.label || "frame").replace(/[^a-z0-9_-]+/gi, "-");
+    const frame = { ...selection, label };
+    batch = batch.filter((candidate) => candidate.label !== label);
+    batch.push(frame);
+    renderBatch();
+    render();
+  });
   downloadAll.addEventListener("click", () => {
     for (const frame of manifest) downloadFrame(frame, frame.label);
   });
+  downloadBatch.addEventListener("click", () => {
+    for (const frame of batch) downloadFrame(frame, frame.label);
+  });
+  clearBatch.addEventListener("click", () => {
+    batch = [];
+    renderBatch();
+    render();
+  });
   exportManifest.addEventListener("click", () => {
-    const payload = { source: sheetName.textContent, frameSize: { width: settings().width, height: settings().height }, frames: manifest };
+    const payload = { source: sheetName.textContent, frameSize: { width: settings().width, height: settings().height }, frames: batch.length > 0 ? batch : manifest };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
     triggerDownload(URL.createObjectURL(blob), "sprite-frames.json");
   });
@@ -168,6 +191,7 @@
       drawPreview(selection);
       selectionLabel.textContent = selection.label || "manual-frame";
       selectionData.textContent = `x ${selection.x} · y ${selection.y} · ${selection.width} × ${selection.height}`;
+      if (document.activeElement !== frameLabel && mode === "grid") frameLabel.value = selection.label || "frame-00";
     } else {
       previewContext.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
       selectionLabel.textContent = "None";
@@ -175,8 +199,26 @@
     }
     const ready = Boolean(selection);
     downloadSelected.disabled = !ready;
+    addToBatch.disabled = !ready;
     downloadAll.disabled = mode !== "grid" || manifest.length === 0;
-    exportManifest.disabled = manifest.length === 0;
+    downloadBatch.disabled = batch.length === 0;
+    clearBatch.disabled = batch.length === 0;
+    exportManifest.disabled = batch.length === 0 && manifest.length === 0;
+    renderBatch();
+  }
+  function renderBatch() {
+    batchList.replaceChildren();
+    if (batch.length === 0) {
+      const empty = document.createElement("li");
+      empty.textContent = "No manual frames saved yet.";
+      batchList.append(empty);
+      return;
+    }
+    for (const frame of batch) {
+      const item = document.createElement("li");
+      item.textContent = `${frame.label} · ${frame.width} × ${frame.height}`;
+      batchList.append(item);
+    }
   }
   function sameFrame(a, b) { return a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height; }
   function drawPreview(frame) {

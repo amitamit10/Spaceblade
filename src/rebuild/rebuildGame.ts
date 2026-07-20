@@ -40,6 +40,7 @@ export type RebuildRun = {
   spawnIndex: number;
   bossSpawned: boolean;
   projectileSerial: number;
+  projectilesBlocked: number;
   projectiles: RebuildProjectile[];
   player: {
     animation: RebuildPlayerAnimation;
@@ -184,6 +185,7 @@ export function createRebuildRun(now: number): RebuildRun {
     spawnIndex: 2,
     bossSpawned: false,
     projectileSerial: 0,
+    projectilesBlocked: 0,
     projectiles: [],
     player: { animation: "idle", actionStartedAt: now, hurtUntil: now, invulnerableUntil: now },
     enemies: [
@@ -206,7 +208,7 @@ function applyAttack(run: RebuildRun, range: number, damage: number, kind: "quic
   for (const enemy of run.enemies) {
     if (enemy.state === "dead" || enemy.state === "stunned" || Math.abs(enemy.x - PLAYER_X) > range) continue;
     if (enemy.type === "shield" && enemy.shielded) {
-      if (kind === "heavy") enemy.shielded = false;
+      if (kind === "quick") enemy.shielded = false;
       continue;
     }
     enemy.hp -= damage;
@@ -222,7 +224,7 @@ function resolveProjectileHit(run: RebuildRun, projectile: RebuildProjectile, pr
     .sort((left, right) => Math.abs(left.x - projectile.x) - Math.abs(right.x - projectile.x))[0];
   if (!target) return false;
   if (target.type === "shield" && target.shielded) {
-    target.shielded = false;
+    run.projectilesBlocked += 1;
     return true;
   }
   target.hp -= 1;

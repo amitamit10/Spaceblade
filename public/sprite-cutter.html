@@ -43,6 +43,7 @@
         <label><span>Origin Y</span><input id="origin-y" type="number" min="0" value="0" /></label>
         <label><span>Gap X</span><input id="gap-x" type="number" min="0" value="0" /></label>
         <label><span>Gap Y</span><input id="gap-y" type="number" min="0" value="0" /></label>
+        <label class="label-field"><span>Frame label</span><input id="frame-label" type="text" value="frame-00" /></label>
       </section>
 
       <section class="workspace">
@@ -67,8 +68,14 @@
           <div class="selection-data" id="selection-data">Upload a sheet, then choose a frame.</div>
           <div class="actions">
             <button id="download-selected" class="primary" type="button" disabled>Download selected PNG</button>
+            <button id="add-to-batch" type="button" disabled>Add selected to batch</button>
             <button id="download-all" type="button" disabled>Download all grid frames</button>
+            <button id="download-batch" type="button" disabled>Download saved batch</button>
             <button id="export-manifest" type="button" disabled>Export coordinates JSON</button>
+          </div>
+          <div class="batch-box">
+            <div class="batch-heading"><span>SAVED BATCH</span><button id="clear-batch" type="button" disabled>Clear</button></div>
+            <ol id="batch-list"><li>No manual frames saved yet.</li></ol>
           </div>
           <p class="note">Downloads stay on your computer. No image is uploaded to a server.</p>
         </aside>

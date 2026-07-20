@@ -137,6 +137,7 @@ export class SpacebladePlayScene extends Phaser.Scene {
   private readonly retiredEnemyIds = new Set<string>();
   private lastDisplayedProjectileCount = 0;
   private lastDisplayedShieldedCount = 0;
+  private lastDisplayedBlockedProjectileCount = 0;
   private playerHurtAt: number | null = null;
   private terminalAt: number | null = null;
   private combatCallout = "";
@@ -445,6 +446,7 @@ export class SpacebladePlayScene extends Phaser.Scene {
     this.submitOutcome = null;
     this.lastDisplayedProjectileCount = 0;
     this.lastDisplayedShieldedCount = 0;
+    this.lastDisplayedBlockedProjectileCount = 0;
     this.playSound("ambient");
     this.setScreen("playing");
   }
@@ -641,7 +643,7 @@ export class SpacebladePlayScene extends Phaser.Scene {
       this.screenHint.setText("TAP TO CONTINUE");
     } else if (this.screen === "tutorial") {
       this.screenTitle.setText("HOW TO PLAY");
-      this.screenBody.setText("TAP  -  SWORD SLASH\nHOLD + RELEASE  -  GUN SHOT\nDOUBLE TAP  -  DODGE\nPERFECT TIMING  -  PARRY\n\nThreats approach from ahead. Strike before contact.");
+      this.screenBody.setText("TAP  -  SWORD SLASH\nHOLD + RELEASE  -  GUN SHOT\nDOUBLE TAP  -  DODGE\nPERFECT TIMING  -  PARRY\n\nSHIELDS BLOCK GUNS. TAP TO BREAK THEM.\nThreats approach from ahead. Strike before contact.");
       this.screenHint.setText(this.tutorialReturnScreen === "paused" ? "HOLD SPACE TO RETURN" : "HOLD SPACE TO DEPLOY");
     } else if (this.screen === "paused") {
       this.screenTitle.setText("PAUSED");
@@ -932,13 +934,17 @@ export class SpacebladePlayScene extends Phaser.Scene {
   private syncCombatFeedback(run: RebuildRun, now: number): void {
     const shieldedCount = run.enemies.filter((enemy) => enemy.state !== "dead" && enemy.type === "shield" && enemy.shielded).length;
     const projectileImpact = run.projectiles.length < this.lastDisplayedProjectileCount && run.player.animation === "heavy";
-    if (shieldedCount < this.lastDisplayedShieldedCount && projectileImpact) {
+    const projectileBlocked = run.projectilesBlocked > this.lastDisplayedBlockedProjectileCount;
+    if (projectileBlocked) {
+      this.showCombatCallout("ENERGY BLOCKED  ·  USE SWORD", now, 820);
+    } else if (shieldedCount < this.lastDisplayedShieldedCount && projectileImpact) {
       this.showCombatCallout("SHIELD BREAK", now, 720);
     } else if (projectileImpact) {
       this.showCombatCallout("ENERGY HIT", now, 620);
     }
     this.lastDisplayedProjectileCount = run.projectiles.length;
     this.lastDisplayedShieldedCount = shieldedCount;
+    this.lastDisplayedBlockedProjectileCount = run.projectilesBlocked;
     if (now >= this.combatCalloutUntil) delete this.game.canvas.dataset.spacebladeCombatCallout;
   }
 

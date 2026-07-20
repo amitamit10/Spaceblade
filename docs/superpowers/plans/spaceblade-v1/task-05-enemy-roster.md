@@ -46,7 +46,10 @@ export type EnemyHitResult =
 
 - `Grunt`: dies from one quick, heavy, or parry hit.
 - `Runner`: dies from one quick, heavy, or parry hit, has shorter windup, dash stabs through the player position during attack, then enters `recovering`; a quick slash or heavy slash during recovery kills it.
-- `Shield`: frontal quick hit returns `blocked`; heavy returns `shieldBroken` and removes shield; parry returns `stunned`; after a shield bash, it remains in `recovering` for `420ms`.
+- `Shield`: raised shield blocks energy shots; a quick sword hit returns
+  `shieldBroken` and removes the shield without dealing body damage; parry
+  returns `stunned`; after a shield bash, it remains in `recovering` for
+  `420ms`.
 - `Tank`: has 2 hp; quick and heavy each deal 1 damage; parry stuns but does not damage; spawn scheduler allows no more than 2 active tanks.
 - `Glitch`: teleports once every `2200ms` after wave 8; parry, quick, or heavy hit can kill it during visible frames.
 - `Boss`: has 12 hp; alternates heavy swing and summon pause; parry stuns for `450ms` but does not damage.
