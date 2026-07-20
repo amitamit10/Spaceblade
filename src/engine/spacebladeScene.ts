@@ -128,6 +128,7 @@ export class SpacebladePlayScene extends Phaser.Scene {
   private skylineMotion: Phaser.GameObjects.Graphics | null = null;
   private publicSkylineFar: Phaser.GameObjects.TileSprite | null = null;
   private publicSkylineNear: Phaser.GameObjects.TileSprite | null = null;
+  private publicGround: Phaser.GameObjects.TileSprite | null = null;
   private runnerMotion: Phaser.GameObjects.Graphics | null = null;
   private waveBanner: Phaser.GameObjects.Text | null = null;
   private waveBannerUntil = 0;
@@ -249,9 +250,10 @@ export class SpacebladePlayScene extends Phaser.Scene {
     for (const source of allFrameSources()) this.load.image(frameKey(source), source);
     for (const source of PUBLIC_SHOT_SOURCES) this.load.image(effectKey(source), source);
     for (const source of PUBLIC_EXPLOSION_SOURCES) this.load.image(effectKey(source), source);
-    this.load.image("public-skyline-a", "/assets/public/warped-city/skyline-a.png");
-    this.load.image("public-skyline-b", "/assets/public/warped-city/skyline-b.png");
-    this.load.image("public-near-buildings", "/assets/public/warped-city/near-buildings-bg.png");
+    this.load.image("public-skyline-a", "/assets/public/warped-city/skyline-a.png?v=public-pack-3");
+    this.load.image("public-skyline-b", "/assets/public/warped-city/skyline-b.png?v=public-pack-3");
+    this.load.image("public-near-buildings", "/assets/public/warped-city/near-buildings-bg.png?v=public-pack-3");
+    this.load.image("public-ground-strip", "/assets/public/warped-city/ground-strip.png?v=public-pack-3");
   }
 
   create(): void {
@@ -263,9 +265,14 @@ export class SpacebladePlayScene extends Phaser.Scene {
       .setDepth(-2);
     this.publicSkylineNear = this.add.tileSprite(0, GROUND_Y - 214, SPACEBLADE_WIDTH, 214, "public-near-buildings")
       .setOrigin(0)
-      .setAlpha(0.58)
+      .setAlpha(0.88)
       .setTileScale(1.28)
       .setDepth(-1);
+    this.publicGround = this.add.tileSprite(0, GROUND_Y, SPACEBLADE_WIDTH, SPACEBLADE_HEIGHT - GROUND_Y, "public-ground-strip")
+      .setOrigin(0)
+      .setAlpha(0.96)
+      .setTileScale(1, 1.45)
+      .setDepth(0.2);
     this.soundBus = createSoundBus(() => this.settings.volume);
     const prefersReducedMotion = typeof window.matchMedia === "function"
       && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -379,6 +386,7 @@ export class SpacebladePlayScene extends Phaser.Scene {
   update(): void {
     this.publicSkylineFar?.setTilePosition(this.time.now * -0.012, 0);
     this.publicSkylineNear?.setTilePosition(this.time.now * -0.028, 0);
+    this.publicGround?.setTilePosition(this.time.now * -0.06, 0);
     if (this.screen !== "playing" || !this.run) return;
     const now = this.time.now;
     const heartsBefore = this.run.hearts;
@@ -814,13 +822,6 @@ export class SpacebladePlayScene extends Phaser.Scene {
     // Overscan keeps camera shake from exposing transparent canvas edges.
     const overscan = 96;
     graphics.fillStyle(PUBLIC_PALETTE.background, 1).fillRect(-overscan, -overscan, SPACEBLADE_WIDTH + overscan * 2, SPACEBLADE_HEIGHT + overscan * 2);
-    graphics.fillStyle(PUBLIC_PALETTE.skyline, 1);
-    for (const [x, y, width, height] of [
-      [0, 328, 72, 224], [80, 282, 92, 270], [180, 244, 120, 308],
-      [310, 294, 92, 258], [420, 212, 140, 340], [570, 276, 96, 276],
-      [690, 184, 128, 368], [830, 232, 118, 320], [960, 166, 144, 386],
-      [1115, 220, 122, 332], [1245, 270, 60, 282],
-    ]) graphics.fillRect(x, y, width, height);
     graphics.fillStyle(PUBLIC_PALETTE.ground, 1).fillRect(0, GROUND_Y, SPACEBLADE_WIDTH, SPACEBLADE_HEIGHT - GROUND_Y);
     graphics.fillStyle(PUBLIC_PALETTE.groundLine, 1).fillRect(0, GROUND_Y, SPACEBLADE_WIDTH, 4);
   }
@@ -939,13 +940,10 @@ export class SpacebladePlayScene extends Phaser.Scene {
   private drawSkylineMotion(now: number): void {
     if (!this.skylineMotion) return;
     const offset = (now * 0.06) % 320;
-    this.skylineMotion.clear();
-    for (let index = -1; index < 7; index += 1) {
-      const x = index * 320 - offset;
-      const height = 92 + ((index + 3) % 3) * 38;
-      this.skylineMotion.fillStyle(0x122744, 0.18).fillRect(x, GROUND_Y - height, 210, height);
-      this.skylineMotion.fillStyle(0x1a3152, 0.12).fillRect(x + 78, GROUND_Y - height - 32, 108, 32);
-    }
+    this.skylineMotion.clear().setVisible(false);
+    this.publicSkylineFar?.setTilePosition(now * -0.012, 0);
+    this.publicSkylineNear?.setTilePosition(now * -0.028, 0);
+    this.publicGround?.setTilePosition(now * -0.06, 0);
     this.game.canvas.dataset.spacebladeBackgroundOffset = String(Math.round(offset));
   }
 

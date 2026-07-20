@@ -11,7 +11,8 @@ The legacy sheets remain available for tooling and rollback.
 - License: the included `LICENSE.txt` states that the artwork is public domain
   and free for personal and commercial use.
 - Staged content: player idle/walk/run/run-shoot/shoot/hurt frames, drone and
-  turret enemies, projectile frames, hit frames, and enemy explosion frames.
+  turret enemies, projectile frames, hit frames, enemy explosion frames, and
+  a derived tiled ground strip from the same licensed skyline source.
 - Local preview: `mockups/public-assets/warped-city-preview.png`
 - Runtime asset plate: `mockups/public-assets/public-runtime-asset-preview.png`
 - Deployed asset plate: `/public-asset-previews/public-runtime-asset-preview.png`
