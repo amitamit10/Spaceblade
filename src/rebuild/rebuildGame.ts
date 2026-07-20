@@ -41,6 +41,8 @@ export type RebuildRun = {
   bossSpawned: boolean;
   projectileSerial: number;
   projectilesBlocked: number;
+  energyShotsBlocked: number;
+  energyReadyAt: number;
   projectiles: RebuildProjectile[];
   player: {
     animation: RebuildPlayerAnimation;
@@ -77,6 +79,7 @@ const HEAVY_MIN_HOLD_MS = 300;
 const ENERGY_PROJECTILE_SPEED = 760;
 const ENERGY_PROJECTILE_LIFETIME_MS = 1400;
 const ENERGY_PROJECTILE_HIT_RADIUS = 34;
+const ENERGY_SHOT_COOLDOWN_MS = 900;
 const MAX_ACTIVE_ENEMIES = 6;
 const MAX_ACTIVE_THREAT_WEIGHT = 6;
 const MAX_ACTIVE_TANKS = 2;
@@ -186,6 +189,8 @@ export function createRebuildRun(now: number): RebuildRun {
     bossSpawned: false,
     projectileSerial: 0,
     projectilesBlocked: 0,
+    energyShotsBlocked: 0,
+    energyReadyAt: now,
     projectiles: [],
     player: { animation: "idle", actionStartedAt: now, hurtUntil: now, invulnerableUntil: now },
     enemies: [
@@ -257,8 +262,15 @@ export function releaseChargeRebuildRun(source: RebuildRun, now: number, holdMs:
   const run = advanceRebuildRun(source, now);
   if (run.status !== "playing") return run;
   if (holdMs < HEAVY_MIN_HOLD_MS) return slashRebuildRun(run, now);
+  if (now < run.energyReadyAt) {
+    run.energyShotsBlocked += 1;
+    run.player.animation = "idle";
+    run.player.actionStartedAt = now;
+    return run;
+  }
   run.player.animation = "heavy";
   run.player.actionStartedAt = now;
+  run.energyReadyAt = now + ENERGY_SHOT_COOLDOWN_MS;
   run.projectileSerial += 1;
   run.projectiles.push({
     id: `projectile-${run.projectileSerial}`,

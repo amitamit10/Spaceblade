@@ -129,6 +129,23 @@ test("uses a pointer hold as the same one-button energy-shot action", async ({ p
   await expect(canvas).toHaveAttribute("data-spaceblade-projectile-count", "1", { timeout: 2_000 });
 });
 
+test("shows recharge feedback when a second energy hold arrives during cooldown", async ({ page }) => {
+  await page.goto("/");
+  const canvas = page.locator("canvas");
+  await startPhaserGameplay(page);
+
+  await page.keyboard.down("Space");
+  await page.waitForTimeout(520);
+  await page.keyboard.up("Space");
+  const readyAt = Number(await canvas.getAttribute("data-spaceblade-energy-ready-at"));
+  expect(readyAt).toBeGreaterThan(0);
+
+  await page.keyboard.down("Space");
+  await page.waitForTimeout(520);
+  await page.keyboard.up("Space");
+  await expect(canvas).toHaveAttribute("data-spaceblade-combat-callout", "ENERGY RECHARGING  ·  USE SWORD", { timeout: 2_000 });
+});
+
 test("releases a pointer hold when the pointer exits the canvas", async ({ page }) => {
   await page.goto("/");
   const canvas = page.locator("canvas");

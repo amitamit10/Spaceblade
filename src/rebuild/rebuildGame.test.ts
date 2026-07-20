@@ -331,6 +331,33 @@ describe("rebuild run model", () => {
     expect(impact.score).toBe(100);
   });
 
+  it("deals one damage per energy projectile to multi-hit enemies", () => {
+    const run = createRebuildRun(0);
+    run.enemies[0].type = "tank";
+    run.enemies[0].hp = 2;
+    run.enemies[0].maxHp = 2;
+    run.enemies[0].x = 850;
+
+    const fired = releaseChargeRebuildRun(startChargeRebuildRun(run, 100), 500, 400);
+    const impact = advanceRebuildRun(fired, 800);
+
+    expect(impact.enemies[0].hp).toBe(1);
+    expect(impact.enemies[0].state).not.toBe("dead");
+  });
+
+  it("allows one energy shot per cooldown while keeping the one-button action responsive", () => {
+    const run = createRebuildRun(0);
+    const first = releaseChargeRebuildRun(startChargeRebuildRun(run, 100), 500, 400);
+    const blocked = releaseChargeRebuildRun(startChargeRebuildRun(advanceRebuildRun(first, 700), 700), 1100, 400);
+    const ready = releaseChargeRebuildRun(startChargeRebuildRun(advanceRebuildRun(blocked, 1500), 1500), 1900, 400);
+
+    expect(first.projectiles).toHaveLength(1);
+    expect(blocked.projectileSerial).toBe(1);
+    expect(blocked.energyShotsBlocked).toBe(1);
+    expect(blocked.player.animation).toBe("idle");
+    expect(ready.projectileSerial).toBe(2);
+  });
+
   it("blocks an energy projectile while the shield is raised", () => {
     const run = createRebuildRun(0);
     run.enemies[0].type = "shield";

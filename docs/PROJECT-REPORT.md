@@ -194,6 +194,9 @@ index.html
 - Projectile transitions now show explicit `ENERGY HIT`, `ENERGY BLOCKED`, and
   `SHIELD BREAK` callouts, so ranged combat feedback is distinct from sword
   damage and teaches the player to switch back to the blade.
+- Energy shots now have a deterministic 900 ms recovery window. A hold released
+  during recovery does not fire and shows `ENERGY RECHARGING · USE SWORD`,
+  preserving the one-button fallback to close-range combat.
 - Pixel-tiled background, floor scroll, telegraphs, and death effects ship in
   the Phaser scene.
 - A low-alpha parallax skyline now advances independently from the floor,

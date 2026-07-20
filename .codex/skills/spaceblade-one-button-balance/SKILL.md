@@ -28,6 +28,8 @@ Prefer readable enemy counterplay over a global cooldown that makes the button f
 - A normal sword tap removes the raised shield without dealing body damage.
 - Once the shield is down, gun and sword attacks can damage the enemy normally.
 - A blocked projectile increments `projectilesBlocked` and shows `ENERGY BLOCKED · USE SWORD` in the Phaser HUD.
+- Energy shots have a deterministic 900ms cooldown; an early release is consumed
+  without firing and shows `ENERGY RECHARGING · USE SWORD`.
 - Wave 15 is a single boss encounter; preserve that low-noise acceptance path.
 
 Do not add a second key, server state, or per-frame network call to solve balance. Keep the model deterministic and cheap for 23–30 FPS targets.
