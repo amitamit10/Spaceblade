@@ -6,6 +6,7 @@ import {
   parryRebuildRun,
   rebuildActiveThreatWeight,
   rebuildEnemyThreatWeight,
+  rebuildEnergyProjectileHitRadius,
   releaseChargeRebuildRun,
   rebuildSpawnIntervalForWave,
   rebuildWaveTarget,
@@ -61,12 +62,25 @@ describe("rebuild run model", () => {
   });
 
   it("ramps spawn pacing across the authored wave bands", () => {
-    expect(rebuildSpawnIntervalForWave(1)).toBe(2200);
-    expect(rebuildSpawnIntervalForWave(4)).toBe(1800);
-    expect(rebuildSpawnIntervalForWave(7)).toBe(1400);
-    expect(rebuildSpawnIntervalForWave(11)).toBe(1100);
-    expect(rebuildSpawnIntervalForWave(14)).toBe(800);
-    expect(rebuildSpawnIntervalForWave(15)).toBe(800);
+    expect(rebuildSpawnIntervalForWave(1)).toBe(1900);
+    expect(rebuildSpawnIntervalForWave(4)).toBe(1550);
+    expect(rebuildSpawnIntervalForWave(7)).toBe(1200);
+    expect(rebuildSpawnIntervalForWave(11)).toBe(950);
+    expect(rebuildSpawnIntervalForWave(14)).toBe(700);
+    expect(rebuildSpawnIntervalForWave(15)).toBe(700);
+  });
+
+  it("keeps the small runner reachable by the energy shot", () => {
+    expect(rebuildEnergyProjectileHitRadius("runner")).toBeGreaterThan(34);
+    expect(rebuildEnergyProjectileHitRadius("tank")).toBe(34);
+
+    const run = createRebuildRun(0);
+    run.enemies[0].type = "runner";
+    run.enemies[0].x = 850;
+    const fired = releaseChargeRebuildRun(startChargeRebuildRun(run, 100), 500, 400);
+    const impact = advanceRebuildRun(fired, 800);
+
+    expect(impact.enemies[0].state).toBe("dead");
   });
 
   it("uses the wave target as a hard cap on live plus defeated threats", () => {

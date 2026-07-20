@@ -253,10 +253,10 @@ index.html
   existing offline state instead of leaving the highscores screen loading.
 - Successful leaderboard reads cancel that timeout immediately, avoiding stale
   timers across repeated highscores visits.
-- The authored six-frame player walk sequence is explicitly exposed in the
+- The authored eight-frame player run sequence is explicitly exposed in the
   manifest and selected during the neutral running state, preventing normal
   forward motion from reusing a static idle frame. Local and live browser
-  checks confirm `/sprites/frames/player/walk-XX.png` advances.
+  checks confirm `/sprites/frames/player/run-XX.png` advances.
 - Enemy approach states now use each roster member's authored standalone
   `walk-XX.png` sequence instead of the legacy rebuild-frame alias. A live
   production probe observed `/sprites/frames/grunt/walk-01.png` advancing with

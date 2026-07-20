@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { existsSync, readdirSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { REBUILD_PLAYER, REBUILD_SPRITES } from "./frameManifest";
 import { readPngMetadata } from "../../game/rendering/runtimeSpritePack";
@@ -10,7 +10,7 @@ describe("rebuild frame manifest", () => {
       for (const animation of Object.values(sprite.animations)) {
         expect(animation.frames.length).toBeGreaterThan(0);
         for (const frame of animation.frames) {
-          expect(frame).toMatch(/^\/sprites\/frames\/[^?]+\/(?:walk|windup|attack|hurt|recover|dead|specialAttack|charge|heavy|dodge|parry|idle|slash)-\d+\.png\?v=public-pack-2$/);
+          expect(frame).toMatch(/^\/sprites\/frames\/[^?]+\/(?:run|walk|windup|attack|hurt|recover|dead|specialAttack|charge|heavy|dodge|parry|idle|slash)-\d+\.png\?v=public-pack-3$/);
           expect(frame).toMatch(/^\/sprites\/frames\//);
           expect(frame).not.toContain("player.png");
         }
@@ -52,12 +52,23 @@ describe("rebuild frame manifest", () => {
   });
 
   it("ships dedicated player action sequences", () => {
+    expect(REBUILD_PLAYER.animations.run.frames).toHaveLength(8);
+    expect(REBUILD_PLAYER.animations.run.loop).toBe(true);
     expect(REBUILD_PLAYER.animations.walk.frames).toHaveLength(6);
     expect(REBUILD_PLAYER.animations.walk.loop).toBe(true);
     expect(REBUILD_PLAYER.animations.charging.frames).toHaveLength(3);
     expect(REBUILD_PLAYER.animations.heavy.frames).toHaveLength(6);
     expect(REBUILD_PLAYER.animations.dodge.frames).toHaveLength(3);
     expect(REBUILD_PLAYER.animations.parry.frames).toHaveLength(2);
+  });
+
+  it("gives the small runner a different public silhouette from the grunt", () => {
+    const grunt = REBUILD_SPRITES.find((sprite) => sprite.id === "grunt");
+    const runner = REBUILD_SPRITES.find((sprite) => sprite.id === "runner");
+    expect(grunt).toBeDefined();
+    expect(runner).toBeDefined();
+    expect(readFileSync(resolve(process.cwd(), "public", grunt!.animations.walk.frames[0].split("?")[0].slice(1))))
+      .not.toEqual(readFileSync(resolve(process.cwd(), "public", runner!.animations.walk.frames[0].split("?")[0].slice(1))));
   });
 
   it("ships dedicated player hurt and death reactions", () => {

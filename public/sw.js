@@ -1,6 +1,6 @@
 // Bump this whenever shipped visual assets change so installed clients fetch
 // the current sprite and effect files instead of keeping the previous pack.
-const CACHE_NAME = "spaceblade-shell-v3";
+const CACHE_NAME = "spaceblade-shell-v4";
 const SHELL_ASSETS = ["/", "/manifest.webmanifest", "/favicon.ico"];
 
 self.addEventListener("message", (event) => {

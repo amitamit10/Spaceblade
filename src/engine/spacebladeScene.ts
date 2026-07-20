@@ -848,8 +848,8 @@ export class SpacebladePlayScene extends Phaser.Scene {
       : run.player.hurtUntil > now
         ? "hurt"
         : run.player.animation;
-    const playerAnimation = playerVisualState === "idle" && PLAYER_ANIMATION_KEYS.has("walk")
-      ? "walk"
+    const playerAnimation = playerVisualState === "idle" && PLAYER_ANIMATION_KEYS.has("run")
+      ? "run"
       : playerVisualAnimation(playerVisualState, PLAYER_ANIMATION_KEYS);
     const playerFrames = animationFor(REBUILD_PLAYER, playerAnimation);
     const playerElapsed = playerVisualState === "dead"

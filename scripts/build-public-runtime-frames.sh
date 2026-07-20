@@ -54,6 +54,7 @@ player_run_shoot=()
 for index in 1 2 3 4 5 6 7 8; do player_run_shoot+=("$(player_source "run-shoot-$index.png")"); done
 
 write_sequence player idle 96 96 100 "" "${player_idle[@]}"
+write_sequence player run 96 96 100 "" "${player_run[@]}"
 write_sequence player walk 96 96 100 "" "${player_walk[@]}"
 write_sequence player slash 96 96 100 "" "${player_run[0]}" "${player_run[1]}" "${player_run[2]}" "${player_run[3]}"
 repeat_sources player charge 96 96 100 3 "$(player_source shoot.png)"
@@ -68,7 +69,7 @@ for index in 1 2 3 4; do drone_walk+=("$(drone_source "$index")"); done
 drone_explosion=()
 for index in 1 2 3; do drone_explosion+=("$(explosion_source "$index")"); done
 
-for actor in grunt runner glitch; do
+for actor in grunt glitch; do
   width=64; height=64; scale=100
   [[ "$actor" == glitch ]] && width=80 && height=80 && scale=130
   write_sequence "$actor" walk "$width" "$height" "$scale" "" "${drone_walk[@]}"
@@ -81,6 +82,17 @@ done
 
 turret_frames=()
 for index in 1 2 3 4 5 6; do turret_frames+=("$(turret_source "$index")"); done
+
+# Keep the fast runner visually distinct from the drone-based grunt. The
+# compact turret is normalized into the same cell, then rendered at the
+# existing actor scale so its hit target stays easy to read.
+write_sequence runner walk 64 64 120 "" "${turret_frames[0]}" "${turret_frames[1]}" "${turret_frames[2]}" "${turret_frames[3]}"
+write_sequence runner windup 64 64 120 "" "${turret_frames[1]}" "${turret_frames[2]}" "${turret_frames[3]}"
+write_sequence runner attack 64 64 120 "" "${turret_frames[2]}" "${turret_frames[3]}" "${turret_frames[4]}" "${turret_frames[5]}"
+write_sequence runner recover 64 64 120 "" "${turret_frames[4]}" "${turret_frames[5]}"
+repeat_sources runner hurt 64 64 120 2 "${turret_frames[0]}"
+write_sequence runner dead 64 64 120 "" "${drone_explosion[@]}"
+
 for actor in shield tank boss; do
   width=80; height=80; scale=240
   [[ "$actor" == tank ]] && width=96 && height=96 && scale=320

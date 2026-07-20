@@ -87,12 +87,12 @@ const WAVE_TARGET_BASE = 6;
 const FORWARD_SPAWN_GAP = 96;
 
 const ENEMY_STATS: Record<RebuildEnemyType, EnemyStats> = {
-  grunt: { hp: 1, speed: 72, attackRange: 78, windupMs: 380, recoveryMs: 360, damage: 1, score: 100 },
-  runner: { hp: 1, speed: 126, attackRange: 72, windupMs: 240, recoveryMs: 300, damage: 1, score: 125 },
-  shield: { hp: 1, speed: 54, attackRange: 82, windupMs: 460, recoveryMs: 420, damage: 1, score: 175 },
-  tank: { hp: 2, speed: 38, attackRange: 98, windupMs: 680, recoveryMs: 620, damage: 1, score: 275 },
-  glitch: { hp: 1, speed: 92, attackRange: 76, windupMs: 300, recoveryMs: 340, damage: 1, score: 300 },
-  boss: { hp: 12, speed: 34, attackRange: 130, windupMs: 720, recoveryMs: 580, damage: 2, score: 1500 },
+  grunt: { hp: 1, speed: 84, attackRange: 78, windupMs: 380, recoveryMs: 360, damage: 1, score: 100 },
+  runner: { hp: 1, speed: 145, attackRange: 72, windupMs: 240, recoveryMs: 300, damage: 1, score: 125 },
+  shield: { hp: 1, speed: 62, attackRange: 82, windupMs: 460, recoveryMs: 420, damage: 1, score: 175 },
+  tank: { hp: 2, speed: 44, attackRange: 98, windupMs: 680, recoveryMs: 620, damage: 1, score: 275 },
+  glitch: { hp: 1, speed: 106, attackRange: 76, windupMs: 300, recoveryMs: 340, damage: 1, score: 300 },
+  boss: { hp: 12, speed: 40, attackRange: 130, windupMs: 720, recoveryMs: 580, damage: 2, score: 1500 },
 };
 
 const cloneRun = (run: RebuildRun): RebuildRun => ({
@@ -132,6 +132,10 @@ function activeEnemies(run: RebuildRun): RebuildEnemy[] {
   return run.enemies.filter((enemy) => enemy.state !== "dead");
 }
 
+export function rebuildEnergyProjectileHitRadius(type: RebuildEnemyType): number {
+  return type === "runner" ? 48 : ENERGY_PROJECTILE_HIT_RADIUS;
+}
+
 export function rebuildEnemyThreatWeight(type: RebuildEnemyType): number {
   return type === "tank" || type === "boss" ? 2 : 1;
 }
@@ -160,11 +164,11 @@ function awardDefeat(run: RebuildRun, enemy: RebuildEnemy): void {
 }
 
 export function rebuildSpawnIntervalForWave(wave: number): number {
-  if (wave <= 3) return 2200;
-  if (wave <= 6) return 1800;
-  if (wave <= 10) return 1400;
-  if (wave <= 13) return 1100;
-  return 800;
+  if (wave <= 3) return 1900;
+  if (wave <= 6) return 1550;
+  if (wave <= 10) return 1200;
+  if (wave <= 13) return 950;
+  return 700;
 }
 
 export function rebuildWaveTarget(wave: number): number {
@@ -225,7 +229,10 @@ function applyAttack(run: RebuildRun, range: number, damage: number, kind: "quic
 
 function resolveProjectileHit(run: RebuildRun, projectile: RebuildProjectile, previousX: number): boolean {
   const target = activeEnemies(run)
-    .filter((enemy) => enemy.x <= projectile.x + ENERGY_PROJECTILE_HIT_RADIUS && enemy.x >= previousX - ENERGY_PROJECTILE_HIT_RADIUS)
+    .filter((enemy) => {
+      const hitRadius = rebuildEnergyProjectileHitRadius(enemy.type);
+      return enemy.x <= projectile.x + hitRadius && enemy.x >= previousX - hitRadius;
+    })
     .sort((left, right) => Math.abs(left.x - projectile.x) - Math.abs(right.x - projectile.x))[0];
   if (!target) return false;
   if (target.type === "shield" && target.shielded) {

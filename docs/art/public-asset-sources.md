@@ -36,5 +36,5 @@ requests, and stays cheap on static hosting.
 The public pack now supplies the active standalone runtime frames. The game
 still draws sword/parry and shield feedback as gameplay effects because those
 states are not present in the source pack; no still frame is falsely labeled as
-a sword animation. Active frame URLs use a revision query (`v=public-pack-2`)
+a sword animation. Active frame URLs use a revision query (`v=public-pack-3`)
 so installed clients cannot reuse the retired custom frame cache.
