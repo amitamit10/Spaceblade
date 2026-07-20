@@ -33,7 +33,7 @@ flow, and a live Firebase leaderboard submission/read check.
 | Source files | 64 TypeScript modules |
 | Production code | ~3,960 LOC |
 | Test code | ~1,070 LOC |
-| Tests | **260 passing**, 44 Vitest suites + 22 browser tests |
+| Tests | **265 passing**, 45 Vitest suites + 22 browser tests |
 | Build | `tsc --noEmit` + Vite, clean |
 | Dependencies | `firebase`, `phaser` (+ dev: vite, typescript, vitest, jsdom, Playwright, @types/node) |
 
@@ -300,16 +300,20 @@ index.html
   recover). It reads clearly but is not sophisticated; late-wave difficulty comes
   from spawn density, not smarter behavior.
 - **Balance is still early-stage.** The parry window is intentionally forgiving
-  at −150/+90ms for the 30 FPS one-button loop; hit ranges and spawn pacing
-  still need feel tuning with more real players.
+  at −150/+90ms and dodge invulnerability now lasts 500ms for the 30 FPS
+  one-button loop; hit ranges and spawn pacing still need feel tuning with more
+  real players.
 - **Firebase remains a secondary chunk** (344.46 kB JS, 86.84 kB gzip) for a
   small game, but it is now lazy-loaded only for highscores or eligible score
   submission; the main bundle is 53.52 kB (16.58 kB gzip).
 - **30 FPS target** is conservative; the baked-sprite approach should hold it,
   and presentation objects are pooled. An active-run baseline is now measured
   automatically, and the deterministic 15-wave simulation now asserts the
-  weighted threat invariant. The public-input rendered probe reaches Wave 15
-  in 600 seconds at 3 hearts, with max threat weight 6 and zero browser errors.
+  weighted threat invariant. The default public-input rendered probe reaches
+  Wave 8 in 180 seconds at 3 hearts, with max threat weight 3 and zero browser
+  errors. A separate Wave 15 profile now requires the published terminal
+  `victory` status instead of treating boss arrival as completion; it remains a
+  stress target for further balance tuning.
 
 ---
 
@@ -332,6 +336,7 @@ index.html
   `src/game/player/playerStateMachine.ts`, `src/game/input/inputParser.ts`
 - **Integration:** `src/app/App.ts`, `src/game/scenes/mainGameScene.ts`,
   `src/game/run/gameLoop.ts`
-- **Tests:** co-located `*.test.ts` (254 tests, 44 suites) plus 22 browser tests
+- **Tests:** co-located `*.test.ts` and acceptance tests (265 tests, 45 suites)
+  plus 22 browser tests
 - **Run it:** `npm install && npm run dev`; verify with `npm test -- --run` and
   `npm run build`.

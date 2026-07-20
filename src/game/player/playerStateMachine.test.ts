@@ -34,11 +34,11 @@ describe("createPlayerStateMachine", () => {
     expect(p.update(1000 + 460).state).toBe("idle");
   });
 
-  it("doubleTap grants invulnerability until at least now + 350", () => {
+  it("doubleTap grants invulnerability until at least now + 500", () => {
     const p = createPlayerStateMachine(0);
     const s = p.applyAction("doubleTap", 100);
     expect(s.state).toBe("dodging");
-    expect(s.invulnerableUntil).toBeGreaterThanOrEqual(100 + 350);
+    expect(s.invulnerableUntil).toBeGreaterThanOrEqual(100 + 500);
   });
 
   it("parry from idle enters parrying", () => {
@@ -60,7 +60,7 @@ describe("createPlayerStateMachine", () => {
 
   it("does not take damage while invulnerable", () => {
     const p = createPlayerStateMachine(0);
-    p.applyAction("doubleTap", 0); // invulnerable until 350
+    p.applyAction("doubleTap", 0); // invulnerable until 500
     expect(p.applyDamage(100).hearts).toBe(3);
   });
 

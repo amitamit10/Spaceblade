@@ -313,7 +313,7 @@ describe("rebuild run model", () => {
     const dodging = dodgeRebuildRun(createRebuildRun(0), 100);
 
     expect(dodging.player.animation).toBe("dodge");
-    expect(dodging.player.invulnerableUntil).toBe(450);
+    expect(dodging.player.invulnerableUntil).toBe(600);
   });
 
   it("parries an impact inside the precise timing window", () => {
