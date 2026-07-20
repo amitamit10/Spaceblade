@@ -217,8 +217,9 @@ index.html
   browser errors, and the engine test now locks the intentional 30 FPS pacing
   configuration (`forceSetTimeOut`).
 - `npm run verify:production:performance` now measures the active production
-  simulation for 8 seconds; the current baseline is 28.41 median FPS, 38.8ms
-  p95 update interval, 229 samples, and zero browser errors without Firebase
+  simulation for 8 seconds; the current baseline is 28.57 median FPS, 39ms
+  p95 update interval, 228 samples, max threat weight 2, and zero browser
+  errors without Firebase loading before gameplay.
   loading before gameplay.
 - The coarse-pointer warning now uses larger mobile typography and concise
   rotate-to-landscape guidance; this was visually checked at 390x844 in Chrome.

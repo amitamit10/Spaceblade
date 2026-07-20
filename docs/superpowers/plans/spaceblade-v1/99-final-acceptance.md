@@ -137,3 +137,6 @@ Runtime evidence checkpoint:
   teleport deadline so dense frames do not repeat the sound.
 - The full deterministic 15-wave simulation asserts the weighted threat cap and
   tank limit; production also exposes the live threat weight for smoke probes.
+- Production smoke and performance gates fail if threat telemetry is missing or
+  exceeds the weighted capacity, rather than silently accepting an incomplete
+  runtime signal.

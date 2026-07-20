@@ -47,7 +47,8 @@ try {
     })));
   }
 
-  if (!first.player || !first.enemy || first.playerX !== "640" || first.hud !== "split" || Number(first.threatWeight) > 6) {
+  const threatWeight = Number(first.threatWeight);
+  if (!first.player || !first.enemy || first.playerX !== "640" || first.hud !== "split" || !Number.isFinite(threatWeight) || threatWeight > 6) {
     throw new Error(`Gameplay layout contract failed: ${JSON.stringify(first)}`);
   }
   if (
@@ -87,6 +88,7 @@ try {
     url: baseUrl,
     screen: "playing",
     playerX: first.playerX,
+    threatWeight,
     actions: { quickAction, charging, heavy },
     framesAdvanced: true,
     skylineAdvanced: true,

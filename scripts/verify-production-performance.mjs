@@ -29,12 +29,15 @@ try {
   const samplesPromise = page.evaluate((durationMs) => new Promise((resolve) => {
     const canvas = document.querySelector("canvas");
     const changes = [];
+    let maxThreatWeight = 0;
     let previous = canvas?.dataset.spacebladeBackgroundOffset ?? null;
     let previousAt = performance.now();
     const startedAt = previousAt;
     const timer = setInterval(() => {
       const now = performance.now();
       const current = canvas?.dataset.spacebladeBackgroundOffset ?? null;
+      const threatWeight = Number(canvas?.dataset.spacebladeThreatWeight);
+      if (Number.isFinite(threatWeight)) maxThreatWeight = Math.max(maxThreatWeight, threatWeight);
       if (current !== null && current !== previous) {
         changes.push(now - previousAt);
         previous = current;
@@ -42,7 +45,7 @@ try {
       }
       if (now - startedAt >= durationMs) {
         clearInterval(timer);
-        resolve({ changes, finalScreen: canvas?.dataset.spacebladeScreen ?? "missing" });
+        resolve({ changes, finalScreen: canvas?.dataset.spacebladeScreen ?? "missing", maxThreatWeight });
       }
     }, 5);
   }), profileDurationMs);
@@ -58,6 +61,9 @@ try {
 
   const intervals = samples.changes.filter((interval) => interval >= 10 && interval <= 100);
   if (samples.finalScreen !== "playing") throw new Error(`Gameplay ended during profile: ${samples.finalScreen}`);
+  if (!Number.isFinite(samples.maxThreatWeight) || samples.maxThreatWeight > 6) {
+    throw new Error(`Threat weight outside contract: ${samples.maxThreatWeight}`);
+  }
   if (intervals.length < 40) throw new Error(`Too few simulation samples: ${intervals.length}`);
   const sorted = [...intervals].sort((left, right) => left - right);
   const medianMs = sorted[Math.floor(sorted.length / 2)];
@@ -78,6 +84,7 @@ try {
     medianMs: Number(medianMs.toFixed(2)),
     medianFps: Number(medianFps.toFixed(2)),
     p95Ms: Number(p95Ms.toFixed(2)),
+    maxThreatWeight: samples.maxThreatWeight,
     firebaseLoadedBeforeGameplay: false,
     browserErrors: 0,
   }, null, 2));
