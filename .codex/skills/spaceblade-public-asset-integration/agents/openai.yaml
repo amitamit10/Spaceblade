@@ -1,0 +1,4 @@
+interface:
+  display_name: "Spaceblade Public Assets"
+  short_description: "Adapt licensed sprite packs safely"
+  default_prompt: "Use $spaceblade-public-asset-integration when studying or integrating a licensed public sprite pack into Spaceblade."
