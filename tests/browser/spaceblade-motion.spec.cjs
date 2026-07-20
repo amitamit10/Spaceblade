@@ -17,6 +17,8 @@ async function startPhaserGameplay(page) {
   }
   await expect(page.locator("canvas")).toHaveAttribute("data-spaceblade-screen", "playing");
   await expect(page.locator("canvas")).toHaveAttribute("data-spaceblade-hud-layout", "split");
+  await expect(page.locator("canvas")).toHaveAttribute("data-spaceblade-building", "interior");
+  await expect(page.locator("canvas")).toHaveAttribute("data-spaceblade-obstacles", "4");
   await expect(page.locator("canvas")).toHaveAttribute("data-spaceblade-player-x", "640");
   await expect(page.locator("canvas")).toHaveAttribute("data-spaceblade-threat-weight", /^(?:[0-5]|6)$/);
 }

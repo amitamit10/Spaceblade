@@ -138,6 +138,7 @@ export class SpacebladePlayScene extends Phaser.Scene {
   private publicSkylineNear: Phaser.GameObjects.TileSprite | null = null;
   private publicGround: Phaser.GameObjects.TileSprite | null = null;
   private buildingInterior: Phaser.GameObjects.Graphics | null = null;
+  private obstacleCourse: Phaser.GameObjects.Graphics | null = null;
   private runnerMotion: Phaser.GameObjects.Graphics | null = null;
   private waveBanner: Phaser.GameObjects.Text | null = null;
   private waveBannerUntil = 0;
@@ -321,7 +322,10 @@ export class SpacebladePlayScene extends Phaser.Scene {
       .setAlpha(0.96)
       .setTileScale(1, 1.45)
       .setDepth(0.2);
-    this.buildingInterior = this.add.graphics().setDepth(-0.4);
+    // The arena base is opaque, so the building shell must sit above it while
+    // remaining behind the actors and their gameplay effects.
+    this.buildingInterior = this.add.graphics().setDepth(0.35);
+    this.obstacleCourse = this.add.graphics().setDepth(1.2);
     this.soundBus = createSoundBus(() => this.settings.volume);
     this.createNameEntryForm();
     const prefersReducedMotion = typeof window.matchMedia === "function"
@@ -876,6 +880,7 @@ export class SpacebladePlayScene extends Phaser.Scene {
     this.parryTimingLabel?.setVisible(inGameplay);
     this.skylineMotion?.setVisible(inGameplay);
     this.buildingInterior?.setVisible(inGameplay);
+    this.obstacleCourse?.setVisible(inGameplay);
     const showingTutorial = screen === "tutorial";
     this.tutorialGuideBackground?.setVisible(showingTutorial);
     this.tutorialGuideImages.forEach((image) => image.setVisible(showingTutorial));
@@ -1011,6 +1016,8 @@ export class SpacebladePlayScene extends Phaser.Scene {
     this.game.canvas.dataset.spacebladeFloor = String(run.wave);
     this.game.canvas.dataset.spacebladeRunStatus = run.status;
     this.game.canvas.dataset.spacebladePlayerX = String(VIEW_PLAYER_X);
+    this.game.canvas.dataset.spacebladeBuilding = "interior";
+    this.game.canvas.dataset.spacebladeObstacles = "4";
     this.syncWaveBanner(now);
     const facing = facingFor(run);
     const playerVisualState = run.status === "gameOver"
@@ -1081,6 +1088,7 @@ export class SpacebladePlayScene extends Phaser.Scene {
     this.drawWaveProgress(run);
     this.drawParryTiming(run, now);
     this.drawBuildingInterior(now, run.wave, traversalPhase);
+    this.drawBuildingObstacles(now, run.wave, traversalPhase);
     this.drawSkylineMotion(now, run.wave);
     this.drawRunnerMotion(now, facing);
     const bossActive = run.enemies.some((enemy) => enemy.type === "boss" && enemy.state !== "dead");
@@ -1182,6 +1190,50 @@ export class SpacebladePlayScene extends Phaser.Scene {
       graphics.lineStyle(4, 0xffc52f, 0.9).lineBetween(82, rung, 122, rung);
       graphics.lineStyle(2, 0xffc52f, 0.78).lineBetween(102, rung - 26, 102, rung - 6);
     }
+  }
+
+  private drawBuildingObstacles(
+    now: number,
+    floor: number,
+    traversalPhase: ReturnType<typeof rebuildFloorTraversalPhase>,
+  ): void {
+    if (!this.obstacleCourse) return;
+    const graphics = this.obstacleCourse;
+    const scroll = (now * (0.08 + Math.min(0.035, floor * 0.002)) + floor * 140) % SPACEBLADE_WIDTH;
+    const obstacleXs = [180, 560, 940, 1320];
+    graphics.clear();
+
+    for (const baseX of obstacleXs) {
+      const x = baseX - scroll;
+      const wrappedX = x < -120 ? x + SPACEBLADE_WIDTH + 160 : x;
+      const pattern = (Math.floor(baseX / 380) + floor) % 3;
+      if (pattern === 0) {
+        // Low vaultable crate.
+        graphics.fillStyle(0x241d48, 1).fillRect(wrappedX - 34, GROUND_Y - 48, 68, 46);
+        graphics.fillStyle(0x3b2f69, 1).fillRect(wrappedX - 27, GROUND_Y - 40, 54, 7);
+        graphics.lineStyle(2, 0xffc52f, 0.9).strokeRect(wrappedX - 34, GROUND_Y - 48, 68, 46);
+        graphics.lineStyle(2, 0x57eaff, 0.55).lineBetween(wrappedX - 26, GROUND_Y - 27, wrappedX + 26, GROUND_Y - 27);
+      } else if (pattern === 1) {
+        // Wall section with a climb rail, matching the automatic floor route.
+        graphics.fillStyle(0x101d31, 0.98).fillRect(wrappedX - 22, GROUND_Y - 174, 44, 172);
+        graphics.fillStyle(0x14243a, 1).fillRect(wrappedX - 34, GROUND_Y - 180, 68, 8);
+        graphics.lineStyle(3, traversalPhase === "wall-climb" ? 0xffc52f : 0x2cb7d3, 0.9);
+        graphics.lineBetween(wrappedX + 26, GROUND_Y - 162, wrappedX + 26, GROUND_Y - 16);
+        for (let rung = 0; rung < 5; rung += 1) {
+          graphics.lineStyle(2, 0x57eaff, 0.7);
+          graphics.lineBetween(wrappedX + 14, GROUND_Y - 148 + rung * 28, wrappedX + 38, GROUND_Y - 148 + rung * 28);
+        }
+      } else {
+        // Raised floor landing, making the building's vertical route visible.
+        graphics.fillStyle(0x101d31, 0.98).fillRect(wrappedX - 72, GROUND_Y - 108, 144, 12);
+        graphics.fillStyle(0x241d48, 1).fillRect(wrappedX - 62, GROUND_Y - 96, 124, 12);
+        graphics.lineStyle(2, 0x2cb7d3, 0.8).strokeRect(wrappedX - 72, GROUND_Y - 108, 144, 24);
+        graphics.lineStyle(2, 0xffc52f, 0.72).lineBetween(wrappedX - 52, GROUND_Y - 84, wrappedX + 52, GROUND_Y - 84);
+      }
+    }
+
+    graphics.fillStyle(0x0b1728, 0.96).fillRect(42, GROUND_Y - 4, SPACEBLADE_WIDTH - 84, 6);
+    graphics.lineStyle(2, 0xff4fa3, 0.65).lineBetween(42, GROUND_Y + 2, SPACEBLADE_WIDTH - 42, GROUND_Y + 2);
   }
 
   private drawCombatFx(animation: RebuildRun["player"]["animation"], elapsed: number, facing: "left" | "right"): void {
