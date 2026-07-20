@@ -52,3 +52,11 @@ still draws sword/parry and shield feedback as gameplay effects because those
 states are not present in the source pack; no still frame is falsely labeled as
 a sword animation. Active frame URLs use a revision query (`v=public-pack-3`)
 so installed clients cannot reuse the retired custom frame cache.
+
+## Pixel Style Contract
+
+The active scene keeps the pack visually unified by using nearest-neighbor
+rendering, integer world positions, integer sprite scales, and one shared
+amber/cyan/magenta palette for the building shell, combat feedback, and HUD.
+Tutorial previews use integer scales as well, so their enlarged pixels do not
+become uneven while comparing enemy classes.

@@ -213,9 +213,12 @@ export class SpacebladePlayScene extends Phaser.Scene {
       this.tutorialGuideBackground?.lineStyle(1, 0x2cb7d3, 0.62).strokeRect(x - 178, y - 62, 356, 126);
       const definition = REBUILD_ENEMIES.find((enemy) => enemy.id === id) ?? REBUILD_ENEMIES[0];
       const firstFrame = animationFor(definition, "walk").frames[0];
+      // Keep guide previews on integer scales so every asset keeps crisp,
+      // evenly-sized pixels while fitting the shared card layout.
+      const guideScale = Math.max(1, Math.round(definition.scale / 2));
       this.tutorialGuideImages.push(this.add.image(x, y - 12, frameKey(firstFrame))
         .setOrigin(0.5, 1)
-        .setScale(id === "boss" ? 0.55 : id === "tank" ? 0.9 : 1.05)
+        .setScale(guideScale)
         .setDepth(40)
         .setVisible(false));
       this.tutorialGuideLabels.push(this.add.text(x, y + 42, `${label}\n${description}`, {
