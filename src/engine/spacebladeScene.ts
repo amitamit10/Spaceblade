@@ -29,7 +29,7 @@ import {
   enemyVisualAnimation,
   playerVisualAnimation,
 } from "./spacebladeAnimation";
-import { enemyVisualMotion } from "./spacebladeMotion";
+import { enemyVisualMotion, glitchTeleportPresentation } from "./spacebladeMotion";
 import { shouldPauseForVisibility } from "./spacebladeVisibility";
 import { initialSpacebladeScreen } from "./spacebladeDevice";
 import { gradeForScore } from "../game/run/scoreSystem";
@@ -1027,7 +1027,12 @@ export class SpacebladePlayScene extends Phaser.Scene {
     if (animationName === "recover") this.game.canvas.dataset.spacebladeEnemyRecoveryFrame = source;
     if (animationName === "specialAttack") this.game.canvas.dataset.spacebladeBossSpecialFrame = source;
     const motion = enemyVisualMotion(enemy.state, now, enemy.x, PLAYER_X, enemy.nextAttackAt);
-    const visualX = clampSpriteCenterX(screenX + motion.x, definition.width, definition.scale, SPACEBLADE_WIDTH);
+    const glitchTeleport = enemy.type === "glitch" && (this.run?.wave ?? 1) >= 8
+      ? glitchTeleportPresentation(now, enemy.teleportAt)
+      : { active: false, alpha: 1, x: 0 };
+    if (glitchTeleport.active) this.game.canvas.dataset.spacebladeGlitchTeleportFlicker = "true";
+    else delete this.game.canvas.dataset.spacebladeGlitchTeleportFlicker;
+    const visualX = clampSpriteCenterX(screenX + motion.x + glitchTeleport.x, definition.width, definition.scale, SPACEBLADE_WIDTH);
     const visualY = GROUND_Y + motion.y;
     if (tookDamage) {
       let label = this.enemyHitLabels.get(enemy.id);
@@ -1044,7 +1049,7 @@ export class SpacebladePlayScene extends Phaser.Scene {
       }
       label.setText("-1").setVisible(true).setAlpha(1).setScale(1);
     }
-    view.sprite.setVisible(true).setTexture(frameKey(source)).setPosition(visualX, visualY).setAngle(motion.angle).setAlpha(1).setFlipX(enemy.side === "right");
+    view.sprite.setVisible(true).setTexture(frameKey(source)).setPosition(visualX, visualY).setAngle(motion.angle).setAlpha(glitchTeleport.alpha).setFlipX(enemy.side === "right");
     const marker = enemy.type === "boss"
       ? enemy.state === "attacking" && enemy.nextAttackAt - now <= 260 ? "BOSS !" : "BOSS"
       : enemy.nextAttackAt - now <= 180 ? "!" : "";

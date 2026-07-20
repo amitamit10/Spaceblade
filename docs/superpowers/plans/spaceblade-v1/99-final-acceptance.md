@@ -129,3 +129,5 @@ Runtime evidence checkpoint:
 - Wide enemy and boss frames are presentation-clamped to the arena viewport;
   world-space collision positions remain unchanged while edge sprites and
   telegraph effects stay visible.
+- Late-wave Glitch teleporting now has a deterministic pre-teleport flicker
+  window, covered by motion tests and exposed through a runtime marker.

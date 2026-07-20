@@ -6,7 +6,25 @@ export type EnemyVisualMotion = {
   readonly angle: number;
 };
 
+export type GlitchTeleportPresentation = {
+  readonly active: boolean;
+  readonly alpha: number;
+  readonly x: number;
+};
+
 const clamp = (value: number, min: number, max: number): number => Math.max(min, Math.min(max, value));
+
+export function glitchTeleportPresentation(now: number, teleportAt: number): GlitchTeleportPresentation {
+  const remaining = teleportAt - now;
+  if (remaining <= 0 || remaining > 260) return { active: false, alpha: 1, x: 0 };
+
+  const pulse = Math.floor(remaining / 52) % 2;
+  return {
+    active: true,
+    alpha: pulse === 0 ? 0.18 : 0.78,
+    x: pulse === 0 ? -5 : 5,
+  };
+}
 
 /**
  * Presentation-only motion. Combat coordinates remain owned by rebuildGame;
