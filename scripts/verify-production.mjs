@@ -35,6 +35,7 @@ try {
     background: node.dataset.spacebladeBackgroundOffset,
     playerX: node.dataset.spacebladePlayerX,
     hud: node.dataset.spacebladeHudLayout,
+    threatWeight: node.dataset.spacebladeThreatWeight,
   }));
   const motionSamples = [first];
   for (let sample = 0; sample < 3; sample += 1) {
@@ -46,7 +47,7 @@ try {
     })));
   }
 
-  if (!first.player || !first.enemy || first.playerX !== "640" || first.hud !== "split") {
+  if (!first.player || !first.enemy || first.playerX !== "640" || first.hud !== "split" || Number(first.threatWeight) > 6) {
     throw new Error(`Gameplay layout contract failed: ${JSON.stringify(first)}`);
   }
   if (

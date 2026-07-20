@@ -135,3 +135,5 @@ Runtime evidence checkpoint:
   and bosses weighted at 2 and a maximum of two active tanks.
 - Glitch teleport warnings use a dedicated generated audio cue, gated once per
   teleport deadline so dense frames do not repeat the sound.
+- The full deterministic 15-wave simulation asserts the weighted threat cap and
+  tank limit; production also exposes the live threat weight for smoke probes.

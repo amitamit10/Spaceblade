@@ -303,7 +303,9 @@ index.html
   submission; the main bundle is 53.52 kB (16.58 kB gzip).
 - **30 FPS target** is conservative; the baked-sprite approach should hold it,
   and presentation objects are pooled. An active-run baseline is now measured
-  automatically, but a full late-wave stress profile remains future work.
+  automatically, and the deterministic 15-wave simulation now asserts the
+  weighted threat invariant; a full rendered late-wave browser profile remains
+  future work.
 
 ---
 
@@ -311,8 +313,9 @@ index.html
 
 1. **Playtest-driven balance pass.** Tune ranges, parry timing, and spawn
    pacing against real player sessions.
-2. **FPS and bundle profiling.** Extend the active-run gate to a full late-wave
-   stress profile and consider splitting the lazy Firebase chunk further.
+2. **FPS and bundle profiling.** Extend the active-run gate to a full rendered
+   late-wave stress profile and consider splitting the lazy Firebase chunk
+   further.
 3. **Sound pass** — replace generated blips with designed cues (still code or a
    tiny asset set).
 

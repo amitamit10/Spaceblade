@@ -5,6 +5,7 @@ import {
   advanceRebuildRun,
   createRebuildRun,
   releaseChargeRebuildRun,
+  rebuildActiveThreatWeight,
   rebuildWaveTarget,
   startChargeRebuildRun,
   tapRebuildRun,
@@ -723,6 +724,8 @@ export class SpacebladePlayScene extends Phaser.Scene {
     this.game.canvas.dataset.spacebladeWave = String(run.wave);
     this.game.canvas.dataset.spacebladeScore = String(run.score);
     this.game.canvas.dataset.spacebladeHearts = String(run.hearts);
+    this.game.canvas.dataset.spacebladeActiveThreats = String(run.enemies.filter((enemy) => enemy.state !== "dead").length);
+    this.game.canvas.dataset.spacebladeThreatWeight = String(rebuildActiveThreatWeight(run));
     this.game.canvas.dataset.spacebladeCombo = String(run.combo);
     this.game.canvas.dataset.spacebladeDefeated = String(run.defeated);
     this.game.canvas.dataset.spacebladeGrade = gradeForScore(run.score) ?? "UNRANKED";

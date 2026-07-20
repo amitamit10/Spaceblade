@@ -425,11 +425,15 @@ describe("rebuild run model", () => {
     let run = createRebuildRun(0);
     let now = 0;
     let guard = 0;
+    let peakThreatWeight = 0;
+    let peakTankCount = 0;
 
     while (run.status === "playing" && guard < 2000) {
       guard += 1;
       now = Math.max(now + 250, run.nextSpawnAt);
       run = advanceRebuildRun(run, now);
+      peakThreatWeight = Math.max(peakThreatWeight, rebuildActiveThreatWeight(run));
+      peakTankCount = Math.max(peakTankCount, run.enemies.filter((enemy) => enemy.state !== "dead" && enemy.type === "tank").length);
       for (const enemy of run.enemies) {
         if (enemy.state === "dead") continue;
         enemy.x = 640;
@@ -453,5 +457,7 @@ describe("rebuild run model", () => {
     expect(run.status).toBe("victory");
     expect(run.wave).toBe(15);
     expect(run.bossSpawned).toBe(true);
+    expect(peakThreatWeight).toBeLessThanOrEqual(6);
+    expect(peakTankCount).toBeLessThanOrEqual(2);
   });
 });
