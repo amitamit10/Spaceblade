@@ -24,6 +24,19 @@ This is intentionally vendored into the repository instead of loaded from a
 remote URL. That keeps deployment deterministic, avoids runtime network
 requests, and stays cheap on static hosting.
 
+## Kenney Digital Audio
+
+- Source: https://kenney.nl/assets/digital-audio
+- License: CC0 1.0, as provided by the pack
+- Local files: `public/audio/kenney/`
+- Runtime mapping: `src/game/audio/soundBus.ts`
+- Included cues: slash, energy shot, parry, hit, enemy alert, boss,
+  parkour jump, wall climb, and landing.
+
+The selected OGG files are copied into the repository so production does not
+depend on an external audio host. The sound bus treats audio as optional and
+swallows autoplay failures without affecting gameplay.
+
 ## Replacement Rules
 
 1. Review the staged preview before changing runtime sprites.

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { rebuildAutoParkourOffset, rebuildPlayerVisualOffset, rebuildShakeOffset } from "./renderScene";
+import { rebuildAutoParkourOffset, rebuildFloorTransitionOffset, rebuildPlayerVisualOffset, rebuildShakeOffset } from "./renderScene";
 
 describe("rebuild camera feedback", () => {
   it("does not move an idle scene", () => {
@@ -34,5 +34,13 @@ describe("rebuild camera feedback", () => {
 
   it("vaults forward in the direction the runner is facing", () => {
     expect(rebuildAutoParkourOffset(180, "left").x).toBeLessThan(0);
+  });
+
+  it("climbs to the next building floor automatically between waves", () => {
+    const climb = rebuildFloorTransitionOffset(700, "right");
+
+    expect(climb).not.toBeNull();
+    expect(climb!.y).toBeLessThan(-100);
+    expect(rebuildFloorTransitionOffset(1500, "right")).toBeNull();
   });
 });

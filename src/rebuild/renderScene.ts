@@ -9,6 +9,7 @@ export const REBUILD_GROUND_Y = 552;
 
 const AUTO_PARKOUR_CYCLE_MS = 3200;
 const AUTO_PARKOUR_JUMP_MS = 760;
+const FLOOR_CLIMB_DURATION_MS = 1500;
 
 type Actor = {
   readonly sprite: RebuildSprite;
@@ -67,6 +68,27 @@ export function rebuildAutoParkourOffset(
     y: -Math.round(arc * 82),
     angle,
   };
+}
+
+/** Automatic vertical traversal between building floors after a wave clears. */
+export function rebuildFloorTransitionOffset(
+  elapsed: number,
+  facing: "left" | "right",
+): { readonly x: number; readonly y: number; readonly angle: number } | null {
+  if (elapsed < 0 || elapsed >= FLOOR_CLIMB_DURATION_MS) return null;
+  const direction = facing === "left" ? -1 : 1;
+  if (elapsed < 380) {
+    const progress = elapsed / 380;
+    const arc = Math.sin(progress * Math.PI / 2);
+    return { x: Math.round(direction * arc * 30), y: -Math.round(arc * 44), angle: direction * -12 };
+  }
+  if (elapsed < 1080) {
+    const progress = (elapsed - 380) / 700;
+    return { x: direction * 18, y: -44 - Math.round(progress * 142), angle: direction * -8 };
+  }
+  const progress = (elapsed - 1080) / 420;
+  const arc = Math.sin((1 - progress) * Math.PI / 2);
+  return { x: Math.round(direction * (18 - progress * 18)), y: -Math.round(arc * 142), angle: direction * Math.round(8 - progress * 8) };
 }
 
 function drawSkyline(ctx: CanvasRenderingContext2D, now: number): void {

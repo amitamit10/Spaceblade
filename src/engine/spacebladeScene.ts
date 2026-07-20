@@ -12,7 +12,7 @@ import {
   type RebuildEnemy,
   type RebuildRun,
 } from "../rebuild/rebuildGame";
-import { rebuildAutoParkourOffset, rebuildPlayerVisualOffset } from "../rebuild/renderScene";
+import { rebuildAutoParkourOffset, rebuildFloorTransitionOffset, rebuildPlayerVisualOffset } from "../rebuild/renderScene";
 import { SPACEBLADE_HEIGHT, SPACEBLADE_WIDTH } from "./spacebladeConstants";
 import { loadSpacebladeBest, loadSpacebladeSettings, saveSpacebladeBest, saveSpacebladeSettings, spacebladeMotionDefaults, type SpacebladeSettings } from "./spacebladePersistence";
 import { createSoundBus, type SoundBus, type SoundCue } from "../game/audio/soundBus";
@@ -132,6 +132,9 @@ export class SpacebladePlayScene extends Phaser.Scene {
   private runnerMotion: Phaser.GameObjects.Graphics | null = null;
   private waveBanner: Phaser.GameObjects.Text | null = null;
   private waveBannerUntil = 0;
+  private floorClimbAt: number | null = null;
+  private floorLandingPlayedAt: number | null = null;
+  private parkourWasAirborne = false;
   private lastSeenWave = 1;
   private bossWasPresent = false;
   private lastFxActionAt: number | null = null;
@@ -399,7 +402,14 @@ export class SpacebladePlayScene extends Phaser.Scene {
     }
     if (this.run.wave !== this.lastSeenWave) {
       this.lastSeenWave = this.run.wave;
-      this.showWaveBanner(this.run.wave >= 15 ? "BOSS WAVE  ·  15" : `WAVE ${this.run.wave}`, now, 1800);
+      this.floorClimbAt = now;
+      this.floorLandingPlayedAt = null;
+      this.playSound("wallClimb");
+      this.showWaveBanner(this.run.wave >= 15 ? "FLOOR 15  ·  BOSS WAVE" : `FLOOR ${this.run.wave}  ·  WAVE ${this.run.wave}`, now, 1800);
+    }
+    if (this.floorClimbAt !== null && now - this.floorClimbAt >= 1500 && this.floorLandingPlayedAt !== this.floorClimbAt) {
+      this.floorLandingPlayedAt = this.floorClimbAt;
+      this.playSound("landing");
     }
     const bossPresent = this.run.enemies.some((enemy) => enemy.type === "boss" && enemy.state !== "dead");
     if (bossPresent && !this.bossWasPresent) this.showWaveBanner("BOSS SIGNAL", now, 2200);
@@ -865,9 +875,17 @@ export class SpacebladePlayScene extends Phaser.Scene {
     if (playerVisualState === "dead") this.game.canvas.dataset.spacebladePlayerDeadFrame = playerFrame;
     const motionAnimation = playerVisualState === "hurt" || playerVisualState === "dead" ? "idle" : run.player.animation;
     const playerOffset = rebuildPlayerVisualOffset(motionAnimation, playerElapsed, facing);
+    const floorOffset = playerVisualState === "dead" || this.floorClimbAt === null
+      ? null
+      : rebuildFloorTransitionOffset(now - this.floorClimbAt, facing);
+    if (this.floorClimbAt !== null && floorOffset === null) this.floorClimbAt = null;
     const parkourOffset = playerVisualState === "dead"
       ? { x: 0, y: 0, angle: 0 }
-      : rebuildAutoParkourOffset(now, facing);
+      : floorOffset ?? rebuildAutoParkourOffset(now, facing);
+    const airborne = parkourOffset.y < 0;
+    if (airborne && !this.parkourWasAirborne && floorOffset === null) this.playSound("parkourJump");
+    if (!airborne && this.parkourWasAirborne) this.playSound("landing");
+    this.parkourWasAirborne = airborne;
     this.game.canvas.dataset.spacebladeParkour = parkourOffset.y < 0 ? "vaulting" : "grounded";
     this.playerView
       .setTexture(frameKey(playerFrame))
@@ -889,7 +907,7 @@ export class SpacebladePlayScene extends Phaser.Scene {
     this.enemyFx?.clear();
 
     this.hud.setText(`HP ${"♥".repeat(run.hearts)}${"♡".repeat(3 - run.hearts)}`);
-    this.hudWave.setText(`WAVE ${run.wave}`);
+    this.hudWave.setText(`FLOOR ${run.wave}`);
     this.hudScore.setText(`SCORE ${run.score}${run.combo > 0 ? `  ·  COMBO x${run.combo}` : ""}`);
     this.playerHpBar.clear();
     this.playerHpBar.fillStyle(0x241532, 0.96).fillRect(20, 48, 180, 8);
@@ -897,7 +915,7 @@ export class SpacebladePlayScene extends Phaser.Scene {
     this.playerHpBar.lineStyle(1, PUBLIC_PALETTE.amber, 0.7).strokeRect(20, 48, 180, 8);
     this.drawWaveProgress(run);
     this.drawParryTiming(run, now);
-    this.drawSkylineMotion(now);
+    this.drawSkylineMotion(now, run.wave);
     this.drawRunnerMotion(now, facing);
     const bossActive = run.enemies.some((enemy) => enemy.type === "boss" && enemy.state !== "dead");
     const boss = run.enemies.find((enemy) => enemy.type === "boss" && enemy.state !== "dead");
@@ -937,12 +955,13 @@ export class SpacebladePlayScene extends Phaser.Scene {
     }
   }
 
-  private drawSkylineMotion(now: number): void {
+  private drawSkylineMotion(now: number, wave: number): void {
     if (!this.skylineMotion) return;
     const offset = (now * 0.06) % 320;
     this.skylineMotion.clear().setVisible(false);
-    this.publicSkylineFar?.setTilePosition(now * -0.012, 0);
-    this.publicSkylineNear?.setTilePosition(now * -0.028, 0);
+    const floorOffset = Math.max(0, wave - 1) * 42;
+    this.publicSkylineFar?.setTilePosition(now * -0.012, -floorOffset * 0.35);
+    this.publicSkylineNear?.setTilePosition(now * -0.028, -floorOffset);
     this.publicGround?.setTilePosition(now * -0.06, 0);
     this.game.canvas.dataset.spacebladeBackgroundOffset = String(Math.round(offset));
   }

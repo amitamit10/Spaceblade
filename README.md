@@ -4,7 +4,7 @@
 
 ## What It Is
 
-Spaceblade is a browser action game built for the Hack Club **OneKey** challenge: gameplay combat is driven entirely by a single key. The player auto-runs and vaults through the sector while threats approach from ahead; you read their red attack telegraphs and answer with sword slashes, energy shots, dodges, and perfectly-timed parries. Menus support both `Space` and mouse clicks.
+Spaceblade is a browser action game built for the Hack Club **OneKey** challenge: gameplay combat is driven entirely by a single key. The player auto-runs through a neon building, automatically vaults and wall-climbs to the next floor between waves, and answers approaching threats with sword slashes, energy shots, dodges, and perfectly-timed parries. Menus support both `Space` and mouse clicks.
 
 - Fixed internal resolution `1280 x 720`, scaled responsively to any 16:9 viewport.
 - Rendered on one HTML Canvas with verified standalone pixel frames and tiled backgrounds.
@@ -27,7 +27,7 @@ Gameplay uses `Space`; menus also accept mouse clicks:
 
 Enemies: **Grunt** (one hit), **Runner** (fast, punish after its dash), **Shield** (heavy or parry only), **Tank** (2 HP, hit after its big swing), **Glitch** (teleports), and the **Boss** on wave 15.
 
-The game targets a steady 20-30 FPS on low-cost hardware. The arena, floor scroll, hit effects, and enemy movement are client-side; the optional leaderboard is contacted only when a score is submitted or the highscores screen is opened.
+The game targets a steady 20-30 FPS on low-cost hardware. Each wave is presented as a new building floor; the floor transition is automatic, so the player still controls only combat timing. The arena, floor scroll, hit effects, and enemy movement are client-side; the optional leaderboard is contacted only when a score is submitted or the highscores screen is opened.
 
 ## Local Development
 
@@ -68,6 +68,14 @@ The clean runtime uses authored standalone frames under `public/sprites/frames/`
 - Every declared animation frame is its own PNG URL; the runtime never samples a sprite sheet cell.
 - The frame manifest defines dimensions, anchors, scale, and animation timing explicitly.
 - `src/rebuild/assets/frameManifest.test.ts` verifies that every declared frame exists and that no runtime frame points back to a sheet.
+
+## Runtime Audio
+
+Ready-made sound effects from Kenney's CC0 Digital Audio pack are vendored in
+`public/audio/kenney/` and mapped by `src/game/audio/soundBus.ts`. The game uses
+local files for slash, energy shot, parry, hits, enemy alerts, boss cues,
+parkour jump, wall climb, and landing. Audio is optional and fails safely when
+a browser blocks autoplay.
 
 ## Firebase Setup
 

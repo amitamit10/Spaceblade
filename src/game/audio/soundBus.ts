@@ -1,4 +1,4 @@
-export type SoundCue = "slash" | "energyShot" | "parry" | "hit" | "enemyHit" | "enemyAlert" | "glitchTeleport" | "boss" | "ambient";
+export type SoundCue = "slash" | "energyShot" | "parry" | "hit" | "enemyHit" | "enemyAlert" | "glitchTeleport" | "boss" | "parkourJump" | "wallClimb" | "landing" | "ambient";
 
 export type SoundBus = {
   play(cue: SoundCue): void;
@@ -11,93 +11,61 @@ export function clampVolume(volume: number): number {
   return Math.max(0, Math.min(1, volume));
 }
 
-type CueSpec = { type: OscillatorType; freq: number; endFreq?: number; durationMs: number; gain: number };
-
-const CUES: Record<SoundCue, CueSpec> = {
-  slash: { type: "triangle", freq: 620, durationMs: 90, gain: 0.25 },
-  energyShot: { type: "sine", freq: 240, endFreq: 980, durationMs: 180, gain: 0.3 },
-  parry: { type: "square", freq: 880, endFreq: 1320, durationMs: 140, gain: 0.3 },
-  hit: { type: "sawtooth", freq: 220, durationMs: 80, gain: 0.28 },
-  enemyHit: { type: "triangle", freq: 420, endFreq: 760, durationMs: 70, gain: 0.2 },
-  enemyAlert: { type: "square", freq: 320, durationMs: 120, gain: 0.2 },
-  glitchTeleport: { type: "sine", freq: 190, endFreq: 70, durationMs: 150, gain: 0.16 },
-  boss: { type: "sawtooth", freq: 110, durationMs: 320, gain: 0.32 },
-  ambient: { type: "sine", freq: 70, durationMs: 0, gain: 0.12 },
+export const SOUND_ASSETS: Readonly<Record<SoundCue, string | null>> = {
+  slash: "/audio/kenney/slash.ogg",
+  energyShot: "/audio/kenney/energy-shot.ogg",
+  parry: "/audio/kenney/parry.ogg",
+  hit: "/audio/kenney/hit.ogg",
+  enemyHit: "/audio/kenney/enemy-hit.ogg",
+  enemyAlert: "/audio/kenney/enemy-alert.ogg",
+  glitchTeleport: "/audio/kenney/glitch-teleport.ogg",
+  boss: "/audio/kenney/boss.ogg",
+  parkourJump: "/audio/kenney/parkour-jump.ogg",
+  wallClimb: "/audio/kenney/wall-climb.ogg",
+  landing: "/audio/kenney/landing.ogg",
+  ambient: null,
 };
 
-type AudioCtor = new () => AudioContext;
+type AudioCtor = new (src?: string) => HTMLAudioElement;
 
-function resolveAudioContext(): AudioCtor | null {
+function resolveAudio(): AudioCtor | null {
   const g = globalThis as unknown as {
-    AudioContext?: AudioCtor;
-    webkitAudioContext?: AudioCtor;
+    Audio?: AudioCtor;
   };
-  return g.AudioContext ?? g.webkitAudioContext ?? null;
+  return g.Audio ?? null;
 }
 
 /**
- * Generates all sound cues in code via the Web Audio API — no asset files.
- * Master volume is read live through `getVolume` and clamped to [0, 1] before
- * any node is scheduled. Degrades to a no-op where Web Audio is unavailable
- * (e.g. jsdom), so gameplay never depends on audio.
+ * Plays short local CC0 assets. Master volume is read live and clamped before
+ * each playback. Degrades to a no-op where HTML audio is unavailable or
+ * autoplay is blocked, so gameplay never depends on audio.
  */
 export function createSoundBus(getVolume: () => number): SoundBus {
-  const Ctor = resolveAudioContext();
-  let ctx: AudioContext | null = null;
-  let ambient: { osc: OscillatorNode; gain: GainNode } | null = null;
-
-  const ensureContext = (): AudioContext | null => {
-    if (!Ctor) return null;
-    if (!ctx) ctx = new Ctor();
-    return ctx;
-  };
+  const Ctor = resolveAudio();
+  let ambient: HTMLAudioElement | null = null;
 
   const play = (cue: SoundCue): void => {
-    const ac = ensureContext();
-    if (!ac) return;
+    const source = SOUND_ASSETS[cue];
+    if (!Ctor || !source) return;
     const master = clampVolume(getVolume());
     if (master <= 0) return;
 
-    const spec = CUES[cue];
-
-    if (cue === "ambient") {
-      if (ambient) return;
-      const osc = ac.createOscillator();
-      const gain = ac.createGain();
-      osc.type = spec.type;
-      osc.frequency.value = spec.freq;
-      gain.gain.value = spec.gain * master;
-      osc.connect(gain).connect(ac.destination);
-      osc.start();
-      ambient = { osc, gain };
-      return;
+    const audio = new Ctor(source);
+    audio.preload = "auto";
+    audio.volume = master;
+    try {
+      // Browsers may block playback until the first user gesture. Some test
+      // environments also throw synchronously instead of returning a promise.
+      void Promise.resolve(audio.play()).catch(() => undefined);
+    } catch {
+      // Audio is optional and must never interrupt gameplay.
     }
-
-    const osc = ac.createOscillator();
-    const gain = ac.createGain();
-    osc.type = spec.type;
-    osc.frequency.value = spec.freq;
-    const peak = spec.gain * master;
-    const now = ac.currentTime;
-    const dur = spec.durationMs / 1000;
-    gain.gain.setValueAtTime(peak, now);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
-    if (spec.endFreq !== undefined) {
-      osc.frequency.setValueAtTime(spec.freq, now);
-      osc.frequency.exponentialRampToValueAtTime(spec.endFreq, now + dur);
-    }
-    osc.connect(gain).connect(ac.destination);
-    osc.start(now);
-    osc.stop(now + dur);
   };
 
   const stopAmbient = (): void => {
     if (!ambient) return;
-    try {
-      ambient.osc.stop();
-    } catch {
-      // Already stopped; ignore.
-    }
+    ambient.pause();
+    ambient.currentTime = 0;
     ambient = null;
   };
 

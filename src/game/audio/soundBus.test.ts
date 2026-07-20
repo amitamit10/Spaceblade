@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { clampVolume, createSoundBus } from "./soundBus";
+import { clampVolume, createSoundBus, SOUND_ASSETS } from "./soundBus";
 
 describe("clampVolume", () => {
   it("clamps values below 0 up to 0", () => {
@@ -22,6 +22,13 @@ describe("clampVolume", () => {
 });
 
 describe("createSoundBus", () => {
+  it("maps gameplay cues to local ready-made audio assets", () => {
+    expect(SOUND_ASSETS.slash).toMatch(/\/audio\/kenney\/slash\.ogg$/);
+    expect(SOUND_ASSETS.parkourJump).toMatch(/\/audio\/kenney\/parkour-jump\.ogg$/);
+    expect(SOUND_ASSETS.wallClimb).toMatch(/\/audio\/kenney\/wall-climb\.ogg$/);
+    expect(SOUND_ASSETS.landing).toMatch(/\/audio\/kenney\/landing\.ogg$/);
+  });
+
   it("does not throw when Web Audio is unavailable", () => {
     // jsdom has no AudioContext; the bus must degrade to a safe no-op.
     const bus = createSoundBus(() => 0.8);
