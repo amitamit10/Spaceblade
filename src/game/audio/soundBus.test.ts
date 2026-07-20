@@ -27,6 +27,7 @@ describe("createSoundBus", () => {
     const bus = createSoundBus(() => 0.8);
     expect(() => bus.play("slash")).not.toThrow();
     expect(() => bus.play("enemyHit")).not.toThrow();
+    expect(() => bus.play("glitchTeleport")).not.toThrow();
     expect(() => bus.play("energyShot")).not.toThrow();
     expect(() => bus.play("ambient")).not.toThrow();
     expect(() => bus.stopAmbient()).not.toThrow();

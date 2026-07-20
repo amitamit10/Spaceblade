@@ -29,7 +29,7 @@ import {
   enemyVisualAnimation,
   playerVisualAnimation,
 } from "./spacebladeAnimation";
-import { enemyVisualMotion, glitchTeleportPresentation } from "./spacebladeMotion";
+import { enemyVisualMotion, glitchTeleportCueDue, glitchTeleportPresentation } from "./spacebladeMotion";
 import { shouldPauseForVisibility } from "./spacebladeVisibility";
 import { initialSpacebladeScreen } from "./spacebladeDevice";
 import { gradeForScore } from "../game/run/scoreSystem";
@@ -132,6 +132,7 @@ export class SpacebladePlayScene extends Phaser.Scene {
   private readonly enemyRecoveryAt = new Map<string, number>();
   private readonly enemyHpSeen = new Map<string, number>();
   private readonly enemyHitAt = new Map<string, number>();
+  private readonly glitchTeleportAlertedAt = new Map<string, number>();
   private readonly enemyHitLabelAt = new Map<string, number>();
   private readonly enemyHitLabels = new Map<string, Phaser.GameObjects.Text>();
   private readonly retiredEnemyIds = new Set<string>();
@@ -497,6 +498,7 @@ export class SpacebladePlayScene extends Phaser.Scene {
     this.enemyRecoveryAt.clear();
     this.enemyHpSeen.clear();
     this.enemyHitAt.clear();
+    this.glitchTeleportAlertedAt.clear();
     for (const label of this.enemyHitLabels.values()) label.destroy();
     this.enemyHitLabels.clear();
     this.enemyHitLabelAt.clear();
@@ -1032,6 +1034,10 @@ export class SpacebladePlayScene extends Phaser.Scene {
       : { active: false, alpha: 1, x: 0 };
     if (glitchTeleport.active) this.game.canvas.dataset.spacebladeGlitchTeleportFlicker = "true";
     else delete this.game.canvas.dataset.spacebladeGlitchTeleportFlicker;
+    if (glitchTeleportCueDue(glitchTeleport.active, enemy.teleportAt, this.glitchTeleportAlertedAt.get(enemy.id) ?? null)) {
+      this.glitchTeleportAlertedAt.set(enemy.id, enemy.teleportAt);
+      this.playSound("glitchTeleport");
+    }
     const visualX = clampSpriteCenterX(screenX + motion.x + glitchTeleport.x, definition.width, definition.scale, SPACEBLADE_WIDTH);
     const visualY = GROUND_Y + motion.y;
     if (tookDamage) {

@@ -133,3 +133,5 @@ Runtime evidence checkpoint:
   window, covered by motion tests and exposed through a runtime marker.
 - Spawn pressure enforces the authored active-threat weight cap of 6, with tanks
   and bosses weighted at 2 and a maximum of two active tanks.
+- Glitch teleport warnings use a dedicated generated audio cue, gated once per
+  teleport deadline so dense frames do not repeat the sound.

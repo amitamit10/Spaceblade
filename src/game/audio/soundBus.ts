@@ -1,4 +1,4 @@
-export type SoundCue = "slash" | "energyShot" | "parry" | "hit" | "enemyHit" | "enemyAlert" | "boss" | "ambient";
+export type SoundCue = "slash" | "energyShot" | "parry" | "hit" | "enemyHit" | "enemyAlert" | "glitchTeleport" | "boss" | "ambient";
 
 export type SoundBus = {
   play(cue: SoundCue): void;
@@ -20,6 +20,7 @@ const CUES: Record<SoundCue, CueSpec> = {
   hit: { type: "sawtooth", freq: 220, durationMs: 80, gain: 0.28 },
   enemyHit: { type: "triangle", freq: 420, endFreq: 760, durationMs: 70, gain: 0.2 },
   enemyAlert: { type: "square", freq: 320, durationMs: 120, gain: 0.2 },
+  glitchTeleport: { type: "sine", freq: 190, endFreq: 70, durationMs: 150, gain: 0.16 },
   boss: { type: "sawtooth", freq: 110, durationMs: 320, gain: 0.32 },
   ambient: { type: "sine", freq: 70, durationMs: 0, gain: 0.12 },
 };

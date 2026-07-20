@@ -33,7 +33,7 @@ flow, and a live Firebase leaderboard submission/read check.
 | Source files | 64 TypeScript modules |
 | Production code | ~3,960 LOC |
 | Test code | ~1,070 LOC |
-| Tests | **259 passing**, 44 Vitest suites + 22 browser tests |
+| Tests | **260 passing**, 44 Vitest suites + 22 browser tests |
 | Build | `tsc --noEmit` + Vite, clean |
 | Dependencies | `firebase`, `phaser` (+ dev: vite, typescript, vitest, jsdom, Playwright, @types/node) |
 
@@ -124,6 +124,8 @@ index.html
 - Glitch now flickers with a short alternating alpha/offset presentation during
   the final 260ms before its late-wave teleport; its combat coordinates remain
   unchanged.
+- Glitch teleporting also emits one distinct low-volume warning cue per
+  teleport deadline, with no audio spam across render frames.
 - Enemy presentation adds state-specific bobbing, impact-window lunge/tilt, and
   stunned recoil while leaving simulation coordinates and hitboxes unchanged.
 - Defeated enemies play their authored `dead` frames across the existing 360 ms

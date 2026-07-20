@@ -26,6 +26,10 @@ export function glitchTeleportPresentation(now: number, teleportAt: number): Gli
   };
 }
 
+export function glitchTeleportCueDue(active: boolean, teleportAt: number, lastTeleportAt: number | null): boolean {
+  return active && teleportAt !== lastTeleportAt;
+}
+
 /**
  * Presentation-only motion. Combat coordinates remain owned by rebuildGame;
  * this helper makes state changes readable without changing hitboxes.
