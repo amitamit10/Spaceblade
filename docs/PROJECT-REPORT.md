@@ -126,6 +126,9 @@ index.html
   unchanged.
 - Glitch teleporting also emits one distinct low-volume warning cue per
   teleport deadline, with no audio spam across render frames.
+- During that same warning window, pooled cyan/magenta scanline fragments add a
+  readable teleport distortion; reduced-effects mode suppresses the fragments
+  while preserving the gameplay cue and timing.
 - Enemy presentation adds state-specific bobbing, impact-window lunge/tilt, and
   stunned recoil while leaving simulation coordinates and hitboxes unchanged.
 - Defeated enemies play their authored `dead` frames across the existing 360 ms

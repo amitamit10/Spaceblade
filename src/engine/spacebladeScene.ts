@@ -1059,6 +1059,9 @@ export class SpacebladePlayScene extends Phaser.Scene {
       label.setText("-1").setVisible(true).setAlpha(1).setScale(1);
     }
     view.sprite.setVisible(true).setTexture(frameKey(source)).setPosition(visualX, visualY).setAngle(motion.angle).setAlpha(glitchTeleport.alpha).setFlipX(enemy.side === "right");
+    if (glitchTeleport.active && !this.settings.reducedEffectsEnabled) {
+      this.drawGlitchTeleportFx(visualX, GROUND_Y - definition.height * definition.scale * 0.55, definition.width * definition.scale, now, enemy.teleportAt - now);
+    }
     const marker = enemy.type === "boss"
       ? enemy.state === "attacking" && enemy.nextAttackAt - now <= 260 ? "BOSS !" : "BOSS"
       : enemy.nextAttackAt - now <= 180 ? "!" : "";
@@ -1095,6 +1098,22 @@ export class SpacebladePlayScene extends Phaser.Scene {
       const x = screenX - 150 + index * 38;
       this.enemyFx.lineBetween(x, GROUND_Y - 18, x + 10, GROUND_Y - 2);
     }
+  }
+
+  private drawGlitchTeleportFx(x: number, y: number, width: number, now: number, remainingMs: number): void {
+    if (!this.enemyFx) return;
+    const pulse = 0.35 + Math.sin(now / 32) * 0.15;
+    const progress = Math.max(0, Math.min(1, 1 - remainingMs / 260));
+    const halfWidth = width * (0.28 + progress * 0.18);
+    this.enemyFx.lineStyle(3, 0xff3f9a, pulse);
+    for (let index = 0; index < 4; index += 1) {
+      const offsetY = (index - 1.5) * 22 + Math.sin(now / 45 + index) * 5;
+      const fragment = halfWidth * (0.55 + (index % 2) * 0.3);
+      this.enemyFx.lineBetween(x - fragment, y + offsetY, x + fragment, y + offsetY);
+    }
+    this.enemyFx.lineStyle(2, 0x57eaff, pulse * 0.9);
+    this.enemyFx.lineBetween(x - halfWidth, y - 42, x + halfWidth * 0.6, y - 42);
+    this.enemyFx.lineBetween(x - halfWidth * 0.65, y + 38, x + halfWidth, y + 38);
   }
 
   private drawEnemyDeathFx(x: number, y: number, elapsed: number, scale: number): void {

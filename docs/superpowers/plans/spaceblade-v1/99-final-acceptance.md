@@ -140,3 +140,5 @@ Runtime evidence checkpoint:
 - Production smoke and performance gates fail if threat telemetry is missing or
   exceeds the weighted capacity, rather than silently accepting an incomplete
   runtime signal.
+- Glitch teleport presentation includes pooled scanline fragments that disappear
+  when reduced effects are enabled, with no change to the one-button timing.
