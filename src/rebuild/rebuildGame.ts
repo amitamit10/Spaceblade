@@ -85,6 +85,9 @@ const MAX_ACTIVE_THREAT_WEIGHT = 6;
 const MAX_ACTIVE_TANKS = 2;
 const WAVE_TARGET_BASE = 6;
 const FORWARD_SPAWN_GAP = 96;
+const FLOOR_PACING_CAP = 1.55;
+const MIN_SPAWN_INTERVAL_MS = 520;
+const MIN_ATTACK_WINDUP_MS = 160;
 
 const ENEMY_STATS: Record<RebuildEnemyType, EnemyStats> = {
   grunt: { hp: 1, speed: 84, attackRange: 78, windupMs: 380, recoveryMs: 360, damage: 1, score: 100 },
@@ -102,7 +105,19 @@ const cloneRun = (run: RebuildRun): RebuildRun => ({
   projectiles: run.projectiles.map((projectile) => ({ ...projectile })),
 });
 
-function createEnemy(id: string, type: RebuildEnemyType, side: "left" | "right", x: number, now: number): RebuildEnemy {
+export function rebuildFloorPacingMultiplier(floor: number): number {
+  return Math.min(FLOOR_PACING_CAP, 1 + Math.max(0, floor - 1) * 0.04);
+}
+
+export function rebuildEnemySpeedForFloor(type: RebuildEnemyType, floor: number): number {
+  return Math.round(ENEMY_STATS[type].speed * rebuildFloorPacingMultiplier(floor));
+}
+
+export function rebuildEnemyWindupForFloor(type: RebuildEnemyType, floor: number): number {
+  return Math.max(MIN_ATTACK_WINDUP_MS, Math.round(ENEMY_STATS[type].windupMs / rebuildFloorPacingMultiplier(floor)));
+}
+
+function createEnemy(id: string, type: RebuildEnemyType, side: "left" | "right", x: number, now: number, floor: number): RebuildEnemy {
   const stats = ENEMY_STATS[type];
   return {
     id,
@@ -113,9 +128,9 @@ function createEnemy(id: string, type: RebuildEnemyType, side: "left" | "right",
     maxHp: stats.hp,
     shielded: type === "shield",
     state: "approaching",
-    nextAttackAt: now + stats.windupMs,
+    nextAttackAt: now + rebuildEnemyWindupForFloor(type, floor),
     stunnedUntil: now,
-    teleportAt: now + 2200,
+    teleportAt: now + Math.round(2200 / rebuildFloorPacingMultiplier(floor)),
     startedAt: now,
   };
 }
@@ -164,11 +179,8 @@ function awardDefeat(run: RebuildRun, enemy: RebuildEnemy): void {
 }
 
 export function rebuildSpawnIntervalForWave(wave: number): number {
-  if (wave <= 3) return 1900;
-  if (wave <= 6) return 1550;
-  if (wave <= 10) return 1200;
-  if (wave <= 13) return 950;
-  return 700;
+  const baseInterval = wave <= 3 ? 1900 : wave <= 6 ? 1550 : wave <= 10 ? 1200 : wave <= 13 ? 950 : 700;
+  return Math.max(MIN_SPAWN_INTERVAL_MS, Math.round(baseInterval / rebuildFloorPacingMultiplier(wave)));
 }
 
 export function rebuildWaveTarget(wave: number): number {
@@ -198,8 +210,8 @@ export function createRebuildRun(now: number): RebuildRun {
     projectiles: [],
     player: { animation: "idle", actionStartedAt: now, hurtUntil: now, invulnerableUntil: now },
     enemies: [
-      createEnemy("enemy-0", "grunt", "right", 900, now),
-      createEnemy("enemy-1", "grunt", "right", 1080, now),
+      createEnemy("enemy-0", "grunt", "right", 900, now, 1),
+      createEnemy("enemy-1", "grunt", "right", 1080, now, 1),
     ],
   };
 }
@@ -357,7 +369,7 @@ export function advanceRebuildRun(source: RebuildRun, now: number): RebuildRun {
     if (enemy.type === "glitch" && run.wave >= 8 && now >= enemy.teleportAt) {
       enemy.side = "right";
       enemy.x = MAX_SPAWN_X;
-      enemy.teleportAt = now + 2200;
+      enemy.teleportAt = now + Math.round(2200 / rebuildFloorPacingMultiplier(run.wave));
       enemy.startedAt = now;
       continue;
     }
@@ -368,7 +380,7 @@ export function advanceRebuildRun(source: RebuildRun, now: number): RebuildRun {
     const distance = Math.abs(enemy.x - PLAYER_X);
     if (distance > stats.attackRange) {
       const direction = enemy.x < PLAYER_X ? 1 : -1;
-      enemy.x += direction * stats.speed * (elapsed / 1000);
+      enemy.x += direction * rebuildEnemySpeedForFloor(enemy.type, run.wave) * (elapsed / 1000);
       enemy.state = "approaching";
       continue;
     }
@@ -379,7 +391,7 @@ export function advanceRebuildRun(source: RebuildRun, now: number): RebuildRun {
     // Otherwise a distant spawn can arrive with an already-expired timer and
     // damage the player without a readable windup.
     if (wasApproaching) {
-      enemy.nextAttackAt = now + stats.windupMs + activeIndex * CONTACT_ATTACK_STAGGER_MS;
+      enemy.nextAttackAt = now + rebuildEnemyWindupForFloor(enemy.type, run.wave) + activeIndex * CONTACT_ATTACK_STAGGER_MS;
     }
     if (now >= enemy.nextAttackAt) {
       enemy.nextAttackAt = now + stats.recoveryMs;
@@ -407,7 +419,7 @@ export function advanceRebuildRun(source: RebuildRun, now: number): RebuildRun {
     if (rebuildActiveThreatWeight(run) + rebuildEnemyThreatWeight(type) > MAX_ACTIVE_THREAT_WEIGHT) break;
     if (type === "tank" && liveEnemies.filter((enemy) => enemy.type === "tank").length >= MAX_ACTIVE_TANKS) break;
     if (type === "boss") run.bossSpawned = true;
-    run.enemies.push(createEnemy(`enemy-${run.spawnIndex}`, type, side, x, now));
+    run.enemies.push(createEnemy(`enemy-${run.spawnIndex}`, type, side, x, now, run.wave));
     run.spawnIndex += 1;
     run.nextSpawnAt += rebuildSpawnIntervalForWave(run.wave);
   }
@@ -419,7 +431,7 @@ export function advanceRebuildRun(source: RebuildRun, now: number): RebuildRun {
       run.wave += 1;
       run.defeatedThisWave = 0;
       run.hearts = 3;
-      run.nextSpawnAt = now + 700;
+      run.nextSpawnAt = now + Math.min(700, rebuildSpawnIntervalForWave(run.wave));
     }
   }
   return run;

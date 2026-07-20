@@ -6,7 +6,10 @@ import {
   parryRebuildRun,
   rebuildActiveThreatWeight,
   rebuildEnemyThreatWeight,
+  rebuildEnemySpeedForFloor,
   rebuildEnergyProjectileHitRadius,
+  rebuildEnemyWindupForFloor,
+  rebuildFloorPacingMultiplier,
   releaseChargeRebuildRun,
   rebuildSpawnIntervalForWave,
   rebuildWaveTarget,
@@ -62,12 +65,18 @@ describe("rebuild run model", () => {
   });
 
   it("ramps spawn pacing across the authored wave bands", () => {
-    expect(rebuildSpawnIntervalForWave(1)).toBe(1900);
-    expect(rebuildSpawnIntervalForWave(4)).toBe(1550);
-    expect(rebuildSpawnIntervalForWave(7)).toBe(1200);
-    expect(rebuildSpawnIntervalForWave(11)).toBe(950);
-    expect(rebuildSpawnIntervalForWave(14)).toBe(700);
-    expect(rebuildSpawnIntervalForWave(15)).toBe(700);
+    const intervals = [1, 4, 7, 11, 14, 15].map(rebuildSpawnIntervalForWave);
+    expect(rebuildFloorPacingMultiplier(1)).toBe(1);
+    expect(rebuildFloorPacingMultiplier(15)).toBe(1.55);
+    expect(rebuildFloorPacingMultiplier(20)).toBe(1.55);
+    expect(rebuildEnemySpeedForFloor("runner", 15)).toBeGreaterThan(rebuildEnemySpeedForFloor("runner", 1));
+    expect(rebuildEnemyWindupForFloor("boss", 15)).toBeGreaterThanOrEqual(160);
+    expect(intervals[0]).toBeGreaterThan(intervals[1]);
+    expect(intervals[1]).toBeGreaterThan(intervals[2]);
+    expect(intervals[2]).toBeGreaterThan(intervals[3]);
+    expect(intervals[3]).toBeGreaterThan(intervals[4]);
+    expect(intervals[4]).toBe(520);
+    expect(intervals[5]).toBe(520);
   });
 
   it("keeps the small runner reachable by the energy shot", () => {
