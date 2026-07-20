@@ -215,8 +215,8 @@ index.html
   browser errors, and the engine test now locks the intentional 30 FPS pacing
   configuration (`forceSetTimeOut`).
 - `npm run verify:production:performance` now measures the active production
-  simulation for 8 seconds; the current baseline is 28.65 median FPS, 40.7ms
-  p95 update interval, 228 samples, and zero browser errors without Firebase
+  simulation for 8 seconds; the current baseline is 28.9 median FPS, 40.7ms
+  p95 update interval, 229 samples, and zero browser errors without Firebase
   loading before gameplay.
 - The coarse-pointer warning now uses larger mobile typography and concise
   rotate-to-landscape guidance; this was visually checked at 390x844 in Chrome.
@@ -264,7 +264,7 @@ index.html
 ### Ops
 - GitHub repo pushed to `main`; Vercel project `spaceblade` created and
   auto-connected to GitHub (push-to-deploy). The latest production deployment
-  is `dpl_9uBrqmDSr3QE1ScynHNsQAhpZiUf`.
+  is `dpl_5rRQqHMf4FjdTnfjhesUhTJN4aHQ`.
 - Firebase project `spaceblade-game-20260720` uses standard free-tier
   Firestore in `europe-west1`; checked-in rules are deployed and the live web
   app has submitted and read eligible scores successfully.
