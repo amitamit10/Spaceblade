@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { rebuildPlayerVisualOffset, rebuildShakeOffset } from "./renderScene";
+import { rebuildAutoParkourOffset, rebuildPlayerVisualOffset, rebuildShakeOffset } from "./renderScene";
 
 describe("rebuild camera feedback", () => {
   it("does not move an idle scene", () => {
@@ -19,5 +19,20 @@ describe("rebuild camera feedback", () => {
     expect(rebuildPlayerVisualOffset("idle", 0, "right").x).toBe(0);
     expect(rebuildPlayerVisualOffset("slash", 130, "right").x).toBeGreaterThan(0);
     expect(rebuildPlayerVisualOffset("dodge", 130, "right").x).toBeLessThan(0);
+  });
+
+  it("automatically vaults without requiring a second control", () => {
+    const takeoff = rebuildAutoParkourOffset(180, "right");
+    const landing = rebuildAutoParkourOffset(620, "right");
+
+    expect(takeoff.y).toBeLessThan(0);
+    expect(takeoff.x).toBeGreaterThan(0);
+    expect(takeoff.angle).not.toBe(0);
+    expect(landing.y).toBeLessThan(0);
+    expect(rebuildAutoParkourOffset(1200, "right")).toEqual({ x: 0, y: 0, angle: 0 });
+  });
+
+  it("vaults forward in the direction the runner is facing", () => {
+    expect(rebuildAutoParkourOffset(180, "left").x).toBeLessThan(0);
   });
 });

@@ -7,6 +7,9 @@ export const REBUILD_WIDTH = 1280;
 export const REBUILD_HEIGHT = 720;
 export const REBUILD_GROUND_Y = 552;
 
+const AUTO_PARKOUR_CYCLE_MS = 3200;
+const AUTO_PARKOUR_JUMP_MS = 760;
+
 type Actor = {
   readonly sprite: RebuildSprite;
   animation: string;
@@ -45,6 +48,25 @@ export function rebuildPlayerVisualOffset(
   if (action === "slash") return { x: direction * Math.round(Math.sin(progress * Math.PI) * 9), y: -1 };
   if (action === "charging") return { x: 0, y: Math.round(Math.sin(elapsed / 70) * 4) };
   return { x: Math.round(Math.sin(elapsed / 38) * 3), y: -2 };
+}
+
+/** Presentation-only auto-vaulting keeps movement automatic while Space stays combat-only. */
+export function rebuildAutoParkourOffset(
+  now: number,
+  facing: "left" | "right",
+): { readonly x: number; readonly y: number; readonly angle: number } {
+  const phase = ((now % AUTO_PARKOUR_CYCLE_MS) + AUTO_PARKOUR_CYCLE_MS) % AUTO_PARKOUR_CYCLE_MS;
+  if (phase >= AUTO_PARKOUR_JUMP_MS) return { x: 0, y: 0, angle: 0 };
+
+  const progress = phase / AUTO_PARKOUR_JUMP_MS;
+  const arc = Math.sin(progress * Math.PI);
+  const direction = facing === "left" ? -1 : 1;
+  const angle = progress < 0.5 ? -7 : 5;
+  return {
+    x: Math.round(direction * arc * 26),
+    y: -Math.round(arc * 82),
+    angle,
+  };
 }
 
 function drawSkyline(ctx: CanvasRenderingContext2D, now: number): void {

@@ -4,7 +4,7 @@
 
 ## What It Is
 
-Spaceblade is a browser action game built for the Hack Club **OneKey** challenge: gameplay combat is driven entirely by a single key. The player auto-runs through the sector while threats approach from ahead; you read their red attack telegraphs and answer with sword slashes, energy shots, dodges, and perfectly-timed parries. Menus support both `Space` and mouse clicks.
+Spaceblade is a browser action game built for the Hack Club **OneKey** challenge: gameplay combat is driven entirely by a single key. The player auto-runs and vaults through the sector while threats approach from ahead; you read their red attack telegraphs and answer with sword slashes, energy shots, dodges, and perfectly-timed parries. Menus support both `Space` and mouse clicks.
 
 - Fixed internal resolution `1280 x 720`, scaled responsively to any 16:9 viewport.
 - Rendered on one HTML Canvas with verified standalone pixel frames and tiled backgrounds.

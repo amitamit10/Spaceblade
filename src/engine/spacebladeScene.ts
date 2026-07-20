@@ -12,7 +12,7 @@ import {
   type RebuildEnemy,
   type RebuildRun,
 } from "../rebuild/rebuildGame";
-import { rebuildPlayerVisualOffset } from "../rebuild/renderScene";
+import { rebuildAutoParkourOffset, rebuildPlayerVisualOffset } from "../rebuild/renderScene";
 import { SPACEBLADE_HEIGHT, SPACEBLADE_WIDTH } from "./spacebladeConstants";
 import { loadSpacebladeBest, loadSpacebladeSettings, saveSpacebladeBest, saveSpacebladeSettings, spacebladeMotionDefaults, type SpacebladeSettings } from "./spacebladePersistence";
 import { createSoundBus, type SoundBus, type SoundCue } from "../game/audio/soundBus";
@@ -864,9 +864,14 @@ export class SpacebladePlayScene extends Phaser.Scene {
     if (playerVisualState === "dead") this.game.canvas.dataset.spacebladePlayerDeadFrame = playerFrame;
     const motionAnimation = playerVisualState === "hurt" || playerVisualState === "dead" ? "idle" : run.player.animation;
     const playerOffset = rebuildPlayerVisualOffset(motionAnimation, playerElapsed, facing);
+    const parkourOffset = playerVisualState === "dead"
+      ? { x: 0, y: 0, angle: 0 }
+      : rebuildAutoParkourOffset(now, facing);
+    this.game.canvas.dataset.spacebladeParkour = parkourOffset.y < 0 ? "vaulting" : "grounded";
     this.playerView
       .setTexture(frameKey(playerFrame))
-      .setPosition(VIEW_PLAYER_X + playerOffset.x, GROUND_Y + playerOffset.y)
+      .setPosition(VIEW_PLAYER_X + playerOffset.x + parkourOffset.x, GROUND_Y + playerOffset.y + parkourOffset.y)
+      .setAngle(parkourOffset.angle)
       .setAlpha(1)
       .setFlipX(facing === "left");
     this.playerView.setCrop();
