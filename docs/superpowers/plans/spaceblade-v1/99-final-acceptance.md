@@ -31,7 +31,7 @@ Runtime evidence checkpoint:
 - Production smoke checks passed with no browser errors and no leaderboard request during normal gameplay.
 - Production smoke also reached `gameOver`, published the terminal `gameOver` status,
   and restarted into a fresh `playing` run through the mouse end-screen action.
-- Latest verified production deployment: `dpl_5rRQqHMf4FjdTnfjhesUhTJN4aHQ`.
+- Latest verified production deployment: `dpl_23aJ3PHPBzbQpGci4s2ZmKDYn1TD`.
 - Automated online gate passed: score 100 submitted, Global highscores returned 5 rows online, 6 Firestore requests succeeded, and browser errors stayed at 0.
 - Firebase online verification: project `spaceblade-game-20260720`, standard free-tier Firestore in `europe-west1`; live writes and reads returned HTTP 200 and server timestamps were present.
 - Combat readability motion is covered by three pure motion tests and is visible
@@ -124,7 +124,7 @@ Runtime evidence checkpoint:
   disables screen shake when no explicit local setting exists; saved settings
   continue to override that default, including when browser storage is blocked.
 - The repeatable production performance gate records an 8-second active-run
-  baseline of 28.9 median FPS, 40.7ms p95 update interval, 229 samples, and
+  baseline of 28.65 median FPS, 38.6ms p95 update interval, 228 samples, and
   zero browser errors without Firebase loading before gameplay.
 - Wide enemy and boss frames are presentation-clamped to the arena viewport;
   world-space collision positions remain unchanged while edge sprites and
