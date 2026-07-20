@@ -17,7 +17,7 @@ import { SPACEBLADE_HEIGHT, SPACEBLADE_WIDTH } from "./spacebladeConstants";
 import { loadSpacebladeBest, loadSpacebladeSettings, saveSpacebladeBest, saveSpacebladeSettings, spacebladeMotionDefaults, type SpacebladeSettings } from "./spacebladePersistence";
 import { createSoundBus, type SoundBus, type SoundCue } from "../game/audio/soundBus";
 import { loadRebuildHighscores, submitRebuildRun, type RebuildHighscores } from "../rebuild/rebuildLeaderboard";
-import { localFriendsResult } from "../state/leaderboard/leaderboardService";
+import { localFriendsResult, sanitizePlayerName } from "../state/leaderboard/leaderboardService";
 import {
   enemyAnimationElapsed,
   enemyDeathAnimationElapsed,
@@ -98,7 +98,7 @@ type EnemyView = {
   readonly definition: RebuildSprite;
 };
 
-type EngineScreen = "title" | "tutorial" | "playing" | "paused" | "settings" | "gameOver" | "highscores" | "mobileWarning";
+type EngineScreen = "title" | "tutorial" | "playing" | "paused" | "settings" | "nameEntry" | "gameOver" | "highscores" | "mobileWarning";
 type HighscoresTab = "global" | "friends";
 
 export class SpacebladePlayScene extends Phaser.Scene {
@@ -177,7 +177,10 @@ export class SpacebladePlayScene extends Phaser.Scene {
   private highscoresTab: HighscoresTab = "global";
   private leaderboardLoading = false;
   private leaderboardSubmitted = false;
-  private submitOutcome: "submitted" | "skipped" | "offline" | "disabled" | null = null;
+  private submitOutcome: "pending" | "submitted" | "skipped" | "offline" | "disabled" | null = null;
+  private nameEntryForm: HTMLFormElement | null = null;
+  private nameEntryInput: HTMLInputElement | null = null;
+  private nameEntryError: HTMLParagraphElement | null = null;
 
   private clearMenuButtons(): void {
     for (const button of this.menuButtonBackgrounds) button.destroy();
@@ -277,6 +280,7 @@ export class SpacebladePlayScene extends Phaser.Scene {
       .setTileScale(1, 1.45)
       .setDepth(0.2);
     this.soundBus = createSoundBus(() => this.settings.volume);
+    this.createNameEntryForm();
     const prefersReducedMotion = typeof window.matchMedia === "function"
       && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const motionDefaults = spacebladeMotionDefaults(prefersReducedMotion);
@@ -384,6 +388,10 @@ export class SpacebladePlayScene extends Phaser.Scene {
   shutdown(): void {
     document.removeEventListener("visibilitychange", this.handleVisibilityChange);
     window.removeEventListener("blur", this.handleWindowBlur);
+    this.nameEntryForm?.remove();
+    this.nameEntryForm = null;
+    this.nameEntryInput = null;
+    this.nameEntryError = null;
   }
 
   update(): void {
@@ -433,13 +441,12 @@ export class SpacebladePlayScene extends Phaser.Scene {
       this.game.canvas.dataset.spacebladeDefeated = String(this.run.defeated);
       this.game.canvas.dataset.spacebladeGrade = gradeForScore(this.run.score) ?? "UNRANKED";
       this.persistBest();
-      this.submitRunIfEligible();
       if (this.run.status === "gameOver") {
         this.terminalAt ??= now;
         this.syncViews(now);
         if (now - this.terminalAt < 360) return;
       }
-      this.setScreen("gameOver");
+      this.setScreen("nameEntry");
       return;
     }
     this.terminalAt = null;
@@ -548,6 +555,7 @@ export class SpacebladePlayScene extends Phaser.Scene {
     if (this.screen === "highscores") {
       return;
     }
+    if (this.screen === "nameEntry") return;
     void pointer;
   }
 
@@ -564,6 +572,7 @@ export class SpacebladePlayScene extends Phaser.Scene {
     this.leaderboardLoading = false;
     this.leaderboardSubmitted = false;
     this.submitOutcome = null;
+    this.nameEntryInput && (this.nameEntryInput.value = "");
     this.lastDisplayedProjectileCount = 0;
     this.lastDisplayedShieldedCount = 0;
     this.lastDisplayedBlockedProjectileCount = 0;
@@ -612,6 +621,62 @@ export class SpacebladePlayScene extends Phaser.Scene {
       this.submitOutcome = outcome;
       if (this.screen === "gameOver") this.refreshOverlay();
     });
+  }
+
+  private createNameEntryForm(): void {
+    const form = document.createElement("form");
+    form.className = "spaceblade-name-entry";
+    form.setAttribute("data-spaceblade-name-entry", "");
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      this.submitNameEntry();
+    });
+
+    const label = document.createElement("label");
+    label.className = "spaceblade-name-label";
+    label.textContent = "ENTER YOUR NAME";
+    label.htmlFor = "spaceblade-player-name";
+    const input = document.createElement("input");
+    input.id = "spaceblade-player-name";
+    input.className = "spaceblade-name-input";
+    input.type = "text";
+    input.maxLength = 16;
+    input.setAttribute("autocomplete", "nickname");
+    input.placeholder = "Pilot name";
+    input.setAttribute("data-spaceblade-player-name", "");
+    const submit = document.createElement("button");
+    submit.className = "spaceblade-name-submit";
+    submit.type = "submit";
+    submit.textContent = "SUBMIT SCORE";
+    const error = document.createElement("p");
+    error.className = "spaceblade-name-error";
+    error.setAttribute("data-spaceblade-name-error", "");
+
+    form.append(label, input, submit, error);
+    document.body.append(form);
+    this.nameEntryForm = form;
+    this.nameEntryInput = input;
+    this.nameEntryError = error;
+  }
+
+  private submitNameEntry(): void {
+    if (this.screen !== "nameEntry" || !this.run || !this.nameEntryInput) return;
+    const rawName = this.nameEntryInput.value.trim();
+    if (!rawName) {
+      if (this.nameEntryError) this.nameEntryError.textContent = "TYPE A NAME TO CONTINUE";
+      this.nameEntryInput.focus();
+      return;
+    }
+    this.playerName = sanitizePlayerName(rawName);
+    try {
+      window.localStorage.setItem("spaceblade.playerName", this.playerName);
+    } catch {
+      // Name persistence is best-effort; this run still submits normally.
+    }
+    if (this.nameEntryError) this.nameEntryError.textContent = "";
+    this.submitOutcome = "pending";
+    this.setScreen("gameOver");
+    this.submitRunIfEligible();
   }
 
   private resetEnemyPresentation(): void {
@@ -753,6 +818,12 @@ export class SpacebladePlayScene extends Phaser.Scene {
       this.screenHint?.setVisible(true).setDepth(40);
     }
     this.buildMenuButtons();
+    if (this.nameEntryForm) {
+      this.nameEntryForm.style.display = screen === "nameEntry" ? "grid" : "none";
+      if (screen === "nameEntry") {
+        this.nameEntryInput?.focus();
+      }
+    }
     this.screenHint?.setY(this.menuActions.length > 0 ? 688 : 590);
     this.screenTitle?.setVisible(!inGameplay);
     this.screenBody?.setVisible(!inGameplay);
@@ -792,11 +863,15 @@ export class SpacebladePlayScene extends Phaser.Scene {
       this.screenTitle.setText("SETTINGS");
       this.screenBody.setText("PERSONALIZE YOUR RUN\n\nChoose a setting to change it.");
       this.screenHint.setText("CLICK A SETTING");
+    } else if (this.screen === "nameEntry") {
+      this.screenTitle.setText("RUN COMPLETE");
+      this.screenBody.setText(`SCORE  ${run?.score ?? 0}\nWAVE  ${run?.wave ?? 1}\n\nTYPE YOUR NAME TO PUBLISH THIS RUN`);
+      this.screenHint.setText("SUBMIT YOUR SCORE");
     } else if (this.screen === "gameOver") {
       const title = run?.status === "victory" ? "SECTOR CLEARED" : "GAME OVER";
       this.screenTitle.setText(title);
       this.game.canvas.dataset.spacebladeScreenTitle = title;
-      const submitLabel = this.submitOutcome === "submitted" ? "SCORE SUBMITTED" : this.submitOutcome === "offline" ? "SCORE SAVED LOCALLY  ·  OFFLINE" : this.submitOutcome === "disabled" ? "ONLINE SCORES DISABLED" : this.submitOutcome === "skipped" ? "SCORE BELOW ONLINE MINIMUM" : "";
+      const submitLabel = this.submitOutcome === "pending" ? "SUBMITTING SCORE..." : this.submitOutcome === "submitted" ? "SCORE SUBMITTED" : this.submitOutcome === "offline" ? "SCORE SAVED LOCALLY  ·  OFFLINE" : this.submitOutcome === "disabled" ? "ONLINE SCORES DISABLED" : this.submitOutcome === "skipped" ? "SCORE NOT SUBMITTED" : "";
       const grade = gradeForScore(run?.score ?? 0) ?? "UNRANKED";
       this.screenBody.setText(`SCORE  ${run?.score ?? 0}\nWAVE  ${run?.wave ?? 1}\nENEMIES DEFEATED  ${run?.defeated ?? 0}\nBEST COMBO  ${run?.bestCombo ?? 0}\nGRADE  ${grade}${submitLabel ? `\n${submitLabel}` : ""}`);
       this.screenHint.setText("CLICK AN OPTION");

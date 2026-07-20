@@ -53,10 +53,10 @@ npm run preview  # preview the production build
 
 The leaderboard is **optional** and read-mostly:
 
-- Scores are submitted only when a run ends with a score of at least `100`.
+- After every run, the player enters a name and the complete run is submitted to the leaderboard, including zero-score runs.
 - The leaderboard is read only on the highscores/title screens — there are no realtime listeners or polling.
 - Local best score, best wave, settings, tutorial-seen flag, and player name are stored in `localStorage`.
-- Settings includes a one-button callsign selector (`Pilot`, `Nova`, `Blade`, `Ghost`, `Zero`, `Ace`) used for local and future online score rows.
+- The settings callsign selector remains available for local records, but each completed run asks for the name that will be published.
 - With no Firebase configuration the highscores screen shows a **disabled** state; on a network error it shows **offline**. Gameplay is never blocked by the network.
 - When online records are unavailable, Highscores shows the local best only; there is no account system in v1.
 - The exact Firebase and Vercel handoff is documented in [`docs/FIREBASE-VERCEL-SETUP.md`](docs/FIREBASE-VERCEL-SETUP.md).
@@ -90,7 +90,7 @@ a browser blocks autoplay.
    VITE_FIREBASE_APP_ID=your_app_id
    ```
 
-4. Apply the security rules in [`firestore.rules`](firestore.rules) to the `leaderboardScores` collection. They allow public reads and validated public writes only (correct shape, `score` 100–999999, `wave` 1–15, no updates or deletes).
+4. Apply the security rules in [`firestore.rules`](firestore.rules) to the `leaderboardScores` collection. They allow public reads and validated public writes only (correct shape, `score` 0–999999, `wave` 1–15, no updates or deletes).
 5. Restart `npm run dev`. The highscores screen will switch from "disabled" to live results.
 6. For a non-destructive production rules check, run `node --env-file=.env.production.local scripts/verify-firebase-rules.mjs` after pulling the production env file.
 

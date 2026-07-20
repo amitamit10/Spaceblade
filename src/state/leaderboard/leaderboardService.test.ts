@@ -76,12 +76,12 @@ describe("createLeaderboardService", () => {
     expect(res.entries).toHaveLength(1);
   });
 
-  it("skips submissions below the minimum score", async () => {
+  it("submits even a zero-score run after the player names it", async () => {
     const submitScore = vi.fn(() => Promise.resolve());
     const client: LeaderboardClient = { fetchTopScores: () => Promise.resolve([]), submitScore };
-    const outcome = await createLeaderboardService(client).submitRun(stats(50), "Neo");
-    expect(outcome).toBe("skipped");
-    expect(submitScore).not.toHaveBeenCalled();
+    const outcome = await createLeaderboardService(client).submitRun(stats(0), "Neo");
+    expect(outcome).toBe("submitted");
+    expect(submitScore).toHaveBeenCalledTimes(1);
   });
 
   it("submits eligible runs with a sanitized name", async () => {

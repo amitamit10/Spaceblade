@@ -57,7 +57,6 @@ export async function loadRebuildHighscores(bestScore: number, bestWave: number,
 }
 
 export async function submitRebuildRun(run: RebuildRun, playerName = "Pilot"): Promise<"submitted" | "skipped" | "offline" | "disabled"> {
-  if (run.score < 100) return "skipped";
   if (!hasRebuildFirebaseConfig(import.meta.env)) return "disabled";
   try {
     const stats: RunStats = {

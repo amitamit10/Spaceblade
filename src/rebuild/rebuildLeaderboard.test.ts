@@ -91,11 +91,16 @@ describe("rebuild leaderboard adapter", () => {
     expect(submitRun).toHaveBeenCalledWith(expect.objectContaining({ score: 3000, wave: 3, enemiesDefeated: 8, parries: 2, grade: "S" }), "Pilot");
   });
 
-  it("skips low-score runs without loading the leaderboard service", async () => {
-    vi.mocked(loadLeaderboardService).mockClear();
-    const run = { score: 99 } as never;
+  it("submits a zero-score run when the player has named it", async () => {
+    vi.stubEnv("VITE_FIREBASE_API_KEY", "key");
+    vi.stubEnv("VITE_FIREBASE_AUTH_DOMAIN", "domain");
+    vi.stubEnv("VITE_FIREBASE_PROJECT_ID", "project");
+    vi.stubEnv("VITE_FIREBASE_APP_ID", "app");
+    const submitRun = vi.fn().mockResolvedValue("submitted");
+    vi.mocked(loadLeaderboardService).mockResolvedValue({ loadTopScores: vi.fn(), submitRun });
+    const run = { score: 0, wave: 1, hearts: 0, defeated: 0, parries: 0 } as never;
 
-    await expect(submitRebuildRun(run)).resolves.toBe("skipped");
-    expect(loadLeaderboardService).not.toHaveBeenCalled();
+    await expect(submitRebuildRun(run, "Neo")).resolves.toBe("submitted");
+    expect(submitRun).toHaveBeenCalledWith(expect.objectContaining({ score: 0, wave: 1 }), "Neo");
   });
 });

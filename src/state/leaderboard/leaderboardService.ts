@@ -14,7 +14,7 @@ export type LeaderboardClient = {
   submitScore(entry: LeaderboardEntry): Promise<void>;
 };
 
-export const MIN_SUBMIT_SCORE = 100;
+export const MIN_SUBMIT_SCORE = 0;
 export const MAX_NAME_LENGTH = 16;
 export const DEFAULT_PLAYER_NAME = "Pilot";
 const TOP_LIMIT = 20;
