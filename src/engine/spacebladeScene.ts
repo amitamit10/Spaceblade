@@ -204,19 +204,18 @@ export class SpacebladePlayScene extends Phaser.Scene {
 
   private createTutorialGuide(): void {
     const columns = [220, 640, 1060];
-    const rows = [316, 482];
+    const rows = [330, 506];
     this.tutorialGuideBackground = this.add.graphics().setDepth(39).setVisible(false);
     ENEMY_GUIDE.forEach(([id, label, description], index) => {
       const x = columns[index % 3];
       const y = rows[Math.floor(index / 3)];
-      this.tutorialGuideBackground?.fillStyle(0x101d31, 0.9).fillRect(x - 178, y - 62, 356, 126);
-      this.tutorialGuideBackground?.lineStyle(1, 0x2cb7d3, 0.62).strokeRect(x - 178, y - 62, 356, 126);
+      this.tutorialGuideBackground?.fillStyle(0x101d31, 0.9).fillRect(x - 178, y - 69, 356, 138);
+      this.tutorialGuideBackground?.lineStyle(1, 0x2cb7d3, 0.62).strokeRect(x - 178, y - 69, 356, 138);
       const definition = REBUILD_ENEMIES.find((enemy) => enemy.id === id) ?? REBUILD_ENEMIES[0];
       const firstFrame = animationFor(definition, "walk").frames[0];
-      // Keep guide previews on integer scales so every asset keeps crisp,
-      // evenly-sized pixels while fitting the shared card layout.
-      const guideScale = Math.max(1, Math.round(definition.scale / 2));
-      this.tutorialGuideImages.push(this.add.image(x, y - 12, frameKey(firstFrame))
+      // Keep guide previews inside their cards and avoid fractional scaling.
+      const guideScale = id === "boss" ? 0.5 : 1;
+      this.tutorialGuideImages.push(this.add.image(x, y + 27, frameKey(firstFrame))
         .setOrigin(0.5, 1)
         .setScale(guideScale)
         .setDepth(40)
@@ -920,8 +919,9 @@ export class SpacebladePlayScene extends Phaser.Scene {
     const run = this.run;
     const isMobileWarning = this.screen === "mobileWarning";
     this.screenTitle.setFontSize(isMobileWarning ? "72px" : "58px");
-    this.screenBody.setFontSize(isMobileWarning ? "34px" : "24px");
+    this.screenBody.setFontSize(isMobileWarning ? "34px" : this.screen === "tutorial" ? "19px" : "24px");
     this.screenHint.setFontSize(isMobileWarning ? "32px" : "25px");
+    this.screenBody.setWordWrapWidth(this.screen === "tutorial" ? 1160 : 0, true);
     this.screenTitle.setY(this.screen === "tutorial" ? 66 : this.screen === "gameOver" || this.screen === "highscores" ? 120 : 190);
     this.screenBody.setY(this.screen === "tutorial" ? 166 : 350);
     this.screenHint.setY(this.screen === "tutorial" ? 688 : this.menuActions.length > 0 ? 688 : 590);
