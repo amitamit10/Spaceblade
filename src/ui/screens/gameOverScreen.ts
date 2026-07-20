@@ -24,7 +24,7 @@ export function renderGameOverScreen(model: ScreenModel): HTMLElement {
 
   return el("div", { class: "screen screen-gameover", "data-screen": "gameOver" }, [
     el("div", { class: "panel" }, [
-      el("h2", { class: "gameover-title", text: "DEPLOY FAILED" }),
+      el("h2", { class: "gameover-title", text: "GAME OVER" }),
       el("div", { class: "final-score" }, [
         el("span", { class: "stat-label", text: "FINAL SCORE" }),
         el("span", { class: "final-score-value", text: score.toLocaleString() }),
@@ -53,7 +53,7 @@ function submitLabel(outcome: ScreenModel["submitOutcome"]): string {
     case "offline":
       return "Offline — score saved locally";
     case "disabled":
-      return "Leaderboard offline";
+      return "Leaderboard disabled — no backend configured";
     default:
       return "";
   }

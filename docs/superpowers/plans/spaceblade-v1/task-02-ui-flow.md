@@ -24,7 +24,7 @@
 - `playing`: shows canvas plus static sample HUD values for hearts, HP bar, wave, score, current action state, damage number layer, and parry timing strip with `TOO EARLY`, `PERFECT`, `TOO LATE`.
 - `paused`: actions in this order: `Resume`, `Settings`, `How To Play`, `Restart Run`, `Quit To Title`.
 - `settings`: controls in this order: `Volume`, `Screen Shake`, `Reduced Effects`, `Save And Close`.
-- `gameOver`: shows `DEPLOY FAILED`, final score, waves reached, enemies defeated, grade, and actions in this order: `Restart`, `Highscores`, `Quit To Title`.
+- `gameOver`: shows `GAME OVER`, final score, waves reached, enemies defeated, grade, and actions in this order: `Restart`, `Highscores`, `Quit To Title`.
 - `highscores`: shows `Global` and `Friends` tabs, online status line, rank/player/waves/score rows, highlighted `YOU` row, and action `Return`.
 - `mobileWarning`: shows keyboard recommended warning and action `Continue`.
 

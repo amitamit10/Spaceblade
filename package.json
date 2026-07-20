@@ -13,10 +13,15 @@
     "test:sprites": "vitest --run src/game/rendering/runtimeSpritePack.test.ts src/game/player/playerSprites.test.ts src/game/enemies/enemySprites.test.ts src/game/rendering/spriteManifest.test.ts src/game/rendering/spriteSheetLoader.test.ts src/game/enemies/enemyLogic.test.ts",
     "verify:art": "npm run test:art && npm run build",
     "verify:motion": "npm run test:motion && npm run build",
+    "verify:production": "node scripts/verify-production.mjs",
+    "verify:production:performance": "node scripts/verify-production-performance.mjs",
+    "verify:firebase-rules": "node scripts/verify-firebase-rules.mjs",
+    "verify:production:online": "node scripts/verify-production-online.mjs",
     "verify:sprites": "npm run test:sprites && npm run build"
   },
   "dependencies": {
-    "firebase": "^11.0.0"
+    "firebase": "^11.0.0",
+    "phaser": "^4.2.1"
   },
   "devDependencies": {
     "@playwright/test": "^1.61.1",

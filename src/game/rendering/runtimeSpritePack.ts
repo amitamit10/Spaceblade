@@ -215,6 +215,39 @@ export function findEmptyUsedCells(
   return emptyUsedCells;
 }
 
+export function findFrameOpaqueBounds(
+  absPath: string,
+  frameWidth: number,
+  frameHeight: number,
+  sheetRow: number,
+  sheetCol: number,
+): { minX: number; maxX: number; minY: number; maxY: number } | null {
+  const { width, height, colorType, bpp, pixels } = decodePng(absPath);
+  const startX = sheetCol * frameWidth;
+  const startY = sheetRow * frameHeight;
+  if (startX + frameWidth > width || startY + frameHeight > height) return null;
+
+  let minX = frameWidth;
+  let minY = frameHeight;
+  let maxX = -1;
+  let maxY = -1;
+
+  for (let y = 0; y < frameHeight; y += 1) {
+    for (let x = 0; x < frameWidth; x += 1) {
+      const pixelIndex = (startY + y) * width + (startX + x);
+      if (alphaAt(pixels, pixelIndex, colorType, bpp) > 16) {
+        if (x < minX) minX = x;
+        if (x > maxX) maxX = x;
+        if (y < minY) minY = y;
+        if (y > maxY) maxY = y;
+      }
+    }
+  }
+
+  if (maxX < 0) return null;
+  return { minX, maxX, minY, maxY };
+}
+
 /**
  * Bottom-most opaque pixel row (relative to the frame top) across every column
  * of a single sheet row. This is where the character's feet sit, which the

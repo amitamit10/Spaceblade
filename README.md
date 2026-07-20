@@ -4,28 +4,30 @@
 
 ## What It Is
 
-Spaceblade is a browser action game built for the Hack Club **OneKey** challenge: every interaction — menus, combat, pause, settings — is driven by a single key. You are locked to the center of the arena while enemies pour in from both sides; you read their red attack telegraphs and answer with slashes, heavy shockwaves, dodges, and perfectly-timed parries.
+Spaceblade is a browser action game built for the Hack Club **OneKey** challenge: gameplay combat is driven entirely by a single key. The player auto-runs through the sector while threats approach from ahead; you read their red attack telegraphs and answer with sword slashes, energy shots, dodges, and perfectly-timed parries. Menus support both `Space` and mouse clicks.
 
 - Fixed internal resolution `1280 x 720`, scaled responsively to any 16:9 viewport.
-- Rendered on one HTML Canvas with code-authored pixel sprites and tiled backgrounds.
+- Rendered on one HTML Canvas with verified standalone pixel frames and tiled backgrounds.
 - Pure-TypeScript simulation, fully unit tested; menus are DOM overlays.
 - Optional online leaderboard on Firebase Firestore (free tier). The game is fully playable with no backend configured.
 
-## One-Key Controls
+## Controls
 
-Everything uses `Space`:
+Gameplay uses `Space`; menus also accept mouse clicks:
 
 | Input | Action | Effect |
 | --- | --- | --- |
-| **Tap** | Quick Slash | Fast attack in front of you |
-| **Hold** | Charge | Charge a heavy attack (movement locked) |
-| **Release** | Heavy Slash | Shockwave that can hit multiple enemies |
+| **Tap** | Sword Slash | Fast close-range attack in front of you |
+| **Hold** | Charge | Charge an energy shot |
+| **Release** | Energy Shot | Launch a long-range projectile down the runner lane |
 | **Double Tap** | Dodge | Dash backward with brief invincibility |
 | **Tap at the moment of impact** | Parry | Blocks and stuns the attacker |
 | **Hold ~450ms in menus** | Confirm | Select the focused menu action |
 | **Hold ~900ms while idle in a run** | Pause | Open the pause menu |
 
 Enemies: **Grunt** (one hit), **Runner** (fast, punish after its dash), **Shield** (heavy or parry only), **Tank** (2 HP, hit after its big swing), **Glitch** (teleports), and the **Boss** on wave 15.
+
+The game targets a steady 20-30 FPS on low-cost hardware. The arena, floor scroll, hit effects, and enemy movement are client-side; the optional leaderboard is contacted only when a score is submitted or the highscores screen is opened.
 
 ## Local Development
 
@@ -40,6 +42,8 @@ npm run test:motion    # run the browser title -> tutorial -> playing motion che
 npm run test:sprites   # run the focused shipped-sprite verification suite
 npm run verify:art     # full art verification + production build
 npm run verify:motion  # browser motion check + production build verification
+npm run verify:production # live production smoke check for gameplay and cost guards
+npm run verify:firebase-rules # reject malformed public leaderboard writes
 npm run verify:sprites # sprite suite + production build verification
 npm run build    # type-check and build the production bundle to dist/
 npm run preview  # preview the production build
@@ -52,19 +56,18 @@ The leaderboard is **optional** and read-mostly:
 - Scores are submitted only when a run ends with a score of at least `100`.
 - The leaderboard is read only on the highscores/title screens — there are no realtime listeners or polling.
 - Local best score, best wave, settings, tutorial-seen flag, and player name are stored in `localStorage`.
+- Settings includes a one-button callsign selector (`Pilot`, `Nova`, `Blade`, `Ghost`, `Zero`, `Ace`) used for local and future online score rows.
 - With no Firebase configuration the highscores screen shows a **disabled** state; on a network error it shows **offline**. Gameplay is never blocked by the network.
-- The **Friends** tab shows your local best only (there is no account system in v1).
+- When online records are unavailable, Highscores shows the local best only; there is no account system in v1.
+- The exact Firebase and Vercel handoff is documented in [`docs/FIREBASE-VERCEL-SETUP.md`](docs/FIREBASE-VERCEL-SETUP.md).
 
-## Character Sprite Sheets
+## Runtime Art
 
-Runtime character art is prepared to load from sprite sheets using one explicit contract per actor:
+The clean runtime uses authored standalone frames under `public/sprites/frames/`:
 
-- Each actor uses one PNG sheet plus one TypeScript manifest under `src/game/assets/sprites/`.
-- The manifest defines frame size, anchor point, draw scale, facing, and animation rows explicitly.
-- If a sheet is missing or fails to load, the game falls back to the built-in procedural renderer.
-- The current runtime sheets for the player, all five standard enemies, and the boss already live in `public/sprites/`.
-- `src/game/rendering/runtimeSpritePack.test.ts` verifies manifest uniqueness, runtime sheet/file sync, shipped sprite-sheet dimensions, alpha preservation, and used/unused cell occupancy against the manifests.
-- The current `imeges/` folder is reference art only and is not used as the runtime asset source.
+- Every declared animation frame is its own PNG URL; the runtime never samples a sprite sheet cell.
+- The frame manifest defines dimensions, anchors, scale, and animation timing explicitly.
+- `src/rebuild/assets/frameManifest.test.ts` verifies that every declared frame exists and that no runtime frame points back to a sheet.
 
 ## Firebase Setup
 
@@ -81,6 +84,7 @@ Runtime character art is prepared to load from sprite sheets using one explicit 
 
 4. Apply the security rules in [`firestore.rules`](firestore.rules) to the `leaderboardScores` collection. They allow public reads and validated public writes only (correct shape, `score` 100–999999, `wave` 1–15, no updates or deletes).
 5. Restart `npm run dev`. The highscores screen will switch from "disabled" to live results.
+6. For a non-destructive production rules check, run `node --env-file=.env.production.local scripts/verify-firebase-rules.mjs` after pulling the production env file.
 
 ## Vercel Deployment
 
@@ -95,7 +99,8 @@ Spaceblade is a static frontend and deploys to Vercel with zero config:
 
 Spaceblade is designed around the OneKey constraint from the ground up:
 
-- **No** arrow keys, WASD, mouse, pointer, or touch input is ever required.
-- One input primitive (tap / hold / release / double-tap / perfect-timing) expresses the entire move set and all menu navigation.
+- **No** arrow keys, WASD, touch, or extra gameplay buttons are required.
+- One input primitive (tap / hold / release / double-tap / perfect-timing) expresses the entire move set.
+- Menus can be navigated with `Space` or mouse clicks without changing the one-button gameplay.
 - The parser converts raw `Space` down/up timestamps into deterministic actions, and combat upgrades a well-timed tap into a parry.
 - A keyboard-recommended warning greets touch-only devices, but the whole flow still resolves to the single key.

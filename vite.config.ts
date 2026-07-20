@@ -6,5 +6,7 @@ export default defineConfig({
     globals: true,
     setupFiles: ["src/test/setup.ts"],
     include: ["src/**/*.test.ts"],
+    maxWorkers: 1,
+    minWorkers: 1,
   },
 });

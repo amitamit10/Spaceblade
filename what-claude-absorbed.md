@@ -68,7 +68,7 @@ This is my working understanding to build from once the plan docs are finalized.
 2. **Tutorial overlay** (first-time play) — How to Play card, hold to continue.
 3. **In-game HUD** — HP hearts + bar (top-left), Wave counter (top-center), Score (top-right), Pause button. Keep UI in 16:9 safe area.
 4. **Pause menu** — Resume / Settings / How to Play / Restart Run / Quit to Title. Hold to select.
-5. **Game Over** — "DEPLOY FAILED", final score, waves reached, enemies defeated. Restart / View Highscores / Quit to Title.
+5. **Game Over** — "GAME OVER", final score, waves reached, enemies defeated. Restart / View Highscores / Quit to Title.
 6. **Highscores / Leaderboard** — Global / Friends tabs; rank, player, waves, score; highlights "YOU" row.
 7. **Mobile warning** — "KEYBOARD RECOMMENDED", tap to continue.
 - **Settings:** master audio volume, screen shake toggle, reduced effects toggle.

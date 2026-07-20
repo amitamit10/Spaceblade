@@ -39,7 +39,7 @@ export function createLeaderboardClient(): LeaderboardClient | null {
     fetchTopScores: async (max) => {
       const q = query(collection(database(), COLLECTION), orderBy("score", "desc"), fsLimit(max));
       const snapshot = await getDocs(q);
-      return snapshot.docs.map((doc) => {
+      const entries = snapshot.docs.map((doc) => {
         const d = doc.data();
         return {
           playerName: String(d.playerName ?? "Pilot"),
@@ -52,6 +52,7 @@ export function createLeaderboardClient(): LeaderboardClient | null {
           clientRunId: String(d.clientRunId ?? ""),
         };
       });
+      return entries.sort((left, right) => right.score - left.score || right.createdAt - left.createdAt);
     },
     submitScore: async (entry) => {
       await addDoc(collection(database(), COLLECTION), {

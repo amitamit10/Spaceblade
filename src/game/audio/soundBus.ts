@@ -1,4 +1,4 @@
-export type SoundCue = "slash" | "parry" | "hit" | "enemyAlert" | "boss" | "ambient";
+export type SoundCue = "slash" | "energyShot" | "parry" | "hit" | "enemyHit" | "enemyAlert" | "boss" | "ambient";
 
 export type SoundBus = {
   play(cue: SoundCue): void;
@@ -11,12 +11,14 @@ export function clampVolume(volume: number): number {
   return Math.max(0, Math.min(1, volume));
 }
 
-type CueSpec = { type: OscillatorType; freq: number; durationMs: number; gain: number };
+type CueSpec = { type: OscillatorType; freq: number; endFreq?: number; durationMs: number; gain: number };
 
 const CUES: Record<SoundCue, CueSpec> = {
   slash: { type: "triangle", freq: 620, durationMs: 90, gain: 0.25 },
-  parry: { type: "square", freq: 880, durationMs: 140, gain: 0.3 },
+  energyShot: { type: "sine", freq: 240, endFreq: 980, durationMs: 180, gain: 0.3 },
+  parry: { type: "square", freq: 880, endFreq: 1320, durationMs: 140, gain: 0.3 },
   hit: { type: "sawtooth", freq: 220, durationMs: 80, gain: 0.28 },
+  enemyHit: { type: "triangle", freq: 420, endFreq: 760, durationMs: 70, gain: 0.2 },
   enemyAlert: { type: "square", freq: 320, durationMs: 120, gain: 0.2 },
   boss: { type: "sawtooth", freq: 110, durationMs: 320, gain: 0.32 },
   ambient: { type: "sine", freq: 70, durationMs: 0, gain: 0.12 },
@@ -79,6 +81,10 @@ export function createSoundBus(getVolume: () => number): SoundBus {
     const dur = spec.durationMs / 1000;
     gain.gain.setValueAtTime(peak, now);
     gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+    if (spec.endFreq !== undefined) {
+      osc.frequency.setValueAtTime(spec.freq, now);
+      osc.frequency.exponentialRampToValueAtTime(spec.endFreq, now + dur);
+    }
     osc.connect(gain).connect(ac.destination);
     osc.start(now);
     osc.stop(now + dur);

@@ -6,6 +6,7 @@ tmp/
 imeges/
 .env
 .env.local
+.env.*.local
 *.log
 .DS_Store
 .vercel

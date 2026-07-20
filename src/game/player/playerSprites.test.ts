@@ -4,6 +4,7 @@ import { describe, it, expect } from "vitest";
 import { PLAYER_SPRITES } from "./playerSprites";
 import { validateSprite } from "../rendering/pixelSprite";
 import { PLAYER_SHEET } from "../assets/sprites/player";
+import { spriteAssetPublicPath } from "../assets/sprites/spriteAssetPath";
 import { validateSheetGeometry, validateSpriteSheetDef } from "../rendering/spriteManifest";
 
 type PngHeader = {
@@ -13,7 +14,7 @@ type PngHeader = {
 };
 
 function readPngHeader(relativePath: string): PngHeader {
-  const file = readFileSync(resolve(process.cwd(), "public", relativePath.replace(/^\/+/, "")));
+  const file = readFileSync(resolve(process.cwd(), "public", spriteAssetPublicPath(relativePath)));
   const signature = "89504e470d0a1a0a";
   expect(file.subarray(0, 8).toString("hex")).toBe(signature);
   return {
@@ -42,6 +43,16 @@ describe("player sprites", () => {
     expect(validateSpriteSheetDef(PLAYER_SHEET)).toEqual([]);
     for (const key of ["idle", "walk", "slash", "charge", "heavy", "dodge", "parry", "hurt", "dead"]) {
       expect(PLAYER_SHEET.animations[key]).toBeDefined();
+    }
+    expect(PLAYER_SHEET.animations.slash.frames).toBe(4);
+    expect(PLAYER_SHEET.animations.charge.frames).toBe(3);
+    expect(PLAYER_SHEET.animations.heavy.frames).toBe(6);
+    expect(PLAYER_SHEET.animations.dodge.frames).toBe(3);
+    expect(PLAYER_SHEET.animations.parry.frames).toBe(2);
+    expect(PLAYER_SHEET.animations.hurt.frames).toBe(2);
+    expect(PLAYER_SHEET.animations.dead.frames).toBe(2);
+    for (const key of ["slash", "charge", "heavy", "dodge", "parry", "hurt", "dead"]) {
+      expect(PLAYER_SHEET.animations[key].clipTopPx).toBe(24);
     }
   });
 

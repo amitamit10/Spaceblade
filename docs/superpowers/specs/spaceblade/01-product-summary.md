@@ -1,6 +1,6 @@
 # Product Summary
 
-`Spaceblade` is a one-key 2D browser action game for the Hack Club OneKey challenge. The player controls a cyber swordsman in a side-view neon arena and survives escalating waves using only the `Space` key for combat, menu navigation, and run flow.
+`Spaceblade` is a one-key 2D browser action game for the Hack Club OneKey challenge. The player controls a cyber swordsman in a side-view neon arena and survives escalating waves using only the `Space` key for combat. Menus may be navigated with `Space` or mouse clicks.
 
 The game should feel intentional, readable, and polished. Quality comes from tight combat timing, strong feedback, disciplined scope, and the one-key constraint feeling like the main mechanic.
 

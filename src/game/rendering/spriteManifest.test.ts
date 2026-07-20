@@ -38,6 +38,23 @@ describe("validateSpriteSheetDef", () => {
       }).length,
     ).toBeGreaterThan(0);
   });
+
+  it("rejects standalone frame lists with the wrong length", () => {
+    expect(
+      validateSpriteSheetDef({
+        ...good,
+        animations: {
+          idle: {
+            row: 0,
+            frames: 2,
+            frameDurationMs: 120,
+            loop: true,
+            frameSources: ["/sprites/frames/player/walk-00.png"],
+          },
+        },
+      }),
+    ).toContain("idle: frameSources must match frames");
+  });
 });
 
 describe("validateSheetGeometry", () => {

@@ -17,6 +17,6 @@ Final acceptance:
 - A player can complete a full run from title to restart using only `Space`.
 - Combat interactions feel learnable and rewarding.
 - All mockup flow screens exist in working form.
-- Leaderboard works online and fails gracefully offline.
+- Leaderboard works online when Firebase credentials are configured and fails gracefully offline.
 - `npm install`, `npm run dev`, `npm test -- --run`, and `npm run build` work from a clean checkout.
 - README explains controls, setup, leaderboard, and OneKey challenge fit.

@@ -10,6 +10,7 @@ import { SHIELD_SHEET } from "../assets/sprites/shield";
 import { TANK_SHEET } from "../assets/sprites/tank";
 import { GLITCH_SHEET } from "../assets/sprites/glitch";
 import { BOSS_SHEET } from "../assets/sprites/boss";
+import { spriteAssetPublicPath } from "../assets/sprites/spriteAssetPath";
 import { createEnemy } from "./enemyFactory";
 import { enemyStats } from "./enemyStats";
 
@@ -20,7 +21,7 @@ type PngHeader = {
 };
 
 function readPngHeader(relativePath: string): PngHeader {
-  const file = readFileSync(resolve(process.cwd(), "public", relativePath.replace(/^\/+/, "")));
+  const file = readFileSync(resolve(process.cwd(), "public", spriteAssetPublicPath(relativePath)));
   const signature = "89504e470d0a1a0a";
   expect(file.subarray(0, 8).toString("hex")).toBe(signature);
   return {

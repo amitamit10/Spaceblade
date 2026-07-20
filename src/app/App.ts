@@ -12,12 +12,11 @@ import { GAME_OVER_ACTIONS } from "../ui/screens/gameOverScreen";
 import { HIGHSCORES_ACTIONS } from "../ui/screens/highscoresScreen";
 import { createLocalStore } from "../state/persistence/localStorageStore";
 import type { LocalStore } from "../state/persistence/localStorageStore";
-import { createLeaderboardClient } from "../lib/firebase/leaderboardClient";
 import {
-  createLeaderboardService,
   localFriendsResult,
 } from "../state/leaderboard/leaderboardService";
 import type { SubmitOutcome } from "../state/leaderboard/leaderboardService";
+import { loadLeaderboardService } from "../state/leaderboard/loadLeaderboardService";
 import { createMainGameScene } from "../game/scenes/mainGameScene";
 import type { MainGameScene } from "../game/scenes/mainGameScene";
 import { toRunStats } from "../game/run/runState";
@@ -61,7 +60,6 @@ function isMobileLike(): boolean {
 export function mountApp(host: HTMLElement, forcedScreen?: GameScreen): AppHandle {
   const root = createAppRoot(host);
   const store: LocalStore = createLocalStore();
-  const leaderboard = createLeaderboardService(createLeaderboardClient());
 
   const initialScreen: GameScreen = forcedScreen ?? (isMobileLike() ? "mobileWarning" : "title");
   const screenState = createScreenState<GameScreen>(initialScreen);
@@ -132,16 +130,29 @@ export function mountApp(host: HTMLElement, forcedScreen?: GameScreen): AppHandl
 
   function finishRun(state: RunState): void {
     scene?.stop();
-    lastRunStats = toRunStats(state);
+    const runStats = toRunStats(state);
+    lastRunStats = runStats;
     submitOutcome = null;
     store.updateBestScore(state.score);
     store.updateBestWave(state.wave);
     goToMenu("gameOver");
 
-    void leaderboard.submitRun(lastRunStats, store.getPlayerName()).then((outcome) => {
-      submitOutcome = outcome;
+    if (runStats.score < 100) {
+      submitOutcome = "skipped";
       if (screenState.get() === "gameOver") render();
-    });
+      return;
+    }
+
+    void loadLeaderboardService()
+      .then((leaderboard) => leaderboard.submitRun(runStats, store.getPlayerName()))
+      .then((outcome) => {
+        submitOutcome = outcome;
+        if (screenState.get() === "gameOver") render();
+      })
+      .catch(() => {
+        submitOutcome = "offline";
+        if (screenState.get() === "gameOver") render();
+      });
   }
 
   // --- Menu navigation ---
@@ -176,14 +187,27 @@ export function mountApp(host: HTMLElement, forcedScreen?: GameScreen): AppHandl
   async function loadHighscores(): Promise<void> {
     leaderboardView = { ...leaderboardView, tab: "global" };
     if (screenState.get() === "highscores") render();
-    const result = await leaderboard.loadTopScores();
-    if (screenState.get() === "highscores" && leaderboardView.tab !== "global") return;
-    leaderboardView = {
-      state: result.fetchState,
-      tab: "global",
-      entries: result.entries,
-      you: buildLocalPlayerEntry(),
-    };
+
+    try {
+      const leaderboard = await loadLeaderboardService();
+      const result = await leaderboard.loadTopScores();
+      if (screenState.get() === "highscores" && leaderboardView.tab !== "global") return;
+      leaderboardView = {
+        state: result.fetchState,
+        tab: "global",
+        entries: result.entries,
+        you: buildLocalPlayerEntry(),
+      };
+    } catch {
+      if (screenState.get() === "highscores" && leaderboardView.tab !== "global") return;
+      leaderboardView = {
+        state: "offline",
+        tab: "global",
+        entries: [],
+        you: buildLocalPlayerEntry(),
+      };
+    }
+
     if (screenState.get() === "highscores") render();
   }
 

@@ -27,7 +27,7 @@ function createLoopFixture() {
     sound,
     rng: () => 0,
   });
-  return { controller, effects, player, loop };
+  return { controller, effects, player, loop, sound };
 }
 
 describe("createGameLoop combat integration", () => {
@@ -87,5 +87,18 @@ describe("createGameLoop combat integration", () => {
     expect(controller.state.activeEnemies.map((enemy) => enemy.id)).toEqual(["ahead"]);
     expect(player.getSnapshot().facing).toBe("left");
     expect(effects.spawn).toHaveBeenCalledWith("slashArc", PLAYER_X, expect.any(Number), 0, -1);
+  });
+
+  it("spawns the boss once wave 15 begins", () => {
+    const { controller, loop, sound } = createLoopFixture();
+    controller.state.wave = 15;
+    controller.state.nextSpawnAt = 1000;
+    controller.state.activeEnemies = [];
+
+    loop.update(1000, 16);
+
+    expect(controller.state.activeEnemies).toHaveLength(1);
+    expect(controller.state.activeEnemies[0].type).toBe("boss");
+    expect(sound.play).toHaveBeenCalledWith("boss");
   });
 });

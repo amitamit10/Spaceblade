@@ -10,7 +10,7 @@ import type { AttackKind, EnemyHitResult } from "../enemies/enemyLogic";
 import type { EffectSystem } from "../rendering/effects";
 import type { Camera } from "../rendering/camera";
 import type { SoundBus } from "../audio/soundBus";
-import type { SectorTheme } from "../rendering/backgroundLayers";
+import type { SectorTheme } from "../rendering/sectorTheme";
 import type { RunController } from "./runState";
 import { getWaveEntry, waveClearThreshold } from "./waveTable";
 import { canSpawnMore, chooseNextSpawn } from "./spawnScheduler";

@@ -208,7 +208,7 @@ function drawCanvasHud(ctx: CanvasRenderingContext2D, state: RunState): void {
   ctx.font = "bold 22px system-ui, sans-serif";
   ctx.fillText(`SCORE ${state.score.toLocaleString()}`, GAME_WIDTH - 20, 34);
 
-  if (state.status === "gameOver") drawCenterBanner(ctx, "DEPLOY FAILED", "#ff3f62");
+  if (state.status === "gameOver") drawCenterBanner(ctx, "GAME OVER", "#ff3f62");
   else if (state.status === "victory") drawCenterBanner(ctx, "SECTOR CLEARED", "#39f6b0");
   ctx.restore();
 }

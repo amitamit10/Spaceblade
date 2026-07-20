@@ -4,6 +4,10 @@ export type SpriteAnimationDef = {
   frameDurationMs: number;
   loop: boolean;
   holdLastFrame?: boolean;
+  /** Optional transparent/artifact strip at the top of each frame. */
+  clipTopPx?: number;
+  /** Standalone frame files used instead of sampling a multi-frame sheet. */
+  frameSources?: readonly string[];
 };
 
 export type SpriteSheetDef = {
@@ -49,6 +53,20 @@ export function validateSpriteSheetDef(def: SpriteSheetDef): string[] {
     }
     if (anim.frameDurationMs <= 0) {
       problems.push(`${name}: frameDurationMs must be > 0`);
+    }
+    if (
+      anim.clipTopPx !== undefined &&
+      (anim.clipTopPx < 0 || anim.clipTopPx >= def.frameHeight || !Number.isInteger(anim.clipTopPx))
+    ) {
+      problems.push(`${name}: clipTopPx must be an integer within the frame`);
+    }
+    if (anim.frameSources !== undefined) {
+      if (anim.frameSources.length !== anim.frames) {
+        problems.push(`${name}: frameSources must match frames`);
+      }
+      if (anim.frameSources.some((src) => !src)) {
+        problems.push(`${name}: frameSources must contain non-empty paths`);
+      }
     }
   }
 

@@ -29,6 +29,7 @@ service cloud.firestore {
         request.resource.data.parries is int &&
         request.resource.data.parries >= 0 &&
         request.resource.data.parries <= 500 &&
+        request.resource.data.createdAt is timestamp &&
         (
           request.resource.data.grade == null ||
           request.resource.data.grade in ['B', 'C', 'A', 'S', 'SS', 'SSS']

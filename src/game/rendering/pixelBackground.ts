@@ -5,7 +5,7 @@ import {
   LEFT_SPAWN_X,
   RIGHT_SPAWN_X,
 } from "../constants";
-import type { SectorTheme } from "./backgroundLayers";
+import type { SectorTheme } from "./sectorTheme";
 
 type Palette = {
   skyTop: string;

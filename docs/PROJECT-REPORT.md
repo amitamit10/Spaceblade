@@ -1,6 +1,6 @@
 # Spaceblade — Engineering Report
 
-**Date:** 2026-07-07
+**Date:** 2026-07-20
 **Author:** Claude (Opus 4.8), pair-building with amit
 **Live:** https://spaceblade.vercel.app
 **Repo:** https://github.com/amitamit10/Spaceblade (branch `main`)
@@ -17,8 +17,10 @@ and survives 15 escalating waves in "Neon-Sector 04", ending with a boss.
 It is a Vite + TypeScript static frontend, gameplay on one HTML Canvas, menus as
 DOM overlays, an optional Firebase leaderboard, deployed to Vercel.
 
-**Status:** v1 complete and deployed. A pixel-art rendering pass is in progress
-(currently procedural; real sprite assets being sourced next).
+**Status:** Core v1 gameplay is complete and deployed. The Phaser runner uses
+standalone frame PNGs, one-button combat, optional mouse menus, authored wave
+pacing, a verified Wave 15 boss victory, a verified terminal-screen restart
+flow, and a live Firebase leaderboard submission/read check.
 
 ---
 
@@ -31,9 +33,9 @@ DOM overlays, an optional Firebase leaderboard, deployed to Vercel.
 | Source files | 64 TypeScript modules |
 | Production code | ~3,960 LOC |
 | Test code | ~1,070 LOC |
-| Tests | **114 passing**, 18 suites |
+| Tests | **254 passing**, 44 Vitest suites + 22 browser tests |
 | Build | `tsc --noEmit` + Vite, clean |
-| Dependencies | `firebase` only (+ dev: vite, typescript, vitest, jsdom, @types/node) |
+| Dependencies | `firebase`, `phaser` (+ dev: vite, typescript, vitest, jsdom, Playwright, @types/node) |
 
 ---
 
@@ -61,16 +63,10 @@ Traceability: `docs/superpowers/specs/` (design), `docs/superpowers/plans/`
 
 ```
 index.html
- └─ src/main.ts → App.ts (screen state machine, single Space authority)
-      ├─ ui/            DOM overlays: 8 screens + Space-only menu controller
-      ├─ game/
-      │   ├─ input/     inputParser: raw Space up/down timestamps → actions
-      │   ├─ player/    playerStateMachine (pure) + pixel sprites
-      │   ├─ enemies/   enemyFactory/logic (pure) + telegraphs + pixel sprites
-      │   ├─ run/        runState, waveTable, spawnScheduler, scoreSystem, gameLoop
-      │   ├─ rendering/  canvas root, camera, effects, pixel sprite engine, bg
-      │   ├─ audio/      code-generated Web Audio cues (no files)
-      │   └─ scenes/     mainGameScene (rAF loop, pause/resume via scene clock)
+ └─ src/main.ts → engine/spacebladeConfig.ts → engine/spacebladeScene.ts
+      ├─ rebuild/       pure runner simulation, frame manifest, animation, leaderboard adapter
+      ├─ engine/        Phaser scene, one-button input, HUD, menus, FX, 30 FPS config
+      ├─ game/          shared input, combat, audio, sprite and rendering modules
       ├─ state/         localStorage store + leaderboard service
       └─ lib/firebase/  env-gated Firestore client
 ```
@@ -88,8 +84,9 @@ index.html
 - **Graceful degradation.** No Firebase config → leaderboard "disabled"; network
   error → "offline". Gameplay never waits on the network. Audio and canvas both
   no-op safely when unavailable (e.g. headless tests).
-- **Zero art assets (so far).** Backgrounds, effects, and sprites are all drawn
-  in code, keeping the deploy a pure static bundle.
+- **Low-cost static delivery.** The game is client-side and uses standalone
+  PNG frames plus code-drawn backgrounds and effects; the server is not in the
+  gameplay loop.
 
 ---
 
@@ -116,43 +113,173 @@ index.html
 - Full integration: mobile detection, real boot flow, pause/resume, README with
   all required sections.
 
-### Pixel-art pass (Tasks 1–4 of 5)
-- Sprite engine: character-grid + palette sprites, baked once to offscreen
-  canvases (nearest-neighbor), blitted per frame. Pure animation frame-pickers.
-- Player rendered as 11 pixel poses (per action state) with an idle bob.
-- All six enemies as pixel sprites with walk animation + windup pose.
-- Pixel-tiled background (banded sky, parallax buildings with lit windows,
-  stars, floor, spawn gates) per sector theme.
-- Shipped to production.
+### Pixel-art and animation pass
+- Runtime uses standalone authored PNG frames under `public/sprites/frames/`;
+  it never crops a sprite sheet at runtime.
+- Player sequences use dedicated standalone `charge`, `heavy`, `dodge`, and
+  `parry` frames; all six enemy types use separate `windup`, `attack`, and
+  `hurt`, `recover`, and `dead` sequences in addition to their walk frames.
+- The boss also has a dedicated five-frame `specialAttack` sequence for its
+  impact window.
+- Enemy presentation adds state-specific bobbing, impact-window lunge/tilt, and
+  stunned recoil while leaving simulation coordinates and hitboxes unchanged.
+- Defeated enemies play their authored `dead` frames across the existing 360 ms
+  death window before being removed from the visible arena.
+- Enemy recovery frames play after impact, then return to the telegraph loop;
+  this is presentation-only and does not change damage timing.
+- Recovery presentation now uses each authored sequence's declared frame count
+  and duration, so longer sequences such as the boss's three-frame recovery are
+  not cut off by a global timeout.
+- First attack timing now starts with a full authored windup whenever a threat
+  first reaches contact range, so neither an overdue nor an early inherited
+  spawn timer can shorten the readable telegraph. A live browser gate confirms
+  the first parry strip appears with all 3 hearts intact.
+- Forward spawns now keep a deterministic 96px gap from the furthest active
+  threat, preventing dense waves from rendering as a single overlapping stack.
+- The player walk presentation masks a detached top-strip artifact present in
+  the supplied walk PNGs while leaving every combat reaction uncropped. A live
+  production screenshot confirms a clean grounded player with no stray boot
+  fragment.
+- The player now visibly plays authored `hurt` frames on impact and `dead`
+  frames during the short terminal transition before the game-over screen.
+- The web shell is installable as a fullscreen landscape PWA; a versioned
+  service worker caches same-origin game assets and falls back to the cached
+  shell when offline.
+- Defeated enemy views retire after their death presentation window, avoiding
+  repeated texture and health-bar work during dense late waves.
+- Enemy and projectile presentation objects now use reuse pools; expired hit
+  labels are destroyed, so long runs do not retain one Phaser object per shot
+  or defeated enemy.
+- Gameplay pauses automatically when the browser tab becomes hidden, avoiding
+  timer jumps from background-tab throttling.
+- The HUD now shows a live `TOO EARLY / PERFECT / TOO LATE` parry timing strip
+  during real enemy telegraphs, with boundaries covered at 30 FPS timing.
+- HUD layout now follows the mockup safe zones: HP and its bar sit left, Wave is
+  centered, and Score/Combo are right-aligned.
+- The live Phaser entry flow now shows the documented keyboard warning on
+  coarse-pointer devices; a tap or Space continues to the title screen, and
+  pointer/touch down-up events drive the same one-button gameplay actions.
+- Game over now displays the authoritative score grade (`B` through `SSS`, or
+  `UNRANKED`) and the same grade is sent with eligible leaderboard submissions.
+- Highscores now exposes Space-navigable `GLOBAL` and `FRIENDS` tabs; Friends is
+  always local, while Global honestly shows disabled/offline states.
+- Settings now includes a one-button `CALLSIGN` selector (`Pilot`, `Nova`,
+  `Blade`, `Ghost`, `Zero`, `Ace`) persisted to `spaceblade.playerName` for
+  identifiable local and future online scores.
+- Pause now includes `HOW TO PLAY`; opening it preserves the current run and
+  returns to the paused menu instead of restarting.
+- Partial damage on tanks and the boss shows an authored `hurt-XX.png`
+  reaction, a floating `-1` damage label, and a short impact burst instead of
+  silently changing the health bar.
+- Successful parries now replace the HUD instruction with a short
+  `PERFECT PARRY · STUNNED` callout and green screen flash; failed defenses show
+  a red `HIT` callout and flash, both respecting Reduced Effects.
+- Charged energy shots now exist as visible, deterministic projectiles: they
+  travel across the lane, resolve one collision on crossing, break shields,
+  damage multi-hit enemies, and expire without server work.
+- Energy shots have a distinct browser-safe rising-pitch cue, while sword,
+  parry, impact, alert, boss, and ambient cues remain asset-free Web Audio.
+- Enemy damage now has its own short ascending metallic cue, triggered once per
+  actual HP decrease so repeated render frames do not spam audio.
+- Projectile transitions now show explicit `ENERGY HIT` and `SHIELD BREAK`
+  callouts, so ranged combat feedback is distinct from sword damage.
+- Pixel-tiled background, floor scroll, telegraphs, and death effects ship in
+  the Phaser scene.
+- A low-alpha parallax skyline now advances independently from the floor,
+  making the auto-run readable while preserving the 30 FPS rendering budget.
+- Low-cost cyan runner streaks now follow the player behind the sprite, making
+  forward motion readable even when the player is in the idle animation.
+- Shipped to production and verified by browser frame-path checks.
+- `npm run verify:production` provides a repeatable live smoke gate for the
+  centered player, authored action states, advancing frames, browser errors,
+  and the absence of Firebase requests during normal gameplay.
+- Firebase configuration now rejects blank and common placeholder values before
+  client initialization, preserving an honest disabled state until real project
+  credentials are supplied.
+- Firestore public writes now require a server-resolved `createdAt` timestamp in
+  addition to the existing shape, score, wave, and name validation.
+- Visibility pausing now clears dropped transient input, so returning from a
+  hidden tab cannot leave the one-button control permanently held.
+- Window focus loss clears the same transient state, with live browser coverage
+  confirming a new energy-shot hold still works after focus returns.
+- Global highscores now expose a direct retry path after a transient offline
+  read, without forcing a title-screen round trip.
+- The obsolete canvas background renderer was removed; `SectorTheme` now lives
+  in a renderer-neutral module shared by the game loop and pixel background.
+- A live Chrome probe measured stable ~16.7 ms presentation intervals with no
+  browser errors, and the engine test now locks the intentional 30 FPS pacing
+  configuration (`forceSetTimeOut`).
+- `npm run verify:production:performance` now measures the active production
+  simulation for 8 seconds; the current baseline is 28.65 median FPS, 41.5ms
+  p95 update interval, 229 samples, and zero browser errors without Firebase
+  loading before gameplay.
+- The coarse-pointer warning now uses larger mobile typography and concise
+  rotate-to-landscape guidance; this was visually checked at 390x844 in Chrome.
+- The browser's `prefers-reduced-motion` preference now defaults to reduced
+  effects and disabled screen shake; explicit saved settings remain authoritative.
+- The reduced-motion default is covered by both persistence tests and a live
+  browser regression that still completes one-button gameplay startup.
+- If browser storage is blocked, the same reduced-motion defaults still apply;
+  storage failure cannot silently re-enable screen shake.
+- The arena background now has a 96px overscan buffer so camera shake cannot
+  expose transparent black edges; this was visually checked during a live
+  heavy attack capture.
+- A live unauthenticated Firestore probe confirmed that an invalid score is
+  rejected with HTTP 403, protecting the low-cost public leaderboard from
+  malformed submissions.
+- `npm run verify:firebase-rules` now repeats that public-write rejection check
+  from a pulled production env file without printing credentials.
+- `npm run verify:production:online` now runs a real eligible score through the
+  live app and asserts Global highscores returns online rows with successful
+  Firestore requests and no browser errors.
+- Equal-score global records receive a deterministic server-timestamp tie-break
+  after the single-field Firestore query, avoiding a composite index requirement.
+- Configured leaderboard reads have an 8-second client timeout and surface the
+  existing offline state instead of leaving the highscores screen loading.
+- Successful leaderboard reads cancel that timeout immediately, avoiding stale
+  timers across repeated highscores visits.
+- The authored six-frame player walk sequence is explicitly exposed in the
+  manifest and selected during the neutral running state, preventing normal
+  forward motion from reusing a static idle frame. Local and live browser
+  checks confirm `/sprites/frames/player/walk-XX.png` advances.
+- Enemy approach states now use each roster member's authored standalone
+  `walk-XX.png` sequence instead of the legacy rebuild-frame alias. A live
+  production probe observed `/sprites/frames/grunt/walk-01.png` advancing with
+  no browser errors.
+- The unused generated `public/rebuild-frames/` duplicate pack and its cutter
+  script were removed from the shipped tree, trimming roughly 456 KB from the
+  public asset payload without changing the active Phaser runtime.
+- The four unreachable duplicate `player/idle-XX.png` frames were removed;
+  both the active and legacy manifest paths now use the authored walk frames for
+  neutral auto-running, with the full asset-pack test covering the cleanup.
+- Enemy sprite centers and boss telegraph effects are clamped to the arena
+  viewport, so wide authored frames remain fully readable instead of being
+  clipped at the screen edges; the boundary math is covered by unit tests.
 
 ### Ops
 - GitHub repo pushed to `main`; Vercel project `spaceblade` created and
-  auto-connected to GitHub (push-to-deploy). Two successful production deploys.
+  auto-connected to GitHub (push-to-deploy). The latest production deployment
+  is `dpl_3NUTZbL2j1nC2RgNWhqiEHxAvG3q`.
+- Firebase project `spaceblade-game-20260720` uses standard free-tier
+  Firestore in `europe-west1`; checked-in rules are deployed and the live web
+  app has submitted and read eligible scores successfully.
 
 ---
 
 ## 6. What is missing / not done
 
-1. **Real sprite art.** The procedural pixel sprites read as crude blobs. The
-   agreed next step is loading ChatGPT-generated PNGs via a sprite loader (design
-   already exists as brainstorm Option 2). **This is the current blocker on
-   visual quality.**
-2. **Firebase leaderboard is not live.** Code and security rules are done, but no
-   Firebase project/env vars are configured, so the live site shows "disabled".
-   Turning it on is a config task (create Firestore, apply rules, add 4 env
-   vars, redeploy).
-3. **No sprite animation frames from assets.** Current animation is limited
-   (2-frame walks, pose-per-state). Multi-frame attack/walk cycles would need
-   either richer authored grids or asset sheets.
-4. **Rendering is only manually verified.** Canvas visuals can't be unit-tested;
-   sprite *data* and pure logic are tested, but the actual pixels rely on
-   eyeballing in the browser.
-5. **Audio is minimal.** Code-generated blips, not designed sound. Fine for v1,
-   not polished.
-6. **Accessibility/mobile.** Touch users get a "keyboard recommended" warning but
-   no touch-playable fallback (by design for the OneKey constraint).
-7. **`backgroundLayers.ts`** is now dead for rendering (kept only for its
-   `SectorTheme` type) — minor cleanup debt.
+1. **Further sprite polish.** The separate-frame runtime and state-specific
+   motion are working and covered by tests. More authored attack frames would
+   still improve combat readability.
+2. **Rendering is only partially automated.** Canvas visuals can't be unit-tested;
+  sprite *data* and pure logic are tested, but the actual pixels rely on
+  eyeballing in the browser.
+3. **Audio remains lightweight.** It is still code-generated rather than a
+   recorded sound pack, but combat actions now have distinct pitch behavior.
+4. **Accessibility/mobile.** Coarse-pointer users get a "keyboard recommended"
+   warning, mouse/touch remain fully playable through the same single
+   press-hold-release action path, and reduced-motion preferences now alter the
+   initial visual-effects defaults.
 
 ---
 
@@ -161,30 +288,26 @@ index.html
 - **Enemy AI is intentionally simple** (approach → windup → telegraphed impact →
   recover). It reads clearly but is not sophisticated; late-wave difficulty comes
   from spawn density, not smarter behavior.
-- **Balance is untuned by real playtesting.** Constants are reasonable first
-  guesses; hit ranges, parry window (−120/+60ms), and spawn pacing may need feel
-  tuning.
-- **Firebase bundle is heavy** (~380 KB JS, ~99 KB gzip) for a small game,
-  because the whole SDK is imported even when the leaderboard is disabled. Could
-  be lazy-loaded to shrink first paint.
+- **Balance is still early-stage.** The parry window is intentionally forgiving
+  at −150/+90ms for the 30 FPS one-button loop; hit ranges and spawn pacing
+  still need feel tuning with more real players.
+- **Firebase remains a secondary chunk** (344.46 kB JS, 86.84 kB gzip) for a
+  small game, but it is now lazy-loaded only for highscores or eligible score
+  submission; the main bundle is 53.52 kB (16.58 kB gzip).
 - **30 FPS target** is conservative; the baked-sprite approach should hold it,
-  but this hasn't been profiled under a full late-wave screen.
+  and presentation objects are pooled. An active-run baseline is now measured
+  automatically, but a full late-wave stress profile remains future work.
 
 ---
 
 ## 8. Plans to improve (prioritized)
 
-1. **Swap in real sprite assets** (in progress). Build `spriteLoader` +
-   image-based renderers; key out magenta if PNGs lack alpha; normalize scale.
-2. **Enable the live leaderboard.** Provision Firestore, apply `firestore.rules`,
-   set env vars, redeploy. Add a name-entry field on game over.
-3. **Lazy-load Firebase** so the initial bundle is tiny and the game boots faster.
-4. **Playtest-driven balance pass** on ranges, parry window, and spawn pacing.
-5. **Richer animation** (attack/walk cycles) once real assets exist.
-6. **Sound pass** — replace generated blips with designed cues (still code or a
+1. **Playtest-driven balance pass.** Tune ranges, parry timing, and spawn
+   pacing against real player sessions.
+2. **FPS and bundle profiling.** Extend the active-run gate to a full late-wave
+   stress profile and consider splitting the lazy Firebase chunk further.
+3. **Sound pass** — replace generated blips with designed cues (still code or a
    tiny asset set).
-7. **Cleanup** — remove dead `backgroundLayers` render path; consider profiling
-   FPS under max load.
 
 ---
 
@@ -196,6 +319,6 @@ index.html
   `src/game/player/playerStateMachine.ts`, `src/game/input/inputParser.ts`
 - **Integration:** `src/app/App.ts`, `src/game/scenes/mainGameScene.ts`,
   `src/game/run/gameLoop.ts`
-- **Tests:** co-located `*.test.ts` (114 tests, 18 suites)
+- **Tests:** co-located `*.test.ts` (254 tests, 44 suites) plus 22 browser tests
 - **Run it:** `npm install && npm run dev`; verify with `npm test -- --run` and
   `npm run build`.

@@ -19,12 +19,12 @@ Run structure:
 - Tank and boss each count as threat weight 2.
 - No more than 2 tanks may be active.
 
-Arena structure:
+Runner arena structure:
 
-- 20 percent left spawn zone.
-- 60 percent central combat zone.
-- 20 percent right spawn zone.
-- Floor platform with three background layers: foreground tech, city mid, distant skyline.
+- Player lane is visually anchored around the left quarter of the screen.
+- Threats spawn in the forward right half and advance toward the player.
+- Floor platform scrolls continuously to sell auto-forward movement.
+- Three background layers remain static or subtly offset: foreground tech, city mid, distant skyline.
 
 Spawn pacing:
 
