@@ -1,8 +1,8 @@
 # Public Asset Sources
 
-Spaceblade now has a staged public-asset pack under
-`public/assets/public/warped-city/`. It is not connected to runtime yet; the
-existing sprite pack remains the fallback while the replacement is reviewed.
+Spaceblade now uses a vendored public-asset pack under
+`public/assets/public/warped-city/` for its active standalone runtime frames.
+The legacy sheets remain available for tooling and rollback.
 
 ## Warped City
 

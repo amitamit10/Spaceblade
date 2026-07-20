@@ -27,7 +27,7 @@ export const REBUILD_PLAYER: RebuildSprite = {
   anchorX: 48,
   anchorY: 95,
   animations: {
-    idle: { frames: authoredFramePaths("player", "walk", 6), frameDurationMs: 90, loop: true },
+    idle: { frames: authoredFramePaths("player", "idle", 4), frameDurationMs: 110, loop: true },
     walk: { frames: authoredFramePaths("player", "walk", 6), frameDurationMs: 90, loop: true },
     slash: { frames: authoredFramePaths("player", "slash", 4), frameDurationMs: 70, loop: false },
     charging: { frames: authoredFramePaths("player", "charge", 3), frameDurationMs: 90, loop: true },

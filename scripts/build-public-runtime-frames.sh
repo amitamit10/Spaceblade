@@ -51,7 +51,7 @@ for index in 1 2 3 4 5 6 7 8; do player_run_shoot+=("$(player_source "run-shoot-
 write_sequence player idle 96 96 100 "" "${player_idle[@]}"
 write_sequence player walk 96 96 100 "" "${player_walk[@]}"
 write_sequence player slash 96 96 100 "" "${player_run[0]}" "${player_run[1]}" "${player_run[2]}" "${player_run[3]}"
-repeat_sources player charging 96 96 100 3 "$(player_source shoot.png)"
+repeat_sources player charge 96 96 100 3 "$(player_source shoot.png)"
 write_sequence player heavy 96 96 100 "" "${player_run_shoot[0]}" "${player_run_shoot[1]}" "${player_run_shoot[2]}" "${player_run_shoot[3]}" "${player_run_shoot[4]}" "${player_run_shoot[5]}"
 write_sequence player dodge 96 96 100 "" "${player_run[0]}" "${player_run[2]}" "${player_run[4]}"
 repeat_sources player parry 96 96 100 2 "$(player_source shoot.png)"
