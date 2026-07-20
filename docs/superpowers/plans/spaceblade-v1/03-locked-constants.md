@@ -47,7 +47,7 @@ export const playerConfig = {
   heavySlashRecoveryMs: 280,
   dodgeDistance: 150,
   dodgeDurationMs: 260,
-  hurtLockMs: 420,
+  hurtLockMs: 600,
   parryStunMs: 650,
 } as const;
 ```

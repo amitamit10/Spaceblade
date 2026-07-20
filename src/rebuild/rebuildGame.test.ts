@@ -35,6 +35,18 @@ describe("rebuild run model", () => {
     expect(next.enemies.filter((enemy) => enemy.state !== "dead").every((enemy) => enemy.x > 640)).toBe(true);
   });
 
+  it("staggers simultaneous contact telegraphs for readable one-button defense", () => {
+    const run = createRebuildRun(0);
+    run.enemies.forEach((enemy) => {
+      enemy.x = 700;
+      enemy.state = "approaching";
+    });
+
+    const next = advanceRebuildRun(run, 1);
+
+    expect(next.enemies[1].nextAttackAt - next.enemies[0].nextAttackAt).toBe(90);
+  });
+
   it("keeps simultaneous forward spawns visibly separated", () => {
     const run = createRebuildRun(0);
     run.enemies.forEach((enemy) => { enemy.state = "dead"; });
@@ -196,6 +208,17 @@ describe("rebuild run model", () => {
     expect(impact.player.hurtUntil).toBeGreaterThan(100);
   });
 
+  it("keeps the player protected during a readable damage recovery", () => {
+    const run = createRebuildRun(0);
+    run.enemies[0].x = 690;
+    run.enemies[0].state = "attacking";
+    run.enemies[0].nextAttackAt = 100;
+
+    const impact = advanceRebuildRun(run, 100);
+
+    expect(impact.player.hurtUntil).toBeGreaterThanOrEqual(700);
+  });
+
   it("locks damage during the hurt window", () => {
     const run = createRebuildRun(0);
     run.enemies[0].x = 690;
@@ -220,8 +243,8 @@ describe("rebuild run model", () => {
     run.enemies[0].nextAttackAt = 0;
 
     const first = advanceRebuildRun(run, 1);
-    const second = advanceRebuildRun(first, 500);
-    const final = advanceRebuildRun(second, 1000);
+    const second = advanceRebuildRun(first, 700);
+    const final = advanceRebuildRun(second, 1400);
 
     expect(first.hearts).toBe(2);
     expect(second.hearts).toBe(1);

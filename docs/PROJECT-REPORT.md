@@ -33,7 +33,7 @@ flow, and a live Firebase leaderboard submission/read check.
 | Source files | 64 TypeScript modules |
 | Production code | ~3,960 LOC |
 | Test code | ~1,070 LOC |
-| Tests | **265 passing**, 45 Vitest suites + 22 browser tests |
+| Tests | **267 passing**, 45 Vitest suites + 22 browser tests |
 | Build | `tsc --noEmit` + Vite, clean |
 | Dependencies | `firebase`, `phaser` (+ dev: vite, typescript, vitest, jsdom, Playwright, @types/node) |
 
@@ -300,9 +300,9 @@ index.html
   recover). It reads clearly but is not sophisticated; late-wave difficulty comes
   from spawn density, not smarter behavior.
 - **Balance is still early-stage.** The parry window is intentionally forgiving
-  at −150/+90ms and dodge invulnerability now lasts 500ms for the 30 FPS
-  one-button loop; hit ranges and spawn pacing still need feel tuning with more
-  real players.
+  at −150/+90ms, dodge invulnerability now lasts 500ms, damage recovery lasts
+  600ms, and contact telegraphs stagger by 90ms for the 30 FPS one-button loop;
+  hit ranges and spawn pacing still need feel tuning with more real players.
 - **Firebase remains a secondary chunk** (344.46 kB JS, 86.84 kB gzip) for a
   small game, but it is now lazy-loaded only for highscores or eligible score
   submission; the main bundle is 53.52 kB (16.58 kB gzip).
@@ -336,7 +336,7 @@ index.html
   `src/game/player/playerStateMachine.ts`, `src/game/input/inputParser.ts`
 - **Integration:** `src/app/App.ts`, `src/game/scenes/mainGameScene.ts`,
   `src/game/run/gameLoop.ts`
-- **Tests:** co-located `*.test.ts` and acceptance tests (265 tests, 45 suites)
+- **Tests:** co-located `*.test.ts` and acceptance tests (267 tests, 45 suites)
   plus 22 browser tests
 - **Run it:** `npm install && npm run dev`; verify with `npm test -- --run` and
   `npm run build`.

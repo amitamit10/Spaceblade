@@ -71,6 +71,7 @@ const DODGE_IFRAME_MS = 500;
 const PARRY_STUN_MS = 650;
 const PARRY_BEFORE_IMPACT_MS = 150;
 const PARRY_AFTER_IMPACT_MS = 90;
+const CONTACT_ATTACK_STAGGER_MS = 90;
 const HEAVY_MIN_HOLD_MS = 300;
 const ENERGY_PROJECTILE_SPEED = 760;
 const ENERGY_PROJECTILE_LIFETIME_MS = 1400;
@@ -329,7 +330,7 @@ export function advanceRebuildRun(source: RebuildRun, now: number): RebuildRun {
 
   advanceProjectiles(run, elapsed, now);
 
-  for (const enemy of activeEnemies(run)) {
+  for (const [activeIndex, enemy] of activeEnemies(run).entries()) {
     const stats = ENEMY_STATS[enemy.type];
     if (enemy.type === "glitch" && run.wave >= 8 && now >= enemy.teleportAt) {
       enemy.side = "right";
@@ -356,7 +357,7 @@ export function advanceRebuildRun(source: RebuildRun, now: number): RebuildRun {
     // Otherwise a distant spawn can arrive with an already-expired timer and
     // damage the player without a readable windup.
     if (wasApproaching) {
-      enemy.nextAttackAt = now + stats.windupMs;
+      enemy.nextAttackAt = now + stats.windupMs + activeIndex * CONTACT_ATTACK_STAGGER_MS;
     }
     if (now >= enemy.nextAttackAt) {
       enemy.nextAttackAt = now + stats.recoveryMs;
@@ -364,7 +365,7 @@ export function advanceRebuildRun(source: RebuildRun, now: number): RebuildRun {
       if (now >= run.player.hurtUntil && now >= run.player.invulnerableUntil) {
         run.hearts = Math.max(0, run.hearts - stats.damage);
         run.combo = 0;
-        run.player.hurtUntil = now + 420 + (stats.damage - 1) * 80;
+        run.player.hurtUntil = now + 600 + (stats.damage - 1) * 80;
         if (run.hearts === 0) {
           run.status = "gameOver";
           return run;

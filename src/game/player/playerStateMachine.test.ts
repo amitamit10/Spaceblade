@@ -68,14 +68,14 @@ describe("createPlayerStateMachine", () => {
     const p = createPlayerStateMachine(0);
     expect(p.applyDamage(0).hearts).toBe(2);
     expect(p.applyDamage(200).hearts).toBe(2);
-    expect(p.applyDamage(420).hearts).toBe(1);
+    expect(p.applyDamage(600).hearts).toBe(1);
   });
 
   it("dies on the third damage event", () => {
     const p = createPlayerStateMachine(0);
     p.applyDamage(0); // 2
-    p.applyDamage(500); // 1 (after hurt lock)
-    const s = p.applyDamage(1000); // 0
+    p.applyDamage(700); // 1 (after hurt lock)
+    const s = p.applyDamage(1400); // 0
     expect(s.hearts).toBe(0);
     expect(s.state).toBe("dead");
   });
@@ -83,8 +83,8 @@ describe("createPlayerStateMachine", () => {
   it("stays dead permanently", () => {
     const p = createPlayerStateMachine(0);
     p.applyDamage(0);
-    p.applyDamage(500);
-    p.applyDamage(1000);
+    p.applyDamage(700);
+    p.applyDamage(1400);
     expect(p.applyAction("tap", 2000).state).toBe("dead");
     expect(p.update(5000).state).toBe("dead");
   });
