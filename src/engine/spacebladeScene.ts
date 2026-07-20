@@ -38,6 +38,18 @@ import { gradeForScore } from "../game/run/scoreSystem";
 const GROUND_Y = 552;
 const PLAYER_X = SPACEBLADE_WIDTH / 2;
 const VIEW_PLAYER_X = SPACEBLADE_WIDTH / 2;
+const PUBLIC_PALETTE = {
+  background: 0x0b0918,
+  skyline: 0x1b1638,
+  skylineFar: 0x261d4c,
+  ground: 0x100c1f,
+  groundLine: 0xffc52f,
+  ink: "#fff4d5",
+  muted: "#c2b7d9",
+  amber: 0xffc52f,
+  magenta: 0xff4fa3,
+  cyan: 0x8df5ff,
+} as const;
 
 const frameKey = (source: string): string => `spaceblade:${source}`;
 
@@ -105,6 +117,8 @@ export class SpacebladePlayScene extends Phaser.Scene {
   private parryTiming: Phaser.GameObjects.Graphics | null = null;
   private parryTimingLabel: Phaser.GameObjects.Text | null = null;
   private skylineMotion: Phaser.GameObjects.Graphics | null = null;
+  private publicSkylineFar: Phaser.GameObjects.TileSprite | null = null;
+  private publicSkylineNear: Phaser.GameObjects.TileSprite | null = null;
   private runnerMotion: Phaser.GameObjects.Graphics | null = null;
   private waveBanner: Phaser.GameObjects.Text | null = null;
   private waveBannerUntil = 0;
@@ -155,10 +169,23 @@ export class SpacebladePlayScene extends Phaser.Scene {
 
   preload(): void {
     for (const source of allFrameSources()) this.load.image(frameKey(source), source);
+    this.load.image("public-skyline-a", "/assets/public/warped-city/skyline-a.png");
+    this.load.image("public-skyline-b", "/assets/public/warped-city/skyline-b.png");
+    this.load.image("public-near-buildings", "/assets/public/warped-city/near-buildings-bg.png");
   }
 
   create(): void {
     this.drawArena();
+    this.publicSkylineFar = this.add.tileSprite(0, 0, SPACEBLADE_WIDTH, GROUND_Y, "public-skyline-a")
+      .setOrigin(0)
+      .setAlpha(0.34)
+      .setTileScale(2.8)
+      .setDepth(-2);
+    this.publicSkylineNear = this.add.tileSprite(0, GROUND_Y - 214, SPACEBLADE_WIDTH, 214, "public-near-buildings")
+      .setOrigin(0)
+      .setAlpha(0.58)
+      .setTileScale(1.28)
+      .setDepth(-1);
     this.soundBus = createSoundBus(() => this.settings.volume);
     const prefersReducedMotion = typeof window.matchMedia === "function"
       && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -178,26 +205,26 @@ export class SpacebladePlayScene extends Phaser.Scene {
       .setScale(REBUILD_PLAYER.scale)
       .setDepth(2);
     this.hud = this.add.text(20, 16, "", {
-      color: "#f4fbff",
+      color: PUBLIC_PALETTE.ink,
       fontFamily: "monospace",
       fontSize: "22px",
       fontStyle: "bold",
     }).setDepth(5);
     this.hudWave = this.add.text(SPACEBLADE_WIDTH / 2, 16, "", {
-      color: "#f4fbff",
+      color: PUBLIC_PALETTE.ink,
       fontFamily: "monospace",
       fontSize: "22px",
       fontStyle: "bold",
     }).setOrigin(0.5, 0).setDepth(5);
     this.hudScore = this.add.text(SPACEBLADE_WIDTH - 20, 16, "", {
-      color: "#f4fbff",
+      color: PUBLIC_PALETTE.ink,
       fontFamily: "monospace",
       fontSize: "22px",
       fontStyle: "bold",
     }).setOrigin(1, 0).setDepth(5);
     this.playerHpBar = this.add.graphics().setDepth(5);
     this.status = this.add.text(SPACEBLADE_WIDTH / 2, 70, "", {
-      color: "#57eaff",
+      color: "#ffc52f",
       fontFamily: "monospace",
       fontSize: "24px",
       fontStyle: "bold",
@@ -208,45 +235,45 @@ export class SpacebladePlayScene extends Phaser.Scene {
     this.runnerMotion = this.add.graphics().setDepth(1);
     this.waveProgress = this.add.graphics().setDepth(5);
     this.waveProgressLabel = this.add.text(SPACEBLADE_WIDTH / 2, 122, "", {
-      color: "#9ab6ca",
+      color: PUBLIC_PALETTE.muted,
       fontFamily: "monospace",
       fontSize: "13px",
       fontStyle: "bold",
     }).setOrigin(0.5).setDepth(5);
     this.parryTiming = this.add.graphics().setDepth(5).setVisible(false);
     this.parryTimingLabel = this.add.text(SPACEBLADE_WIDTH / 2, 676, "", {
-      color: "#9ab6ca",
+      color: PUBLIC_PALETTE.muted,
       fontFamily: "monospace",
       fontSize: "12px",
       fontStyle: "bold",
     }).setOrigin(0.5).setDepth(5).setVisible(false);
     this.skylineMotion = this.add.graphics().setDepth(0.5);
     this.waveBanner = this.add.text(SPACEBLADE_WIDTH / 2, 182, "", {
-      color: "#ffda6a",
+      color: "#ffc52f",
       fontFamily: "monospace",
       fontSize: "34px",
       fontStyle: "bold",
-      stroke: "#071322",
+      stroke: "#0b0918",
       strokeThickness: 6,
     }).setOrigin(0.5).setDepth(6).setVisible(false);
 
-    this.screenBackdrop = this.add.rectangle(SPACEBLADE_WIDTH / 2, SPACEBLADE_HEIGHT / 2, SPACEBLADE_WIDTH, SPACEBLADE_HEIGHT, 0x050b18, 0.96)
+    this.screenBackdrop = this.add.rectangle(SPACEBLADE_WIDTH / 2, SPACEBLADE_HEIGHT / 2, SPACEBLADE_WIDTH, SPACEBLADE_HEIGHT, PUBLIC_PALETTE.background, 0.96)
       .setDepth(10);
     this.screenTitle = this.add.text(SPACEBLADE_WIDTH / 2, 190, "SPACEBLADE", {
-      color: "#f4fbff",
+      color: PUBLIC_PALETTE.ink,
       fontFamily: "monospace",
       fontSize: "58px",
       fontStyle: "bold",
     }).setOrigin(0.5).setDepth(11);
     this.screenBody = this.add.text(SPACEBLADE_WIDTH / 2, 350, "ONE KEY. ENDLESS RUN.\n\nAuto-run through Neon-Sector 04.\nCut down threats before they reach you.", {
-      color: "#9ab6ca",
+      color: PUBLIC_PALETTE.muted,
       fontFamily: "monospace",
       fontSize: "24px",
       align: "center",
       lineSpacing: 12,
     }).setOrigin(0.5).setDepth(11);
     this.screenHint = this.add.text(SPACEBLADE_WIDTH / 2, 590, "HOLD SPACE TO START", {
-      color: "#57eaff",
+      color: "#ffc52f",
       fontFamily: "monospace",
       fontSize: "25px",
       fontStyle: "bold",
@@ -270,6 +297,8 @@ export class SpacebladePlayScene extends Phaser.Scene {
   }
 
   update(): void {
+    this.publicSkylineFar?.setTilePosition(this.time.now * -0.012, 0);
+    this.publicSkylineNear?.setTilePosition(this.time.now * -0.028, 0);
     if (this.screen !== "playing" || !this.run) return;
     const now = this.time.now;
     const heartsBefore = this.run.hearts;
@@ -705,16 +734,16 @@ export class SpacebladePlayScene extends Phaser.Scene {
     const graphics = this.add.graphics().setDepth(0);
     // Overscan keeps camera shake from exposing transparent canvas edges.
     const overscan = 96;
-    graphics.fillStyle(0x071322, 1).fillRect(-overscan, -overscan, SPACEBLADE_WIDTH + overscan * 2, SPACEBLADE_HEIGHT + overscan * 2);
-    graphics.fillStyle(0x0a1a30, 1);
+    graphics.fillStyle(PUBLIC_PALETTE.background, 1).fillRect(-overscan, -overscan, SPACEBLADE_WIDTH + overscan * 2, SPACEBLADE_HEIGHT + overscan * 2);
+    graphics.fillStyle(PUBLIC_PALETTE.skyline, 1);
     for (const [x, y, width, height] of [
       [0, 328, 72, 224], [80, 282, 92, 270], [180, 244, 120, 308],
       [310, 294, 92, 258], [420, 212, 140, 340], [570, 276, 96, 276],
       [690, 184, 128, 368], [830, 232, 118, 320], [960, 166, 144, 386],
       [1115, 220, 122, 332], [1245, 270, 60, 282],
     ]) graphics.fillRect(x, y, width, height);
-    graphics.fillStyle(0x06101e, 1).fillRect(0, GROUND_Y, SPACEBLADE_WIDTH, SPACEBLADE_HEIGHT - GROUND_Y);
-    graphics.fillStyle(0x2cb7d3, 1).fillRect(0, GROUND_Y, SPACEBLADE_WIDTH, 4);
+    graphics.fillStyle(PUBLIC_PALETTE.ground, 1).fillRect(0, GROUND_Y, SPACEBLADE_WIDTH, SPACEBLADE_HEIGHT - GROUND_Y);
+    graphics.fillStyle(PUBLIC_PALETTE.groundLine, 1).fillRect(0, GROUND_Y, SPACEBLADE_WIDTH, 4);
   }
 
   private syncViews(now: number): void {
@@ -777,9 +806,9 @@ export class SpacebladePlayScene extends Phaser.Scene {
     this.hudWave.setText(`WAVE ${run.wave}`);
     this.hudScore.setText(`SCORE ${run.score}${run.combo > 0 ? `  ·  COMBO x${run.combo}` : ""}`);
     this.playerHpBar.clear();
-    this.playerHpBar.fillStyle(0x10243b, 0.96).fillRect(20, 48, 180, 8);
-    this.playerHpBar.fillStyle(run.hearts > 0 ? 0xff3f62 : 0x5a2133, 1).fillRect(20, 48, 180 * Math.max(0, Math.min(1, run.hearts / 3)), 8);
-    this.playerHpBar.lineStyle(1, 0xffda6a, 0.7).strokeRect(20, 48, 180, 8);
+    this.playerHpBar.fillStyle(0x241532, 0.96).fillRect(20, 48, 180, 8);
+    this.playerHpBar.fillStyle(run.hearts > 0 ? PUBLIC_PALETTE.magenta : 0x5a2133, 1).fillRect(20, 48, 180 * Math.max(0, Math.min(1, run.hearts / 3)), 8);
+    this.playerHpBar.lineStyle(1, PUBLIC_PALETTE.amber, 0.7).strokeRect(20, 48, 180, 8);
     this.drawWaveProgress(run);
     this.drawParryTiming(run, now);
     this.drawSkylineMotion(now);

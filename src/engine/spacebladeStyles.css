@@ -1,12 +1,12 @@
 :root {
-  background: #050812;
-  color: #f4fbff;
+  background: #0b0918;
+  color: #fff4d5;
   font-family: monospace;
 }
 
 * { box-sizing: border-box; }
 html, body, #app { width: 100%; height: 100%; margin: 0; }
-body { overflow: hidden; background: #050812; }
+body { overflow: hidden; background: #0b0918; }
 #app { display: grid; place-items: center; }
 #app canvas {
   display: block;

@@ -13,6 +13,8 @@ existing sprite pack remains the fallback while the replacement is reviewed.
 - Staged content: player idle/walk/run/run-shoot/shoot/hurt frames, drone and
   turret enemies, projectile frames, hit frames, and enemy explosion frames.
 - Local preview: `mockups/public-assets/warped-city-preview.png`
+- Runtime conversion: `scripts/build-public-runtime-frames.sh`
+- Runtime preview: `mockups/public-assets/runtime-public-frames.png`
 
 This is intentionally vendored into the repository instead of loaded from a
 remote URL. That keeps deployment deterministic, avoids runtime network
@@ -26,5 +28,7 @@ requests, and stays cheap on static hosting.
    procedural fallback for missing sword, parry, shield, and boss animations.
 4. Run the sprite contract tests and browser motion check before promotion.
 
-The public pack should replace the custom/generated art, not be mixed into the
-same actor animation unless the visual review explicitly approves it.
+The public pack now supplies the active standalone runtime frames. The game
+still draws sword/parry and shield feedback as gameplay effects because those
+states are not present in the source pack; no still frame is falsely labeled as
+a sword animation.

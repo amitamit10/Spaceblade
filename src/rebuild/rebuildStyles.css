@@ -1,25 +1,25 @@
 :root {
-  color: #f4fbff;
-  background: #050812;
+  color: #fff4d5;
+  background: #0b0918;
   font-family: "Segoe UI", system-ui, sans-serif;
 }
 
 * { box-sizing: border-box; }
 html, body, #app { width: 100%; height: 100%; margin: 0; }
-body { overflow: hidden; background: #050812; }
+body { overflow: hidden; background: #0b0918; }
 .rebuild-app { position: relative; display: grid; place-items: center; width: 100%; height: 100%; overflow: hidden; }
 .rebuild-canvas { display: block; width: min(100vw, calc(100vh * 16 / 9)); aspect-ratio: 16 / 9; image-rendering: pixelated; }
 .rebuild-overlay { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; }
-.rebuild-panel { min-width: min(88vw, 560px); padding: 2.25rem 3rem; border: 1px solid #2cb7d3; border-radius: 14px; background: rgba(5, 12, 24, .9); box-shadow: 0 0 32px rgba(44, 183, 211, .18); text-align: center; }
-.rebuild-title { margin: 0; color: #57eaff; font-size: clamp(3rem, 9vw, 6rem); letter-spacing: .08em; text-shadow: 0 0 24px rgba(87, 234, 255, .45); }
+.rebuild-panel { min-width: min(88vw, 560px); padding: 2.25rem 3rem; border: 1px solid #ffc52f; border-radius: 14px; background: rgba(11, 9, 24, .9); box-shadow: 0 0 32px rgba(255, 79, 163, .18); text-align: center; }
+.rebuild-title { margin: 0; color: #ffc52f; font-size: clamp(3rem, 9vw, 6rem); letter-spacing: .08em; text-shadow: 0 0 24px rgba(255, 197, 47, .45); }
 .rebuild-subtitle, .rebuild-heading { letter-spacing: .18em; text-transform: uppercase; }
 .rebuild-subtitle { color: #8da7b5; }
-.rebuild-heading { margin: 0 0 1rem; color: #57eaff; }
+.rebuild-heading { margin: 0 0 1rem; color: #ffc52f; }
 .rebuild-copy { color: #d7e9ef; line-height: 1.6; }
 .rebuild-menu-item { margin: .55rem 0; color: #8da7b5; text-align: left; letter-spacing: .08em; }
 .rebuild-menu-item-active { color: #57eaff; text-shadow: 0 0 12px rgba(87, 234, 255, .5); }
-.rebuild-hint { margin: 1.5rem 0 0; color: #ffe45c; letter-spacing: .14em; text-transform: uppercase; }
+.rebuild-hint { margin: 1.5rem 0 0; color: #ffc52f; letter-spacing: .14em; text-transform: uppercase; }
 .rebuild-hud { position: absolute; inset: 1rem 1.25rem auto; display: flex; justify-content: space-between; font-weight: 700; font-size: clamp(.85rem, 2vw, 1.35rem); letter-spacing: .08em; }
-.rebuild-hp { color: #ff3f62; }
+.rebuild-hp { color: #ff4fa3; }
 .rebuild-wave { color: #f4fbff; }
 .rebuild-score { color: #f4fbff; }

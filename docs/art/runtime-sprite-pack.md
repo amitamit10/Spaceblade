@@ -4,7 +4,8 @@ This file records the current runtime sprite pack that ships with the game.
 
 ## Runtime Assets
 
-These are the PNG sheets currently loaded by the sprite-sheet runtime:
+These are the legacy PNG sheets retained for the static sheet contract and
+fallback tooling:
 
 | Actor | Path | Runtime Size |
 | --- | --- | --- |
@@ -18,7 +19,19 @@ These are the PNG sheets currently loaded by the sprite-sheet runtime:
 
 ## Current Workflow
 
-The current sheets were promoted with the same pipeline:
+The active rebuild runtime now uses standalone frames generated from the
+licensed Warped City public pack:
+
+```bash
+bash scripts/build-public-runtime-frames.sh
+```
+
+The converter preserves the required actor canvas sizes with transparent
+padding and nearest-neighbor scaling. Public movement and shooting frames are
+used where they exist; the one-button sword/parry feedback remains drawn by
+the game so the public pack is not misrepresented as having sword animations.
+
+The legacy sheet workflow remains available for fallback and tooling:
 
 1. Generate a full sprite sheet against the contract in
    `docs/art/spaceblade-sprite-sheet-handoff.md`.
@@ -29,9 +42,9 @@ The current sheets were promoted with the same pipeline:
    `tmp/imagegen/<actor>-alpha.png`.
 5. Promote that alpha PNG into `public/sprites/<actor>.png`.
 
-The checked-in runtime assets are the files under `public/sprites/`. The files
-under `tmp/imagegen/` are local working artifacts that document the most recent
-promotion path.
+The checked-in runtime frame assets are the files under
+`public/sprites/frames/`. The files under `tmp/imagegen/` are local working
+artifacts that document the older custom-art promotion path.
 
 ## Verification
 
