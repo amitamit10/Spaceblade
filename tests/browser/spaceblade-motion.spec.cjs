@@ -113,12 +113,13 @@ test("honors the reduced-motion preference without changing one-button play", as
   await expect(page.locator("canvas")).toHaveAttribute("data-spaceblade-reduced-effects", "true");
 });
 
-test("uses a pointer hold as the same one-button energy-shot action", async ({ page }) => {
+test("keeps gameplay combat on Space instead of pointer input", async ({ page }) => {
   await page.goto("/");
   const canvas = page.locator("canvas");
   await expect(canvas).toHaveAttribute("data-spaceblade-screen", "title");
   await page.mouse.click(640, 360);
   await expect(canvas).toHaveAttribute("data-spaceblade-screen", "tutorial");
+  await expect(canvas).toHaveAttribute("data-spaceblade-tutorial-guide", "6");
   await page.mouse.click(640, 360);
   await expect(canvas).toHaveAttribute("data-spaceblade-screen", "playing");
   expect(await canvas.evaluate((node) => getComputedStyle(node).touchAction)).toBe("none");
@@ -126,7 +127,7 @@ test("uses a pointer hold as the same one-button energy-shot action", async ({ p
   await page.mouse.down();
   await page.waitForTimeout(520);
   await page.mouse.up();
-  await expect(canvas).toHaveAttribute("data-spaceblade-projectile-count", "1", { timeout: 2_000 });
+  await expect(canvas).toHaveAttribute("data-spaceblade-projectile-count", "0", { timeout: 2_000 });
 });
 
 test("shows recharge feedback when a second energy hold arrives during cooldown", async ({ page }) => {
@@ -146,7 +147,7 @@ test("shows recharge feedback when a second energy hold arrives during cooldown"
   await expect(canvas).toHaveAttribute("data-spaceblade-combat-callout", "ENERGY RECHARGING  ·  USE SWORD", { timeout: 2_000 });
 });
 
-test("releases a pointer hold when the pointer exits the canvas", async ({ page }) => {
+test("ignores pointer holds even when the pointer exits the canvas", async ({ page }) => {
   await page.goto("/");
   const canvas = page.locator("canvas");
   await expect(canvas).toHaveAttribute("data-spaceblade-screen", "title");
@@ -161,10 +162,10 @@ test("releases a pointer hold when the pointer exits the canvas", async ({ page 
   await page.mouse.move(-10, -10);
   await page.mouse.up();
 
-  await expect(canvas).toHaveAttribute("data-spaceblade-projectile-count", "1", { timeout: 2_000 });
+  await expect(canvas).toHaveAttribute("data-spaceblade-projectile-count", "0", { timeout: 2_000 });
 });
 
-test("Phaser gameplay slice opens the pause menu with a long Space hold", async ({ page }, testInfo) => {
+test("Phaser gameplay slice opens the pause menu with the visible button", async ({ page }, testInfo) => {
   const consoleErrors = [];
   page.on("console", (message) => {
     if (message.type() === "error") consoleErrors.push(message.text());
@@ -173,9 +174,7 @@ test("Phaser gameplay slice opens the pause menu with a long Space hold", async 
 
   await page.goto("/");
   await startPhaserGameplay(page);
-  await page.keyboard.down("Space");
-  await page.waitForTimeout(1050);
-  await page.keyboard.up("Space");
+  await page.mouse.click(1194, 76);
   await expect(page.locator("canvas")).toHaveAttribute("data-spaceblade-screen", "paused");
   await page.screenshot({ path: testInfo.outputPath("phaser-pause-menu.png") });
 
@@ -207,9 +206,7 @@ test("Phaser gameplay slice opens the pause menu with a long Space hold", async 
 test("changes the saved callsign with the one-button settings menu", async ({ page }) => {
   await page.goto("/");
   await startPhaserGameplay(page);
-  await page.keyboard.down("Space");
-  await page.waitForTimeout(1050);
-  await page.keyboard.up("Space");
+  await page.mouse.click(1194, 76);
   await expect(page.locator("canvas")).toHaveAttribute("data-spaceblade-screen", "paused");
 
   await page.keyboard.down("Space");
@@ -235,9 +232,7 @@ test("opens How To Play from pause and returns without restarting", async ({ pag
   await page.goto("/");
   await startPhaserGameplay(page);
   const canvas = page.locator("canvas");
-  await page.keyboard.down("Space");
-  await page.waitForTimeout(1050);
-  await page.keyboard.up("Space");
+  await page.mouse.click(1194, 76);
   await expect(canvas).toHaveAttribute("data-spaceblade-screen", "paused");
 
   for (let step = 0; step < 2; step += 1) {
@@ -391,8 +386,8 @@ test("standalone player and enemy frames advance during gameplay", async ({ page
   }));
 
   expect(first.player).toBeTruthy();
-  expect(first.playerAnimation).toBe("walk");
-  expect(first.player).toContain("/sprites/frames/player/walk-");
+  expect(first.playerAnimation).toBe("run");
+  expect(first.player).toContain("/sprites/frames/player/run-");
   expect(first.enemy).toBeTruthy();
   expect(second.player).not.toBe(first.player);
   expect(second.enemy).not.toBe(first.enemy);
@@ -419,7 +414,7 @@ test("defeated enemies play their authored death frames before disappearing", as
   }
 
   const deathFrame = await page.locator("canvas").getAttribute("data-spaceblade-enemy-death-frame");
-  expect(deathFrame).toMatch(/^\/sprites\/frames\/(?:grunt|runner|shield|tank|glitch|boss)\/dead-\d+\.png$/);
+  expect(deathFrame).toMatch(/^\/sprites\/frames\/(?:grunt|runner|shield|tank|glitch|boss)\/dead-\d+\.png(?:\?.*)?$/);
   expect(consoleErrors).toEqual([]);
 });
 
@@ -432,7 +427,7 @@ test("enemies play their authored recovery frames after impact", async ({ page }
 
   await page.goto("/");
   await startPhaserGameplay(page);
-  const recoveryFrame = /^\/sprites\/frames\/(?:grunt|runner|shield|tank|glitch|boss)\/recover-\d+\.png$/;
+  const recoveryFrame = /^\/sprites\/frames\/(?:grunt|runner|shield|tank|glitch|boss)\/recover-\d+\.png(?:\?.*)?$/;
   await expect(page.locator("canvas")).toHaveAttribute("data-spaceblade-enemy-recovery-frame", recoveryFrame, { timeout: 8_000 });
   expect(consoleErrors).toEqual([]);
 });
@@ -477,12 +472,10 @@ test("menus use visible mouse buttons while gameplay remains one-button", async 
   await page.mouse.click(640, 350);
   await expect(page.locator("canvas")).toHaveAttribute("data-spaceblade-screen", "playing");
 
-  await page.keyboard.down("Space");
-  await page.waitForTimeout(1050);
-  await page.keyboard.up("Space");
+  await page.mouse.click(1194, 76);
   await expect(page.locator("canvas")).toHaveAttribute("data-spaceblade-screen", "paused");
   await expect(page.locator("canvas")).toHaveAttribute("data-spaceblade-menu-mode", "mouse");
-  await page.mouse.click(640, 430);
+  await page.locator("canvas").click({ position: { x: 640, y: 430 } });
   await expect(page.locator("canvas")).toHaveAttribute("data-spaceblade-screen", "playing");
   expect(consoleErrors).toEqual([]);
 });
@@ -498,13 +491,16 @@ test("publishes the terminal run status and restarts from the end screen", async
   const canvas = page.locator("canvas");
   await startPhaserGameplay(page);
 
-  await expect(canvas).toHaveAttribute("data-spaceblade-player-dead-frame", /^\/sprites\/frames\/player\/dead-\d+\.png$/, { timeout: 18_000 });
-  await expect(canvas).toHaveAttribute("data-spaceblade-screen", "gameOver", { timeout: 18_000 });
+  await expect(canvas).toHaveAttribute("data-spaceblade-player-dead-frame", /^\/sprites\/frames\/player\/dead-\d+\.png(?:\?.*)?$/, { timeout: 18_000 });
+  await expect(canvas).toHaveAttribute("data-spaceblade-screen", "nameEntry", { timeout: 18_000 });
+  await page.locator("input[data-spaceblade-player-name]").fill("Test Pilot");
+  await page.locator("button.spaceblade-name-submit").click();
+  await expect(canvas).toHaveAttribute("data-spaceblade-screen", "gameOver", { timeout: 5_000 });
   await expect(canvas).toHaveAttribute("data-spaceblade-run-status", "gameOver");
   await expect(canvas).toHaveAttribute("data-spaceblade-screen-title", "GAME OVER");
   await expect(canvas).toHaveAttribute("data-spaceblade-grade", /UNRANKED|B|C|A|S|SS|SSS/);
 
-  await page.mouse.click(640, 314);
+  await page.mouse.click(640, 510);
   await expect(canvas).toHaveAttribute("data-spaceblade-screen", "playing");
   await expect(canvas).toHaveAttribute("data-spaceblade-run-status", "playing");
   expect(consoleErrors).toEqual([]);
@@ -514,7 +510,10 @@ test("switches the highscores screen between Global and Friends with Space", asy
   await page.goto("/");
   const canvas = page.locator("canvas");
   await startPhaserGameplay(page);
-  await expect(canvas).toHaveAttribute("data-spaceblade-screen", "gameOver", { timeout: 18_000 });
+  await expect(canvas).toHaveAttribute("data-spaceblade-screen", "nameEntry", { timeout: 18_000 });
+  await page.locator("input[data-spaceblade-player-name]").fill("Score Pilot");
+  await page.locator("button.spaceblade-name-submit").click();
+  await expect(canvas).toHaveAttribute("data-spaceblade-screen", "gameOver", { timeout: 5_000 });
 
   await page.keyboard.down("Space");
   await page.waitForTimeout(120);

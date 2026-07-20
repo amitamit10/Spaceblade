@@ -78,6 +78,14 @@ const ENEMY_ANIMATION_KEYS = new Map(
 );
 const EMPTY_ANIMATION_KEYS = new Set<string>();
 const CALLSIGNS = ["Pilot", "Nova", "Blade", "Ghost", "Zero", "Ace"] as const;
+const ENEMY_GUIDE = [
+  ["grunt", "GRUNT", "Basic threat  ·  slash"],
+  ["runner", "RUNNER", "Fast dash  ·  shoot or slash"],
+  ["shield", "SHIELD", "Blocks gun  ·  tap sword"],
+  ["tank", "TANK", "2 HP  ·  punish recovery"],
+  ["glitch", "GLITCH", "Teleports  ·  watch flicker"],
+  ["boss", "BOSS", "Floor 15  ·  parry and punish"],
+] as const;
 
 function facingFor(run: RebuildRun): "left" | "right" {
   const nearest = run.enemies
@@ -144,6 +152,9 @@ export class SpacebladePlayScene extends Phaser.Scene {
   private screenBody: Phaser.GameObjects.Text | null = null;
   private screenHint: Phaser.GameObjects.Text | null = null;
   private screenBackdrop: Phaser.GameObjects.Rectangle | null = null;
+  private tutorialGuideBackground: Phaser.GameObjects.Graphics | null = null;
+  private tutorialGuideImages: Phaser.GameObjects.Image[] = [];
+  private tutorialGuideLabels: Phaser.GameObjects.Text[] = [];
   private pauseButtonBackground: Phaser.GameObjects.Rectangle | null = null;
   private pauseButtonLabel: Phaser.GameObjects.Text | null = null;
   private menuButtonBackgrounds: Phaser.GameObjects.Rectangle[] = [];
@@ -189,6 +200,33 @@ export class SpacebladePlayScene extends Phaser.Scene {
     for (const label of this.menuButtonLabels) label.destroy();
     this.menuButtonBackgrounds = [];
     this.menuButtonLabels = [];
+  }
+
+  private createTutorialGuide(): void {
+    const columns = [220, 640, 1060];
+    const rows = [316, 482];
+    this.tutorialGuideBackground = this.add.graphics().setDepth(39).setVisible(false);
+    ENEMY_GUIDE.forEach(([id, label, description], index) => {
+      const x = columns[index % 3];
+      const y = rows[Math.floor(index / 3)];
+      this.tutorialGuideBackground?.fillStyle(0x101d31, 0.9).fillRect(x - 178, y - 62, 356, 126);
+      this.tutorialGuideBackground?.lineStyle(1, 0x2cb7d3, 0.62).strokeRect(x - 178, y - 62, 356, 126);
+      const definition = REBUILD_ENEMIES.find((enemy) => enemy.id === id) ?? REBUILD_ENEMIES[0];
+      const firstFrame = animationFor(definition, "walk").frames[0];
+      this.tutorialGuideImages.push(this.add.image(x, y - 12, frameKey(firstFrame))
+        .setOrigin(0.5, 1)
+        .setScale(id === "boss" ? 0.55 : id === "tank" ? 0.9 : 1.05)
+        .setDepth(40)
+        .setVisible(false));
+      this.tutorialGuideLabels.push(this.add.text(x, y + 42, `${label}\n${description}`, {
+        color: PUBLIC_PALETTE.ink,
+        fontFamily: "monospace",
+        fontSize: "13px",
+        fontStyle: "bold",
+        align: "center",
+        lineSpacing: 4,
+      }).setOrigin(0.5).setDepth(41).setVisible(false));
+    });
   }
 
   private menuButtonText(action: string): string {
@@ -399,6 +437,7 @@ export class SpacebladePlayScene extends Phaser.Scene {
       fontSize: "25px",
       fontStyle: "bold",
     }).setOrigin(0.5).setDepth(11);
+    this.createTutorialGuide();
 
     this.spaceKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE) ?? null;
     if (!this.spaceKey) throw new Error("Keyboard input is required for Spaceblade");
@@ -812,6 +851,7 @@ export class SpacebladePlayScene extends Phaser.Scene {
     if (screen !== "playing") this.soundBus?.stopAmbient();
     this.game.canvas.dataset.spacebladeScreen = screen;
     this.game.canvas.dataset.spacebladeHudLayout = "split";
+    this.game.canvas.dataset.spacebladeTutorialGuide = screen === "tutorial" ? String(ENEMY_GUIDE.length) : "0";
     if (screen === "highscores") this.game.canvas.dataset.spacebladeHighscoresTab = this.highscoresTab;
     const inGameplay = screen === "playing";
     this.playerView?.setVisible(inGameplay);
@@ -834,6 +874,10 @@ export class SpacebladePlayScene extends Phaser.Scene {
     this.parryTimingLabel?.setVisible(inGameplay);
     this.skylineMotion?.setVisible(inGameplay);
     this.buildingInterior?.setVisible(inGameplay);
+    const showingTutorial = screen === "tutorial";
+    this.tutorialGuideBackground?.setVisible(showingTutorial);
+    this.tutorialGuideImages.forEach((image) => image.setVisible(showingTutorial));
+    this.tutorialGuideLabels.forEach((label) => label.setVisible(showingTutorial));
     this.waveBanner?.setVisible(inGameplay && this.waveBannerUntil > this.time.now);
     for (const view of this.enemyViews.values()) {
       view.sprite.setVisible(inGameplay);
@@ -875,7 +919,9 @@ export class SpacebladePlayScene extends Phaser.Scene {
     this.screenTitle.setFontSize(isMobileWarning ? "72px" : "58px");
     this.screenBody.setFontSize(isMobileWarning ? "34px" : "24px");
     this.screenHint.setFontSize(isMobileWarning ? "32px" : "25px");
-    this.screenTitle.setY(this.screen === "gameOver" || this.screen === "highscores" ? 120 : 190);
+    this.screenTitle.setY(this.screen === "tutorial" ? 66 : this.screen === "gameOver" || this.screen === "highscores" ? 120 : 190);
+    this.screenBody.setY(this.screen === "tutorial" ? 166 : 350);
+    this.screenHint.setY(this.screen === "tutorial" ? 688 : this.menuActions.length > 0 ? 688 : 590);
     if (this.screen === "title") {
       this.screenTitle.setText("SPACEBLADE");
       this.game.canvas.dataset.spacebladeTitleTagline = "ONE KEY. ENDLESS FIGHT.";
@@ -887,7 +933,7 @@ export class SpacebladePlayScene extends Phaser.Scene {
       this.screenHint.setText("CLICK TO CONTINUE");
     } else if (this.screen === "tutorial") {
       this.screenTitle.setText("HOW TO PLAY");
-      this.screenBody.setText("TAP  -  SWORD SLASH\nHOLD + RELEASE  -  GUN SHOT\nDOUBLE TAP  -  DODGE\nPERFECT TIMING  -  PARRY\n\nSHIELDS BLOCK GUNS. TAP TO BREAK THEM.\nThreats approach from ahead. Strike before contact.");
+      this.screenBody.setText("SPACE ONLY  ·  TAP: SWORD  ·  HOLD + RELEASE: GUN  ·  DOUBLE TAP: DODGE  ·  PERFECT TAP: PARRY\n\nCLEAR EVERY ENEMY ON THE FLOOR. THE RUNNER CLIMBS AUTOMATICALLY.");
       this.screenHint.setText(this.tutorialReturnScreen === "paused" ? "CLICK TO RETURN" : "CLICK TO DEPLOY");
     } else if (this.screen === "paused") {
       this.screenTitle.setText("PAUSED");
