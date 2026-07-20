@@ -39,7 +39,10 @@ try {
 
   const score = Number(await canvas.getAttribute("data-spaceblade-score"));
   if (score < 100) throw new Error(`Eligible score was not reached: ${score}`);
-  await page.waitForFunction(() => document.querySelector("canvas")?.dataset.spacebladeScreen === "gameOver", null, { timeout: 25_000 });
+  await page.waitForFunction(() => document.querySelector("canvas")?.dataset.spacebladeScreen === "nameEntry", null, { timeout: 25_000 });
+  await page.locator('input[data-spaceblade-player-name]').fill("Launch Probe");
+  await page.locator("button.spaceblade-name-submit").click();
+  await page.waitForFunction(() => document.querySelector("canvas")?.dataset.spacebladeScreen === "gameOver", null, { timeout: 5_000 });
   await page.waitForTimeout(1_500);
 
   await page.keyboard.down("Space");
