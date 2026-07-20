@@ -1,0 +1,4 @@
+interface:
+  display_name: "Spaceblade Sprite Pipeline"
+  short_description: "Inspect and crop Spaceblade sprite sheets"
+  default_prompt: "Use this skill for Spaceblade sprite inspection, dynamic crop guides, extraction, and frame verification."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Spaceblade One-Button Balance"
+  short_description: "Balance Spaceblade one-button combat"
+  default_prompt: "Use this skill for Spaceblade combat balance changes while preserving sword, gun, dodge, and parry counterplay."
