@@ -143,10 +143,11 @@ export class SpacebladePlayScene extends Phaser.Scene {
   private screenBody: Phaser.GameObjects.Text | null = null;
   private screenHint: Phaser.GameObjects.Text | null = null;
   private screenBackdrop: Phaser.GameObjects.Rectangle | null = null;
+  private pauseButtonBackground: Phaser.GameObjects.Rectangle | null = null;
+  private pauseButtonLabel: Phaser.GameObjects.Text | null = null;
   private menuButtonBackgrounds: Phaser.GameObjects.Rectangle[] = [];
   private menuButtonLabels: Phaser.GameObjects.Text[] = [];
   private menuFocus = 0;
-  private pauseTriggered = false;
   private tutorialReturnScreen: "title" | "paused" = "title";
   private menuActions: readonly string[] = [];
   private storage: Storage | null = null;
@@ -316,6 +317,30 @@ export class SpacebladePlayScene extends Phaser.Scene {
       fontSize: "22px",
       fontStyle: "bold",
     }).setOrigin(1, 0).setDepth(5);
+    this.pauseButtonBackground = this.add.rectangle(SPACEBLADE_WIDTH - 86, 76, 112, 34, 0x18132d, 0.94)
+      .setStrokeStyle(1, PUBLIC_PALETTE.cyan, 1)
+      .setDepth(8)
+      .setInteractive({ useHandCursor: true });
+    this.pauseButtonLabel = this.add.text(SPACEBLADE_WIDTH - 86, 76, "PAUSE", {
+      color: PUBLIC_PALETTE.ink,
+      fontFamily: "monospace",
+      fontSize: "14px",
+      fontStyle: "bold",
+      backgroundColor: "#18132d",
+      padding: { left: 10, right: 10, top: 5, bottom: 5 },
+    }).setOrigin(0.5).setDepth(9);
+    this.pauseButtonBackground.on("pointerover", () => {
+      this.pauseButtonBackground?.setFillStyle(PUBLIC_PALETTE.cyan, 1);
+      this.pauseButtonLabel?.setColor("#0b0918").setBackgroundColor("#57eaff");
+    });
+    this.pauseButtonBackground.on("pointerout", () => {
+      this.pauseButtonBackground?.setFillStyle(0x18132d, 0.94);
+      this.pauseButtonLabel?.setColor(PUBLIC_PALETTE.ink).setBackgroundColor("#18132d");
+    });
+    this.pauseButtonBackground.on("pointerup", (pointer: Phaser.Input.Pointer) => {
+      pointer.event?.stopPropagation();
+      if (this.screen === "playing") this.setScreen("paused");
+    });
     this.playerHpBar = this.add.graphics().setDepth(5);
     this.status = this.add.text(SPACEBLADE_WIDTH / 2, 70, "", {
       color: "#ffc52f",
@@ -423,11 +448,6 @@ export class SpacebladePlayScene extends Phaser.Scene {
     if (bossPresent && !this.bossWasPresent) this.showWaveBanner("BOSS SIGNAL", now, 2200);
     if (bossPresent && !this.bossWasPresent) this.playSound("boss");
     this.bossWasPresent = bossPresent;
-    if (this.spaceDownAt !== null && now - this.spaceDownAt >= 900 && this.run.player.animation === "charging") {
-      this.pauseTriggered = true;
-      this.setScreen("paused");
-      return;
-    }
     if (this.spaceDownAt !== null && this.run.player.animation === "idle" && now - this.spaceDownAt >= 220) {
       this.run = startChargeRebuildRun(this.run, now);
     }
@@ -463,8 +483,10 @@ export class SpacebladePlayScene extends Phaser.Scene {
     this.spaceDownAt = this.time.now;
   }
 
-  private handlePointerDown(): void {
-    if (this.screen === "playing") this.handleSpaceDown();
+  private handlePointerDown(pointer: Phaser.Input.Pointer): void {
+    if (this.screen !== "playing") return;
+    if (this.pauseButtonBackground?.getBounds().contains(pointer.worldX, pointer.worldY)) return;
+    this.handleSpaceDown();
   }
 
   private readonly handleVisibilityChange = (): void => {
@@ -472,7 +494,6 @@ export class SpacebladePlayScene extends Phaser.Scene {
       // Browsers may drop the matching keyup/pointerup while a tab is hidden.
       // Clear the transient hold before pausing so the next input can recover.
       this.spaceDownAt = null;
-      this.pauseTriggered = false;
       this.setScreen("paused");
     }
   };
@@ -480,7 +501,6 @@ export class SpacebladePlayScene extends Phaser.Scene {
   private readonly handleWindowBlur = (): void => {
     if (this.screen !== "playing") return;
     this.spaceDownAt = null;
-    this.pauseTriggered = false;
   };
 
   private handleSpaceUp(): void {
@@ -489,10 +509,6 @@ export class SpacebladePlayScene extends Phaser.Scene {
     const heldMs = now - this.spaceDownAt;
     this.spaceDownAt = null;
     if (this.screen !== "playing") {
-      if (this.pauseTriggered) {
-        this.pauseTriggered = false;
-        return;
-      }
       if (this.screen === "mobileWarning") {
         this.setScreen("title");
         return;
@@ -787,6 +803,8 @@ export class SpacebladePlayScene extends Phaser.Scene {
     this.hud?.setVisible(inGameplay);
     this.hudWave?.setVisible(inGameplay);
     this.hudScore?.setVisible(inGameplay);
+    this.pauseButtonBackground?.setVisible(inGameplay);
+    this.pauseButtonLabel?.setVisible(inGameplay);
     this.playerHpBar?.setVisible(inGameplay);
     this.status?.setVisible(inGameplay);
     this.combatFx?.setVisible(inGameplay);
