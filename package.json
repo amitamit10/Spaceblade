@@ -15,6 +15,7 @@
     "verify:motion": "npm run test:motion && npm run build",
     "verify:production": "node scripts/verify-production.mjs",
     "verify:production:performance": "node scripts/verify-production-performance.mjs",
+    "verify:production:late-wave": "node scripts/verify-production-late-wave.mjs",
     "verify:firebase-rules": "node scripts/verify-firebase-rules.mjs",
     "verify:production:online": "node scripts/verify-production-online.mjs",
     "verify:sprites": "npm run test:sprites && npm run build"
