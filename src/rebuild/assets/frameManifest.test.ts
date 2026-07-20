@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { existsSync } from "node:fs";
+import { existsSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { REBUILD_PLAYER, REBUILD_SPRITES } from "./frameManifest";
 import { readPngMetadata } from "../../game/rendering/runtimeSpritePack";
@@ -26,6 +26,12 @@ describe("rebuild frame manifest", () => {
         }
       }
     }
+  });
+
+  it("does not leave obsolete generated player action frames beside the manifest", () => {
+    const playerFrameDir = resolve(process.cwd(), "public/sprites/frames/player");
+    const obsoleteFrames = readdirSync(playerFrameDir).filter((file) => file.startsWith("charging-"));
+    expect(obsoleteFrames).toEqual([]);
   });
 
   it("keeps every standalone frame at its full sprite-cell dimensions", () => {

@@ -5,12 +5,17 @@ root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source_dir="$root/public/assets/public/warped-city"
 frame_dir="$root/public/sprites/frames"
 
+# The manifest renamed this loop to `charge`; remove the old generated name so
+# stale files cannot be mistaken for active runtime frames.
+rm -f "$frame_dir/player"/charging-*.png
+
 normalize_frame() {
   local source="$1" output="$2" width="$3" height="$4" scale_percent="$5"
   mkdir -p "$(dirname "$output")"
   convert "$source" \
     -filter point -resize "${scale_percent}%" \
     -background none -gravity south -extent "${width}x${height}" \
+    -depth 8 -define png:color-type=6 \
     "$output"
 }
 

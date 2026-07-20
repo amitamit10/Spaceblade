@@ -27,9 +27,11 @@ bash scripts/build-public-runtime-frames.sh
 ```
 
 The converter preserves the required actor canvas sizes with transparent
-padding and nearest-neighbor scaling. Public movement and shooting frames are
-used where they exist; the one-button sword/parry feedback remains drawn by
-the game so the public pack is not misrepresented as having sword animations.
+padding and nearest-neighbor scaling, and emits 8-bit RGBA PNGs accepted by the
+runtime metadata reader. Public movement and shooting frames are used where
+they exist; the one-button sword/parry feedback remains drawn by the game so
+the public pack is not misrepresented as having sword animations. The script
+also removes stale generated action names before rebuilding the set.
 
 The legacy sheet workflow remains available for fallback and tooling:
 

@@ -24,6 +24,8 @@ requests, and stays cheap on static hosting.
 
 1. Review the staged preview before changing runtime sprites.
 2. Normalize frame dimensions and anchors with a small conversion script.
+   The converter emits 8-bit RGBA PNGs and removes obsolete generated action
+   names before writing the active frame set.
 3. Map only animations that exist in the public pack; keep the current
    procedural fallback for missing sword, parry, shield, and boss animations.
 4. Run the sprite contract tests and browser motion check before promotion.
