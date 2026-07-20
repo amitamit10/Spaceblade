@@ -52,7 +52,7 @@ describe("player sprites", () => {
     expect(PLAYER_SHEET.animations.hurt.frames).toBe(2);
     expect(PLAYER_SHEET.animations.dead.frames).toBe(2);
     for (const key of ["slash", "charge", "heavy", "dodge", "parry", "hurt", "dead"]) {
-      expect(PLAYER_SHEET.animations[key].clipTopPx).toBe(24);
+      expect(PLAYER_SHEET.animations[key].clipTopPx).toBeUndefined();
     }
   });
 

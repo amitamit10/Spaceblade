@@ -287,6 +287,19 @@ describe("rebuild run model", () => {
     expect(next.bossSpawned).toBe(true);
   });
 
+  it("keeps the boss wave focused on one boss encounter", () => {
+    const run = createRebuildRun(0);
+    run.wave = 15;
+    run.nextSpawnAt = 0;
+    run.enemies.forEach((enemy) => { enemy.state = "dead"; });
+
+    const next = advanceRebuildRun(run, 10_000);
+
+    expect(rebuildWaveTarget(15)).toBe(1);
+    expect(next.enemies.filter((enemy) => enemy.state !== "dead")).toHaveLength(1);
+    expect(next.enemies.find((enemy) => enemy.state !== "dead")?.type).toBe("boss");
+  });
+
   it("enters charging and releases a heavy slash after a long hold", () => {
     const run = createRebuildRun(0);
     run.enemies[0].type = "tank";

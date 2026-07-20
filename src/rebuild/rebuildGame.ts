@@ -164,6 +164,7 @@ export function rebuildSpawnIntervalForWave(wave: number): number {
 }
 
 export function rebuildWaveTarget(wave: number): number {
+  if (wave >= 15) return 1;
   return WAVE_TARGET_BASE + wave * 2;
 }
 
@@ -376,6 +377,7 @@ export function advanceRebuildRun(source: RebuildRun, now: number): RebuildRun {
 
   const target = rebuildWaveTarget(run.wave);
   while (now >= run.nextSpawnAt) {
+    if (run.wave >= 15 && run.bossSpawned) break;
     const liveEnemies = activeEnemies(run);
     if (liveEnemies.length >= MAX_ACTIVE_ENEMIES || run.defeatedThisWave + liveEnemies.length >= target) break;
     const side = "right" as const;

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { REBUILD_PLAYER, REBUILD_SPRITES } from "./frameManifest";
+import { readPngMetadata } from "../../game/rendering/runtimeSpritePack";
 
 describe("rebuild frame manifest", () => {
   it("contains only standalone frame URLs", () => {
@@ -22,6 +23,18 @@ describe("rebuild frame manifest", () => {
       for (const animation of Object.values(sprite.animations)) {
         for (const frame of animation.frames) {
           expect(existsSync(resolve(process.cwd(), "public", frame.slice(1))), frame).toBe(true);
+        }
+      }
+    }
+  });
+
+  it("keeps every standalone frame at its full sprite-cell dimensions", () => {
+    for (const sprite of REBUILD_SPRITES) {
+      for (const animation of Object.values(sprite.animations)) {
+        for (const frame of animation.frames) {
+          const absPath = resolve(process.cwd(), "public", frame.slice(1));
+          const { width, height } = readPngMetadata(absPath);
+          expect({ width, height }, frame).toEqual({ width: sprite.width, height: sprite.height });
         }
       }
     }

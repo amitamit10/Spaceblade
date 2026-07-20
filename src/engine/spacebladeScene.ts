@@ -38,8 +38,6 @@ import { gradeForScore } from "../game/run/scoreSystem";
 const GROUND_Y = 552;
 const PLAYER_X = SPACEBLADE_WIDTH / 2;
 const VIEW_PLAYER_X = SPACEBLADE_WIDTH / 2;
-const PLAYER_WALK_CROP_Y = 24;
-const PLAYER_WALK_CROP_HEIGHT = 72;
 
 const frameKey = (source: string): string => `spaceblade:${source}`;
 
@@ -643,7 +641,7 @@ export class SpacebladePlayScene extends Phaser.Scene {
       this.screenHint.setText("TAP TO CONTINUE");
     } else if (this.screen === "tutorial") {
       this.screenTitle.setText("HOW TO PLAY");
-      this.screenBody.setText("TAP  -  SWORD SLASH\nHOLD + RELEASE  -  ENERGY SHOT\nDOUBLE TAP  -  DODGE\nPERFECT TIMING  -  PARRY\n\nThreats approach from ahead. Strike before contact.");
+      this.screenBody.setText("TAP  -  SWORD SLASH\nHOLD + RELEASE  -  GUN SHOT\nDOUBLE TAP  -  DODGE\nPERFECT TIMING  -  PARRY\n\nThreats approach from ahead. Strike before contact.");
       this.screenHint.setText(this.tutorialReturnScreen === "paused" ? "HOLD SPACE TO RETURN" : "HOLD SPACE TO DEPLOY");
     } else if (this.screen === "paused") {
       this.screenTitle.setText("PAUSED");
@@ -760,11 +758,7 @@ export class SpacebladePlayScene extends Phaser.Scene {
       .setPosition(VIEW_PLAYER_X + playerOffset.x, GROUND_Y + playerOffset.y)
       .setAlpha(1)
       .setFlipX(facing === "left");
-    if (playerAnimation === "walk") {
-      this.playerView.setCrop(0, PLAYER_WALK_CROP_Y, REBUILD_PLAYER.width, PLAYER_WALK_CROP_HEIGHT);
-    } else {
-      this.playerView.setCrop();
-    }
+    this.playerView.setCrop();
     if (this.lastFxActionAt !== run.player.actionStartedAt) {
       this.lastFxActionAt = run.player.actionStartedAt;
       if (this.settings.screenShakeEnabled && (run.player.animation === "slash" || run.player.animation === "heavy" || run.player.animation === "parry")) {
@@ -792,7 +786,7 @@ export class SpacebladePlayScene extends Phaser.Scene {
     const boss = run.enemies.find((enemy) => enemy.type === "boss" && enemy.state !== "dead");
     this.game.canvas.dataset.spacebladeBossActive = String(Boolean(boss));
     if (boss) this.game.canvas.dataset.spacebladeBossHp = String(boss.hp);
-    const baseStatus = bossActive ? "BOSS SIGNAL  ·  READ THE TELEGRAPH  ·  SPACE TO SURVIVE" : run.status === "playing" ? "TAP: SWORD  ·  HOLD: ENERGY SHOT  ·  DOUBLE TAP: DODGE" : run.status === "victory" ? "SECTOR CLEARED  ·  PRESS SPACE TO RESTART" : "RUN OVER  ·  PRESS SPACE TO RESTART";
+    const baseStatus = bossActive ? "BOSS SIGNAL  ·  READ THE TELEGRAPH  ·  SPACE TO SURVIVE" : run.status === "playing" ? "TAP: SWORD  ·  HOLD: GUN SHOT  ·  DOUBLE TAP: DODGE" : run.status === "victory" ? "SECTOR CLEARED  ·  PRESS SPACE TO RESTART" : "RUN OVER  ·  PRESS SPACE TO RESTART";
     this.status.setText(now < this.combatCalloutUntil ? this.combatCallout : baseStatus);
 
     for (const enemy of run.enemies) {
@@ -854,8 +848,22 @@ export class SpacebladePlayScene extends Phaser.Scene {
     } else if (animation === "heavy") {
       const launchX = VIEW_PLAYER_X + direction * 34;
       const launchY = GROUND_Y - 112;
+      this.combatFx.fillStyle(0x10243b, fade);
+      this.combatFx.fillRect(launchX - direction * 8, launchY - 14, direction * 42, 18);
+      this.combatFx.fillStyle(0x24d9ff, fade);
+      this.combatFx.fillRect(launchX + direction * 24, launchY - 10, direction * 22, 10);
+      this.combatFx.lineStyle(3, 0xe8feff, fade);
+      this.combatFx.lineBetween(launchX + direction * 5, launchY - 14, launchX + direction * 45, launchY - 14);
+      this.combatFx.lineBetween(launchX + direction * 6, launchY + 5, launchX + direction * 20, launchY + 22);
       this.combatFx.fillStyle(0xf4fbff, fade);
-      this.combatFx.fillCircle(launchX, launchY, 11);
+      this.combatFx.fillTriangle(
+        launchX + direction * 48,
+        launchY - 14,
+        launchX + direction * 70,
+        launchY - 5,
+        launchX + direction * 48,
+        launchY + 2,
+      );
       this.combatFx.lineStyle(5, 0x24d9ff, fade * 0.9);
       for (let index = 0; index < 4; index += 1) {
         const spread = 18 + index * 9;
