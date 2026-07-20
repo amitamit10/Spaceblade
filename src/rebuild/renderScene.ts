@@ -11,6 +11,8 @@ const AUTO_PARKOUR_CYCLE_MS = 3200;
 const AUTO_PARKOUR_JUMP_MS = 760;
 const FLOOR_CLIMB_DURATION_MS = 1500;
 
+export type RebuildFloorTraversalPhase = "vault" | "wall-climb" | "landing" | "complete";
+
 type Actor = {
   readonly sprite: RebuildSprite;
   animation: string;
@@ -89,6 +91,13 @@ export function rebuildFloorTransitionOffset(
   const progress = (elapsed - 1080) / 420;
   const arc = Math.sin((1 - progress) * Math.PI / 2);
   return { x: Math.round(direction * (18 - progress * 18)), y: -Math.round(arc * 142), angle: direction * Math.round(8 - progress * 8) };
+}
+
+export function rebuildFloorTraversalPhase(elapsed: number): RebuildFloorTraversalPhase {
+  if (elapsed < 0 || elapsed >= FLOOR_CLIMB_DURATION_MS) return "complete";
+  if (elapsed < 380) return "vault";
+  if (elapsed < 1080) return "wall-climb";
+  return "landing";
 }
 
 function drawSkyline(ctx: CanvasRenderingContext2D, now: number): void {

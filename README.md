@@ -4,7 +4,7 @@
 
 ## What It Is
 
-Spaceblade is a browser action game built for the Hack Club **OneKey** challenge: gameplay combat is driven entirely by a single key. The player auto-runs through a neon building, automatically vaults and wall-climbs to the next floor between waves, and answers approaching threats with sword slashes, energy shots, dodges, and perfectly-timed parries. Menus support both `Space` and mouse clicks.
+Spaceblade is a browser action game built for the Hack Club **OneKey** challenge: gameplay combat is driven entirely by a single key. The player auto-runs inside a neon building, clears every enemy on the current floor, then automatically vaults, wall-climbs, and lands on the next floor. Enemy speed and spawn pressure increase as the building rises; combat uses sword slashes, energy shots, dodges, and perfectly-timed parries. Menus support mouse clicks and Space.
 
 - Fixed internal resolution `1280 x 720`, scaled responsively to any 16:9 viewport.
 - Rendered on one HTML Canvas with verified standalone pixel frames and tiled backgrounds.
@@ -23,11 +23,11 @@ Gameplay uses `Space`; menus also accept mouse clicks:
 | **Double Tap** | Dodge | Dash backward with brief invincibility |
 | **Tap at the moment of impact** | Parry | Blocks and stuns the attacker |
 | **Hold ~450ms in menus** | Confirm | Select the focused menu action |
-| **Hold ~900ms while idle in a run** | Pause | Open the pause menu |
+| **Click PAUSE** | Pause | Open the pause menu without interrupting Space combat |
 
 Enemies: **Grunt** (one hit), **Runner** (fast, punish after its dash), **Shield** (heavy or parry only), **Tank** (2 HP, hit after its big swing), **Glitch** (teleports), and the **Boss** on wave 15.
 
-The game targets a steady 20-30 FPS on low-cost hardware. Each wave is presented as a new building floor; the floor transition is automatic, so the player still controls only combat timing. The arena, floor scroll, hit effects, and enemy movement are client-side; the optional leaderboard is contacted only when a score is submitted or the highscores screen is opened.
+The game targets a steady 20-30 FPS on low-cost hardware. Each wave is presented as a new building floor; the floor transition is automatic, so the player still controls only combat timing. The interior shell shows walls, windows, floor slabs, and a climb rail; floor 15 is the boss floor. Floor pacing ramps deterministically to a capped 1.55x multiplier, with spawn intervals never below 520ms and attack windups never below 160ms. The arena, floor scroll, hit effects, and enemy movement are client-side; the optional leaderboard is contacted only when a score is submitted or the highscores screen is opened.
 
 ## Local Development
 

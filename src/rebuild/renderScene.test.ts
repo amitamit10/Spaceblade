@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { rebuildAutoParkourOffset, rebuildFloorTransitionOffset, rebuildPlayerVisualOffset, rebuildShakeOffset } from "./renderScene";
+import { rebuildAutoParkourOffset, rebuildFloorTransitionOffset, rebuildFloorTraversalPhase, rebuildPlayerVisualOffset, rebuildShakeOffset } from "./renderScene";
 
 describe("rebuild camera feedback", () => {
   it("does not move an idle scene", () => {
@@ -42,5 +42,12 @@ describe("rebuild camera feedback", () => {
     expect(climb).not.toBeNull();
     expect(climb!.y).toBeLessThan(-100);
     expect(rebuildFloorTransitionOffset(1500, "right")).toBeNull();
+  });
+
+  it("labels the automatic route through the building shaft", () => {
+    expect(rebuildFloorTraversalPhase(0)).toBe("vault");
+    expect(rebuildFloorTraversalPhase(700)).toBe("wall-climb");
+    expect(rebuildFloorTraversalPhase(1200)).toBe("landing");
+    expect(rebuildFloorTraversalPhase(1500)).toBe("complete");
   });
 });

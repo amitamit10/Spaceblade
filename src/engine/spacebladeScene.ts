@@ -12,7 +12,7 @@ import {
   type RebuildEnemy,
   type RebuildRun,
 } from "../rebuild/rebuildGame";
-import { rebuildAutoParkourOffset, rebuildFloorTransitionOffset, rebuildPlayerVisualOffset } from "../rebuild/renderScene";
+import { rebuildAutoParkourOffset, rebuildFloorTransitionOffset, rebuildFloorTraversalPhase, rebuildPlayerVisualOffset } from "../rebuild/renderScene";
 import { SPACEBLADE_HEIGHT, SPACEBLADE_WIDTH } from "./spacebladeConstants";
 import { loadSpacebladeBest, loadSpacebladeSettings, saveSpacebladeBest, saveSpacebladeSettings, spacebladeMotionDefaults, type SpacebladeSettings } from "./spacebladePersistence";
 import { createSoundBus, type SoundBus, type SoundCue } from "../game/audio/soundBus";
@@ -129,6 +129,7 @@ export class SpacebladePlayScene extends Phaser.Scene {
   private publicSkylineFar: Phaser.GameObjects.TileSprite | null = null;
   private publicSkylineNear: Phaser.GameObjects.TileSprite | null = null;
   private publicGround: Phaser.GameObjects.TileSprite | null = null;
+  private buildingInterior: Phaser.GameObjects.Graphics | null = null;
   private runnerMotion: Phaser.GameObjects.Graphics | null = null;
   private waveBanner: Phaser.GameObjects.Text | null = null;
   private waveBannerUntil = 0;
@@ -280,6 +281,7 @@ export class SpacebladePlayScene extends Phaser.Scene {
       .setAlpha(0.96)
       .setTileScale(1, 1.45)
       .setDepth(0.2);
+    this.buildingInterior = this.add.graphics().setDepth(-0.4);
     this.soundBus = createSoundBus(() => this.settings.volume);
     this.createNameEntryForm();
     const prefersReducedMotion = typeof window.matchMedia === "function"
@@ -831,6 +833,7 @@ export class SpacebladePlayScene extends Phaser.Scene {
     this.parryTiming?.setVisible(inGameplay);
     this.parryTimingLabel?.setVisible(inGameplay);
     this.skylineMotion?.setVisible(inGameplay);
+    this.buildingInterior?.setVisible(inGameplay);
     this.waveBanner?.setVisible(inGameplay && this.waveBannerUntil > this.time.now);
     for (const view of this.enemyViews.values()) {
       view.sprite.setVisible(inGameplay);
@@ -956,6 +959,7 @@ export class SpacebladePlayScene extends Phaser.Scene {
     this.game.canvas.dataset.spacebladeEnergyReadyAt = String(run.energyReadyAt);
     this.game.canvas.dataset.spacebladeGrade = gradeForScore(run.score) ?? "UNRANKED";
     this.game.canvas.dataset.spacebladeReducedEffects = String(this.settings.reducedEffectsEnabled);
+    this.game.canvas.dataset.spacebladeFloor = String(run.wave);
     this.game.canvas.dataset.spacebladeRunStatus = run.status;
     this.game.canvas.dataset.spacebladePlayerX = String(VIEW_PLAYER_X);
     this.syncWaveBanner(now);
@@ -985,6 +989,9 @@ export class SpacebladePlayScene extends Phaser.Scene {
       ? null
       : rebuildFloorTransitionOffset(now - this.floorClimbAt, facing);
     if (this.floorClimbAt !== null && floorOffset === null) this.floorClimbAt = null;
+    const traversalPhase = floorOffset === null
+      ? "complete"
+      : rebuildFloorTraversalPhase(now - (this.floorClimbAt ?? now));
     const parkourOffset = playerVisualState === "dead"
       ? { x: 0, y: 0, angle: 0 }
       : floorOffset ?? rebuildAutoParkourOffset(now, facing);
@@ -992,7 +999,10 @@ export class SpacebladePlayScene extends Phaser.Scene {
     if (airborne && !this.parkourWasAirborne && floorOffset === null) this.playSound("parkourJump");
     if (!airborne && this.parkourWasAirborne) this.playSound("landing");
     this.parkourWasAirborne = airborne;
-    this.game.canvas.dataset.spacebladeParkour = parkourOffset.y < 0 ? "vaulting" : "grounded";
+    this.game.canvas.dataset.spacebladeParkour = traversalPhase !== "complete"
+      ? traversalPhase
+      : parkourOffset.y < 0 ? "vaulting" : "grounded";
+    this.game.canvas.dataset.spacebladeTraversalPhase = traversalPhase;
     this.playerView
       .setTexture(frameKey(playerFrame))
       .setPosition(VIEW_PLAYER_X + playerOffset.x + parkourOffset.x, GROUND_Y + playerOffset.y + parkourOffset.y)
@@ -1021,6 +1031,7 @@ export class SpacebladePlayScene extends Phaser.Scene {
     this.playerHpBar.lineStyle(1, PUBLIC_PALETTE.amber, 0.7).strokeRect(20, 48, 180, 8);
     this.drawWaveProgress(run);
     this.drawParryTiming(run, now);
+    this.drawBuildingInterior(now, run.wave, traversalPhase);
     this.drawSkylineMotion(now, run.wave);
     this.drawRunnerMotion(now, facing);
     const bossActive = run.enemies.some((enemy) => enemy.type === "boss" && enemy.state !== "dead");
@@ -1070,6 +1081,58 @@ export class SpacebladePlayScene extends Phaser.Scene {
     this.publicSkylineNear?.setTilePosition(now * -0.028, -floorOffset);
     this.publicGround?.setTilePosition(now * -0.06, 0);
     this.game.canvas.dataset.spacebladeBackgroundOffset = String(Math.round(offset));
+  }
+
+  private drawBuildingInterior(
+    now: number,
+    floor: number,
+    traversalPhase: ReturnType<typeof rebuildFloorTraversalPhase>,
+  ): void {
+    if (!this.buildingInterior) return;
+    const graphics = this.buildingInterior;
+    const floorTone = floor % 3;
+    const pulse = 0.45 + Math.sin(now / 240) * 0.12;
+    graphics.clear();
+
+    // A restrained interior shell keeps the public city art behind the action
+    // while making the active room, walls, and vertical shaft legible.
+    graphics.fillStyle(0x071322, 0.72).fillRect(42, 82, SPACEBLADE_WIDTH - 84, GROUND_Y - 82);
+    graphics.fillStyle(0x101d31, 0.96).fillRect(42, 82, 22, GROUND_Y - 82);
+    graphics.fillStyle(0x101d31, 0.96).fillRect(SPACEBLADE_WIDTH - 64, 82, 22, GROUND_Y - 82);
+    graphics.fillStyle(0x14243a, 0.92).fillRect(42, 82, SPACEBLADE_WIDTH - 84, 14);
+    graphics.lineStyle(2, 0x2cb7d3, 0.56).lineBetween(64, 96, SPACEBLADE_WIDTH - 64, 96);
+
+    const windowColors = [0x12304a, 0x17304e, 0x241d48] as const;
+    for (let row = 0; row < 2; row += 1) {
+      for (let column = 0; column < 7; column += 1) {
+        const x = 108 + column * 164;
+        const y = 142 + row * 142;
+        const lit = (column + row + floor) % 4 === 0;
+        graphics.fillStyle(lit ? 0x214866 : windowColors[floorTone], lit ? pulse : 0.82);
+        graphics.fillRect(x, y, 92, 76);
+        graphics.lineStyle(1, lit ? 0x57eaff : 0x1c4960, lit ? 0.7 : 0.42);
+        graphics.strokeRect(x, y, 92, 76);
+        graphics.lineBetween(x + 46, y, x + 46, y + 76);
+        graphics.lineBetween(x, y + 38, x + 92, y + 38);
+      }
+    }
+
+    // The side rails and rungs communicate the automatic wall-climb route.
+    graphics.lineStyle(4, 0x2cb7d3, traversalPhase === "wall-climb" ? 0.95 : 0.52);
+    graphics.lineBetween(88, 112, 88, GROUND_Y - 20);
+    graphics.lineBetween(116, 112, 116, GROUND_Y - 20);
+    graphics.lineStyle(2, 0x57eaff, traversalPhase === "wall-climb" ? 0.8 : 0.32);
+    for (let y = 136; y < GROUND_Y - 24; y += 38) graphics.lineBetween(88, y, 116, y);
+
+    graphics.fillStyle(0x0b1728, 0.98).fillRect(42, GROUND_Y - 12, SPACEBLADE_WIDTH - 84, 12);
+    graphics.lineStyle(3, 0xffc52f, 0.9).lineBetween(42, GROUND_Y - 2, SPACEBLADE_WIDTH - 42, GROUND_Y - 2);
+    graphics.lineStyle(1, 0x57eaff, 0.42).lineBetween(64, GROUND_Y + 12, SPACEBLADE_WIDTH - 64, GROUND_Y + 12);
+
+    if (traversalPhase === "wall-climb") {
+      const rung = 136 + (Math.floor(now / 90) % 9) * 38;
+      graphics.lineStyle(4, 0xffc52f, 0.9).lineBetween(82, rung, 122, rung);
+      graphics.lineStyle(2, 0xffc52f, 0.78).lineBetween(102, rung - 26, 102, rung - 6);
+    }
   }
 
   private drawCombatFx(animation: RebuildRun["player"]["animation"], elapsed: number, facing: "left" | "right"): void {
