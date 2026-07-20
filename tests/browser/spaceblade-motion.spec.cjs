@@ -463,7 +463,7 @@ test("freshly arriving enemies telegraph before their first contact damage", asy
   expect(state.hearts).toBe("3");
 });
 
-test("menus accept mouse clicks while gameplay remains Space-driven", async ({ page }) => {
+test("menus use visible mouse buttons while gameplay remains one-button", async ({ page }) => {
   const consoleErrors = [];
   page.on("console", (message) => {
     if (message.type() === "error") consoleErrors.push(message.text());
@@ -481,7 +481,8 @@ test("menus accept mouse clicks while gameplay remains Space-driven", async ({ p
   await page.waitForTimeout(1050);
   await page.keyboard.up("Space");
   await expect(page.locator("canvas")).toHaveAttribute("data-spaceblade-screen", "paused");
-  await page.mouse.click(640, 278);
+  await expect(page.locator("canvas")).toHaveAttribute("data-spaceblade-menu-mode", "mouse");
+  await page.mouse.click(640, 430);
   await expect(page.locator("canvas")).toHaveAttribute("data-spaceblade-screen", "playing");
   expect(consoleErrors).toEqual([]);
 });

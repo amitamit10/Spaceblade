@@ -139,6 +139,8 @@ export class SpacebladePlayScene extends Phaser.Scene {
   private screenBody: Phaser.GameObjects.Text | null = null;
   private screenHint: Phaser.GameObjects.Text | null = null;
   private screenBackdrop: Phaser.GameObjects.Rectangle | null = null;
+  private menuButtonBackgrounds: Phaser.GameObjects.Rectangle[] = [];
+  private menuButtonLabels: Phaser.GameObjects.Text[] = [];
   private menuFocus = 0;
   private pauseTriggered = false;
   private tutorialReturnScreen: "title" | "paused" = "title";
@@ -172,6 +174,72 @@ export class SpacebladePlayScene extends Phaser.Scene {
   private leaderboardLoading = false;
   private leaderboardSubmitted = false;
   private submitOutcome: "submitted" | "skipped" | "offline" | "disabled" | null = null;
+
+  private clearMenuButtons(): void {
+    for (const button of this.menuButtonBackgrounds) button.destroy();
+    for (const label of this.menuButtonLabels) label.destroy();
+    this.menuButtonBackgrounds = [];
+    this.menuButtonLabels = [];
+  }
+
+  private menuButtonText(action: string): string {
+    if (action === "resume") return "RESUME RUN";
+    if (action === "settings") return "SETTINGS";
+    if (action === "tutorial") return "HOW TO PLAY";
+    if (action === "restart") return "RESTART RUN";
+    if (action === "title") return "QUIT TO TITLE";
+    if (action === "global") return "GLOBAL RECORDS";
+    if (action === "friends") return "LOCAL BEST";
+    if (action === "volume") return `VOLUME  ${Math.round(this.settings.volume * 100)}%`;
+    if (action === "screenShake") return `SCREEN SHAKE  ${this.settings.screenShakeEnabled ? "ON" : "OFF"}`;
+    if (action === "reducedEffects") return `REDUCED EFFECTS  ${this.settings.reducedEffectsEnabled ? "ON" : "OFF"}`;
+    if (action === "callsign") return `CALLSIGN  ${this.playerName.toUpperCase()}`;
+    return "BACK";
+  }
+
+  private refreshMenuButtons(): void {
+    this.menuButtonBackgrounds.forEach((button, index) => {
+      const focused = index === this.menuFocus;
+      button.setFillStyle(focused ? PUBLIC_PALETTE.amber : 0x18132d, focused ? 0.96 : 0.92);
+      button.setStrokeStyle(focused ? PUBLIC_PALETTE.amber : 0x57456e, 1);
+      this.menuButtonLabels[index]
+        ?.setColor(focused ? "#0b0918" : PUBLIC_PALETTE.ink)
+        .setBackgroundColor(focused ? "#ffc52f" : "#18132d");
+    });
+  }
+
+  private buildMenuButtons(): void {
+    this.clearMenuButtons();
+    if (this.menuActions.length === 0) return;
+    const firstY = this.screen === "gameOver" ? 510 : this.screen === "highscores" ? 560 : 430;
+    const gap = 48;
+    this.menuActions.forEach((action, index) => {
+      const y = firstY + index * gap;
+      const button = this.add.rectangle(SPACEBLADE_WIDTH / 2, y, 380, 38, 0x18132d, 0.92)
+        .setStrokeStyle(1, 0x57456e, 1)
+        .setDepth(30)
+        .setInteractive({ useHandCursor: true });
+      const label = this.add.text(SPACEBLADE_WIDTH / 2, y, this.menuButtonText(action), {
+        color: PUBLIC_PALETTE.ink,
+        fontFamily: "monospace",
+        fontSize: "16px",
+        fontStyle: "bold",
+        backgroundColor: "#18132d",
+        padding: { left: 16, right: 16, top: 8, bottom: 8 },
+      }).setOrigin(0.5).setDepth(31);
+      button.on("pointerover", () => {
+        this.menuFocus = index;
+        this.refreshMenuButtons();
+      });
+      button.on("pointerup", () => {
+        this.menuFocus = index;
+        this.confirmMenuAction();
+      });
+      this.menuButtonBackgrounds.push(button);
+      this.menuButtonLabels.push(label);
+    });
+    this.refreshMenuButtons();
+  }
 
   constructor() {
     super("spaceblade-play");
@@ -460,16 +528,9 @@ export class SpacebladePlayScene extends Phaser.Scene {
       return;
     }
     if (this.screen === "highscores") {
-      this.setScreen("title");
       return;
     }
-    if (this.menuActions.length === 0) return;
-    const lineHeight = 36;
-    const bodyHeight = (this.menuActions.length - 1) * lineHeight;
-    const firstLineY = 350 - bodyHeight / 2;
-    const selected = Math.floor((pointer.y - firstLineY + lineHeight / 2) / lineHeight);
-    this.menuFocus = Math.max(0, Math.min(this.menuActions.length - 1, selected));
-    this.confirmMenuAction();
+    void pointer;
   }
 
   private startGameplay(): void {
@@ -632,6 +693,7 @@ export class SpacebladePlayScene extends Phaser.Scene {
 
   private setScreen(screen: EngineScreen): void {
     this.screen = screen;
+    this.clearMenuButtons();
     if (screen === "title") this.tutorialReturnScreen = "title";
     if (screen !== "playing") this.soundBus?.stopAmbient();
     this.game.canvas.dataset.spacebladeScreen = screen;
@@ -666,9 +728,20 @@ export class SpacebladePlayScene extends Phaser.Scene {
       ? (screen === "paused" ? ["resume", "settings", "tutorial", "restart", "title"] : screen === "settings" ? ["volume", "screenShake", "reducedEffects", "callsign", "back"] : screen === "gameOver" ? ["restart", "highscores", "title"] : ["global", "friends", "title"])
       : [];
     this.menuFocus = 0;
+    this.game.canvas.dataset.spacebladeMenuMode = this.menuActions.length > 0 ? "mouse" : "none";
+    if (this.menuActions.length > 0) {
+      this.screenTitle?.setVisible(true).setDepth(40);
+      this.screenBody?.setVisible(true).setDepth(40);
+      this.screenHint?.setVisible(true).setDepth(40);
+    }
+    this.buildMenuButtons();
+    this.screenHint?.setY(this.menuActions.length > 0 ? 688 : 590);
     this.screenTitle?.setVisible(!inGameplay);
     this.screenBody?.setVisible(!inGameplay);
     this.screenHint?.setVisible(!inGameplay);
+    this.screenTitle?.setDepth(this.menuActions.length > 0 ? 40 : 20);
+    this.screenBody?.setDepth(this.menuActions.length > 0 ? 40 : 20);
+    this.screenHint?.setDepth(this.menuActions.length > 0 ? 40 : 20);
     this.refreshOverlay();
   }
 
@@ -684,42 +757,31 @@ export class SpacebladePlayScene extends Phaser.Scene {
       this.screenTitle.setText("SPACEBLADE");
       this.game.canvas.dataset.spacebladeTitleTagline = "ONE KEY. ENDLESS FIGHT.";
       this.screenBody.setText(`ONE KEY. ENDLESS FIGHT.\n\nAuto-run through Neon-Sector 04.\nCut down threats before they reach you.\n\nBEST  ${this.bestScore}  ·  WAVE ${this.bestWave}`);
-      this.screenHint.setText("HOLD SPACE TO START");
+      this.screenHint.setText("CLICK TO START");
     } else if (this.screen === "mobileWarning") {
       this.screenTitle.setText("KEYBOARD RECOMMENDED");
       this.screenBody.setText("ONE BUTTON. SPACE OR TOUCH.\n\nROTATE TO LANDSCAPE FOR GAMEPLAY.");
-      this.screenHint.setText("TAP TO CONTINUE");
+      this.screenHint.setText("CLICK TO CONTINUE");
     } else if (this.screen === "tutorial") {
       this.screenTitle.setText("HOW TO PLAY");
       this.screenBody.setText("TAP  -  SWORD SLASH\nHOLD + RELEASE  -  GUN SHOT\nDOUBLE TAP  -  DODGE\nPERFECT TIMING  -  PARRY\n\nSHIELDS BLOCK GUNS. TAP TO BREAK THEM.\nThreats approach from ahead. Strike before contact.");
-      this.screenHint.setText(this.tutorialReturnScreen === "paused" ? "HOLD SPACE TO RETURN" : "HOLD SPACE TO DEPLOY");
+      this.screenHint.setText(this.tutorialReturnScreen === "paused" ? "CLICK TO RETURN" : "CLICK TO DEPLOY");
     } else if (this.screen === "paused") {
       this.screenTitle.setText("PAUSED");
-      this.screenBody.setText(this.menuActions.map((action, index) => `${index === this.menuFocus ? ">" : " "} ${action === "resume" ? "RESUME" : action === "settings" ? "SETTINGS" : action === "tutorial" ? "HOW TO PLAY" : action === "restart" ? "RESTART RUN" : "QUIT TO TITLE"}`).join("\n"));
-      this.screenHint.setText("TAP TO MOVE  ·  HOLD TO SELECT");
+      this.screenBody.setText("SELECT AN OPTION\n\nThe run stays paused while you choose.");
+      this.screenHint.setText("CLICK AN OPTION");
     } else if (this.screen === "settings") {
       this.screenTitle.setText("SETTINGS");
-      this.screenBody.setText(this.menuActions.map((action, index) => {
-        const label = action === "screenShake"
-          ? `SCREEN SHAKE  ${this.settings.screenShakeEnabled ? "ON" : "OFF"}`
-          : action === "volume"
-            ? `VOLUME  ${Math.round(this.settings.volume * 100)}%`
-          : action === "reducedEffects"
-            ? `REDUCED EFFECTS  ${this.settings.reducedEffectsEnabled ? "ON" : "OFF"}`
-          : action === "callsign"
-            ? `CALLSIGN  ${this.playerName.toUpperCase()}`
-            : "BACK";
-        return `${index === this.menuFocus ? ">" : " "} ${label}`;
-      }).join("\n"));
-      this.screenHint.setText("TAP TO MOVE  ·  HOLD TO CHANGE");
+      this.screenBody.setText("PERSONALIZE YOUR RUN\n\nChoose a setting to change it.");
+      this.screenHint.setText("CLICK A SETTING");
     } else if (this.screen === "gameOver") {
       const title = run?.status === "victory" ? "SECTOR CLEARED" : "GAME OVER";
       this.screenTitle.setText(title);
       this.game.canvas.dataset.spacebladeScreenTitle = title;
       const submitLabel = this.submitOutcome === "submitted" ? "SCORE SUBMITTED" : this.submitOutcome === "offline" ? "SCORE SAVED LOCALLY  ·  OFFLINE" : this.submitOutcome === "disabled" ? "ONLINE SCORES DISABLED" : this.submitOutcome === "skipped" ? "SCORE BELOW ONLINE MINIMUM" : "";
       const grade = gradeForScore(run?.score ?? 0) ?? "UNRANKED";
-      this.screenBody.setText(`SCORE  ${run?.score ?? 0}\nWAVE  ${run?.wave ?? 1}\nENEMIES DEFEATED  ${run?.defeated ?? 0}\nBEST COMBO  ${run?.bestCombo ?? 0}\nGRADE  ${grade}${submitLabel ? `\n${submitLabel}` : ""}\n\n${this.menuActions.map((action, index) => `${index === this.menuFocus ? ">" : " "} ${action === "restart" ? "RESTART" : action === "highscores" ? "HIGHSCORES" : "QUIT TO TITLE"}`).join("\n")}`);
-      this.screenHint.setText("TAP TO MOVE  ·  HOLD TO SELECT");
+      this.screenBody.setText(`SCORE  ${run?.score ?? 0}\nWAVE  ${run?.wave ?? 1}\nENEMIES DEFEATED  ${run?.defeated ?? 0}\nBEST COMBO  ${run?.bestCombo ?? 0}\nGRADE  ${grade}${submitLabel ? `\n${submitLabel}` : ""}`);
+      this.screenHint.setText("CLICK AN OPTION");
     } else {
       this.screenTitle.setText("HIGHSCORES");
       this.game.canvas.dataset.spacebladeHighscoresTab = this.highscoresTab;
@@ -727,7 +789,6 @@ export class SpacebladePlayScene extends Phaser.Scene {
         ? "loading"
         : this.highscores?.fetchState ?? "unknown";
       this.game.canvas.dataset.spacebladeHighscoresCount = String(this.highscores?.entries.length ?? 0);
-      const tabLine = this.menuActions.slice(0, 2).map((action, index) => `${index === this.menuFocus ? ">" : " "} ${action === this.highscoresTab ? action.toUpperCase() : action.toLowerCase()}`).join("     ");
       const localEntries = localFriendsResult(this.bestScore, this.bestWave, this.playerName).entries;
       let content = "";
       if (this.highscoresTab === "global" && this.leaderboardLoading) {
@@ -743,9 +804,8 @@ export class SpacebladePlayScene extends Phaser.Scene {
         const rows = entries.slice(0, 8).map((entry, index) => `${this.highscoresTab === "friends" ? "YOU" : String(index + 1).padStart(2, "0")}  ${entry.playerName.padEnd(16, " ")}  ${String(entry.score).padStart(6, " ")}  W${entry.wave}`).join("\n");
         content = `${this.highscoresTab === "friends" ? "FRIENDS  ·  LOCAL BEST" : "GLOBAL RECORDS"}\n\n${rows}`;
       }
-      const actionLine = this.menuActions.map((action, index) => `${index === this.menuFocus ? ">" : " "} ${action === "global" ? "GLOBAL" : action === "friends" ? "FRIENDS" : "RETURN TO TITLE"}`).join("\n");
-      this.screenBody.setText(`${tabLine}\n\n${content}\n\n${actionLine}`);
-      this.screenHint.setText("TAP TO MOVE  ·  HOLD TO SELECT");
+      this.screenBody.setText(`${content}`);
+      this.screenHint.setText("CLICK A RECORDS OPTION");
     }
   }
 
