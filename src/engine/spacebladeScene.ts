@@ -34,6 +34,12 @@ import { enemyVisualMotion, glitchTeleportCueDue, glitchTeleportPresentation } f
 import { shouldPauseForVisibility } from "./spacebladeVisibility";
 import { initialSpacebladeScreen } from "./spacebladeDevice";
 import { gradeForScore } from "../game/run/scoreSystem";
+import {
+  PUBLIC_EXPLOSION_SOURCES,
+  PUBLIC_SHOT_SOURCES,
+  publicExplosionSourceAt,
+  publicShotSourceAt,
+} from "./publicEffectAnimation";
 
 const GROUND_Y = 552;
 const PLAYER_X = SPACEBLADE_WIDTH / 2;
@@ -52,6 +58,7 @@ const PUBLIC_PALETTE = {
 } as const;
 
 const frameKey = (source: string): string => `spaceblade:${source}`;
+const effectKey = (source: string): string => `spaceblade-effect:${source}`;
 
 function allFrameSources(): readonly string[] {
   return Array.from(new Set(
@@ -99,8 +106,10 @@ export class SpacebladePlayScene extends Phaser.Scene {
   private playerView: Phaser.GameObjects.Image | null = null;
   private readonly enemyViews = new Map<string, EnemyView>();
   private readonly enemyViewPools = new Map<string, EnemyView[]>();
-  private readonly projectileViews = new Map<string, Phaser.GameObjects.Graphics>();
-  private readonly projectileViewPool: Phaser.GameObjects.Graphics[] = [];
+  private readonly projectileViews = new Map<string, Phaser.GameObjects.Image>();
+  private readonly projectileViewPool: Phaser.GameObjects.Image[] = [];
+  private readonly enemyExplosionViews = new Map<string, Phaser.GameObjects.Image>();
+  private readonly enemyExplosionViewPool: Phaser.GameObjects.Image[] = [];
   private spaceKey: Phaser.Input.Keyboard.Key | null = null;
   private spaceDownAt: number | null = null;
   private lastTapAt = Number.NEGATIVE_INFINITY;
@@ -169,6 +178,8 @@ export class SpacebladePlayScene extends Phaser.Scene {
 
   preload(): void {
     for (const source of allFrameSources()) this.load.image(frameKey(source), source);
+    for (const source of PUBLIC_SHOT_SOURCES) this.load.image(effectKey(source), source);
+    for (const source of PUBLIC_EXPLOSION_SOURCES) this.load.image(effectKey(source), source);
     this.load.image("public-skyline-a", "/assets/public/warped-city/skyline-a.png");
     this.load.image("public-skyline-b", "/assets/public/warped-city/skyline-b.png");
     this.load.image("public-near-buildings", "/assets/public/warped-city/near-buildings-bg.png");
@@ -533,6 +544,11 @@ export class SpacebladePlayScene extends Phaser.Scene {
     this.enemyHitLabels.clear();
     this.enemyHitLabelAt.clear();
     this.retiredEnemyIds.clear();
+    for (const view of this.enemyExplosionViews.values()) {
+      view.setVisible(false).setAlpha(0);
+      this.enemyExplosionViewPool.push(view);
+    }
+    this.enemyExplosionViews.clear();
     this.playerHurtAt = null;
     this.terminalAt = null;
     this.combatCallout = "";
@@ -630,6 +646,7 @@ export class SpacebladePlayScene extends Phaser.Scene {
     this.deathFx?.setVisible(inGameplay);
     this.enemyFx?.setVisible(inGameplay);
     for (const view of this.projectileViews.values()) view.setVisible(inGameplay);
+    for (const view of this.enemyExplosionViews.values()) view.setVisible(inGameplay);
     this.runnerMotion?.setVisible(inGameplay);
     this.waveProgress?.setVisible(inGameplay);
     this.waveProgressLabel?.setVisible(inGameplay);
@@ -929,27 +946,25 @@ export class SpacebladePlayScene extends Phaser.Scene {
       activeIds.add(projectile.id);
       let view = this.projectileViews.get(projectile.id);
       if (!view) {
-        view = this.projectileViewPool.pop() ?? this.add.graphics().setDepth(3);
+        view = this.projectileViewPool.pop() ?? this.add.image(0, 0, effectKey(PUBLIC_SHOT_SOURCES[0]))
+          .setOrigin(0.5)
+          .setScale(3.4)
+          .setDepth(3);
         this.projectileViews.set(projectile.id, view);
       }
       const screenX = VIEW_PLAYER_X + (projectile.x - PLAYER_X);
       const age = now - projectile.startedAt;
       const pulse = 0.78 + Math.sin(age / 45) * 0.18;
-      view.clear();
-      view.lineStyle(5, 0x24d9ff, pulse);
-      view.lineBetween(screenX - 58, GROUND_Y - 112, screenX - 8, GROUND_Y - 112);
-      view.lineStyle(2, 0xe8feff, pulse);
-      view.lineBetween(screenX - 38, GROUND_Y - 112, screenX + 10, GROUND_Y - 112);
-      view.fillStyle(0xf4fbff, 1);
-      view.fillCircle(screenX, GROUND_Y - 112, 9);
-      view.fillStyle(0x24d9ff, 0.65);
-      view.fillCircle(screenX - 12, GROUND_Y - 112, 15);
-      view.setVisible(true);
+      view
+        .setTexture(effectKey(publicShotSourceAt(age)))
+        .setPosition(screenX, GROUND_Y - 112)
+        .setAlpha(pulse)
+        .setVisible(true);
     }
     for (const [id, view] of this.projectileViews) {
       if (activeIds.has(id)) continue;
       this.projectileViews.delete(id);
-      view.clear().setVisible(false);
+      view.setVisible(false).setAlpha(0);
       this.projectileViewPool.push(view);
     }
     this.game.canvas.dataset.spacebladeProjectileCount = String(this.run.projectiles.length);
@@ -1003,12 +1018,28 @@ export class SpacebladePlayScene extends Phaser.Scene {
       this.enemyDeathAt.set(enemy.id, deathAt);
       const deathElapsed = enemyDeathAnimationElapsed(now, deathAt);
       const renderX = clampSpriteCenterX(screenX, definition.width, definition.scale, SPACEBLADE_WIDTH);
+      let explosionView = this.enemyExplosionViews.get(enemy.id);
+      if (!explosionView) {
+        explosionView = this.enemyExplosionViewPool.pop() ?? this.add.image(0, 0, effectKey(PUBLIC_EXPLOSION_SOURCES[0]))
+          .setOrigin(0.5)
+          .setDepth(3);
+        this.enemyExplosionViews.set(enemy.id, explosionView);
+      }
+      explosionView
+        .setTexture(effectKey(publicExplosionSourceAt(deathElapsed)))
+        .setPosition(renderX, GROUND_Y - definition.height * definition.scale * 0.55)
+        .setScale(definition.scale * (definition.id === "boss" ? 2.8 : 2.2))
+        .setAlpha(Math.max(0, 1 - deathElapsed / 420))
+        .setVisible(true);
       this.drawEnemyDeathFx(renderX, GROUND_Y - definition.height * definition.scale * 0.55, deathElapsed, definition.scale);
       if (!enemyDeathIsVisible(deathElapsed)) {
         this.retiredEnemyIds.add(enemy.id);
         view.sprite.setVisible(false).setAlpha(0);
         view.marker.setVisible(false);
         view.healthBar.setVisible(false);
+        explosionView.setVisible(false).setAlpha(0);
+        this.enemyExplosionViews.delete(enemy.id);
+        this.enemyExplosionViewPool.push(explosionView);
         this.enemyViews.delete(enemy.id);
         const pool = this.enemyViewPools.get(view.definition.id) ?? [];
         pool.push(view);

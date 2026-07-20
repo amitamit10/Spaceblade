@@ -13,7 +13,9 @@ The legacy sheets remain available for tooling and rollback.
 - Staged content: player idle/walk/run/run-shoot/shoot/hurt frames, drone and
   turret enemies, projectile frames, hit frames, and enemy explosion frames.
 - Local preview: `mockups/public-assets/warped-city-preview.png`
+- Runtime asset plate: `mockups/public-assets/public-runtime-asset-preview.png`
 - Runtime conversion: `scripts/build-public-runtime-frames.sh`
+- Runtime asset preview: `scripts/build-public-asset-preview.sh`
 - Runtime preview: `mockups/public-assets/runtime-public-frames.png`
 
 This is intentionally vendored into the repository instead of loaded from a
