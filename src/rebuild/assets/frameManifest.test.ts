@@ -10,7 +10,7 @@ describe("rebuild frame manifest", () => {
       for (const animation of Object.values(sprite.animations)) {
         expect(animation.frames.length).toBeGreaterThan(0);
         for (const frame of animation.frames) {
-          expect(frame).toMatch(/^\/sprites\/frames\/[^?]+\/(?:walk|windup|attack|hurt|recover|dead|specialAttack|charge|heavy|dodge|parry|idle|slash)-\d+\.png$/);
+          expect(frame).toMatch(/^\/sprites\/frames\/[^?]+\/(?:walk|windup|attack|hurt|recover|dead|specialAttack|charge|heavy|dodge|parry|idle|slash)-\d+\.png\?v=public-pack-2$/);
           expect(frame).toMatch(/^\/sprites\/frames\//);
           expect(frame).not.toContain("player.png");
         }
@@ -22,7 +22,7 @@ describe("rebuild frame manifest", () => {
     for (const sprite of REBUILD_SPRITES) {
       for (const animation of Object.values(sprite.animations)) {
         for (const frame of animation.frames) {
-          expect(existsSync(resolve(process.cwd(), "public", frame.slice(1))), frame).toBe(true);
+          expect(existsSync(resolve(process.cwd(), "public", frame.split("?")[0].slice(1))), frame).toBe(true);
         }
       }
     }
@@ -38,7 +38,7 @@ describe("rebuild frame manifest", () => {
     for (const sprite of REBUILD_SPRITES) {
       for (const animation of Object.values(sprite.animations)) {
         for (const frame of animation.frames) {
-          const absPath = resolve(process.cwd(), "public", frame.slice(1));
+          const absPath = resolve(process.cwd(), "public", frame.split("?")[0].slice(1));
           const { width, height } = readPngMetadata(absPath);
           expect({ width, height }, frame).toEqual({ width: sprite.width, height: sprite.height });
         }

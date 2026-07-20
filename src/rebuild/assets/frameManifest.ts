@@ -16,7 +16,7 @@ export type RebuildSprite = {
 
 const authoredFramePaths = (folder: string, action: string, count: number): string[] =>
   Array.from({ length: count }, (_, index) =>
-    `/sprites/frames/${folder}/${action}-${String(index).padStart(2, "0")}.png`,
+    `/sprites/frames/${folder}/${action}-${String(index).padStart(2, "0")}.png?v=public-pack-2`,
   );
 
 export const REBUILD_PLAYER: RebuildSprite = {
