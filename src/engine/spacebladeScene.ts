@@ -693,6 +693,22 @@ export class SpacebladePlayScene extends Phaser.Scene {
   }
 
   private resetEnemyPresentation(): void {
+    // A new simulation run gets fresh enemy IDs, but Phaser views outlive the
+    // simulation. Hide and pool every old view before the first new frame.
+    for (const [id, view] of this.enemyViews) {
+      view.sprite.setVisible(false).setAlpha(0).setAngle(0);
+      view.marker.setVisible(false);
+      view.healthBar.clear().setVisible(false);
+      const pool = this.enemyViewPools.get(view.definition.id) ?? [];
+      pool.push(view);
+      this.enemyViewPools.set(view.definition.id, pool);
+      this.enemyViews.delete(id);
+    }
+    for (const [id, view] of this.projectileViews) {
+      view.setVisible(false).setAlpha(0);
+      this.projectileViewPool.push(view);
+      this.projectileViews.delete(id);
+    }
     this.enemyDeathAt.clear();
     this.enemyAttackTargetAt.clear();
     this.enemyRecoveryAt.clear();
