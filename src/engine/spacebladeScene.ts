@@ -484,9 +484,9 @@ export class SpacebladePlayScene extends Phaser.Scene {
   }
 
   private handlePointerDown(pointer: Phaser.Input.Pointer): void {
-    if (this.screen !== "playing") return;
-    if (this.pauseButtonBackground?.getBounds().contains(pointer.worldX, pointer.worldY)) return;
-    this.handleSpaceDown();
+    // Combat is intentionally Space-only. The pause control has its own
+    // interactive handler and remains available as a UI exception.
+    void pointer;
   }
 
   private readonly handleVisibilityChange = (): void => {
@@ -549,10 +549,7 @@ export class SpacebladePlayScene extends Phaser.Scene {
   }
 
   private handlePointerUp(pointer: Phaser.Input.Pointer): void {
-    if (this.screen === "playing") {
-      this.handleSpaceUp();
-      return;
-    }
+    if (this.screen === "playing") return;
     if (this.screen === "mobileWarning") {
       this.setScreen("title");
       return;
