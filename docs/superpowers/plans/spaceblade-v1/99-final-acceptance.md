@@ -143,5 +143,6 @@ Runtime evidence checkpoint:
 - Glitch teleport presentation includes pooled scanline fragments that disappear
   when reduced effects are enabled, with no change to the one-button timing.
 - The public-input late-wave probe reached Wave 8 in 180 seconds with 3 hearts,
-  max threat weight 2, and zero browser errors; Wave 15 remains a separate
-  longer stress target.
+  max threat weight 2, and zero browser errors. The extended public-input probe
+  reached Wave 15 in 600 seconds with 3 hearts, max threat weight 6, 512 actions,
+  and zero browser errors.

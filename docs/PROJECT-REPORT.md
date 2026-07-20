@@ -308,9 +308,8 @@ index.html
 - **30 FPS target** is conservative; the baked-sprite approach should hold it,
   and presentation objects are pooled. An active-run baseline is now measured
   automatically, and the deterministic 15-wave simulation now asserts the
-  weighted threat invariant. A public-input rendered probe now reaches Wave 8
-  in 180 seconds at 3 hearts with zero browser errors; a full rendered Wave 15
-  boss profile remains future work.
+  weighted threat invariant. The public-input rendered probe reaches Wave 15
+  in 600 seconds at 3 hearts, with max threat weight 6 and zero browser errors.
 
 ---
 
@@ -318,9 +317,8 @@ index.html
 
 1. **Playtest-driven balance pass.** Tune ranges, parry timing, and spawn
    pacing against real player sessions.
-2. **FPS and bundle profiling.** Extend the rendered public-input gate from
-   Wave 8 through the Wave 15 boss and consider splitting the lazy Firebase
-   chunk further.
+2. **FPS and bundle profiling.** Continue profiling the rendered Wave 15 boss
+   encounter and consider splitting the lazy Firebase chunk further.
 3. **Sound pass** — replace generated blips with designed cues (still code or a
    tiny asset set).
 
