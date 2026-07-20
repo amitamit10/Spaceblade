@@ -76,6 +76,8 @@ const ENERGY_PROJECTILE_SPEED = 760;
 const ENERGY_PROJECTILE_LIFETIME_MS = 1400;
 const ENERGY_PROJECTILE_HIT_RADIUS = 34;
 const MAX_ACTIVE_ENEMIES = 6;
+const MAX_ACTIVE_THREAT_WEIGHT = 6;
+const MAX_ACTIVE_TANKS = 2;
 const WAVE_TARGET_BASE = 6;
 const FORWARD_SPAWN_GAP = 96;
 
@@ -123,6 +125,14 @@ function pickSpawnType(wave: number, index: number): RebuildEnemyType {
 
 function activeEnemies(run: RebuildRun): RebuildEnemy[] {
   return run.enemies.filter((enemy) => enemy.state !== "dead");
+}
+
+export function rebuildEnemyThreatWeight(type: RebuildEnemyType): number {
+  return type === "tank" || type === "boss" ? 2 : 1;
+}
+
+export function rebuildActiveThreatWeight(run: RebuildRun): number {
+  return activeEnemies(run).reduce((total, enemy) => total + rebuildEnemyThreatWeight(enemy.type), 0);
 }
 
 function nextForwardSpawnX(run: RebuildRun): number {
@@ -364,14 +374,14 @@ export function advanceRebuildRun(source: RebuildRun, now: number): RebuildRun {
   }
 
   const target = rebuildWaveTarget(run.wave);
-  while (
-    now >= run.nextSpawnAt
-    && activeEnemies(run).length < MAX_ACTIVE_ENEMIES
-    && run.defeatedThisWave + activeEnemies(run).length < target
-  ) {
+  while (now >= run.nextSpawnAt) {
+    const liveEnemies = activeEnemies(run);
+    if (liveEnemies.length >= MAX_ACTIVE_ENEMIES || run.defeatedThisWave + liveEnemies.length >= target) break;
     const side = "right" as const;
     const x = nextForwardSpawnX(run);
     const type = run.wave === 15 && !run.bossSpawned ? "boss" : pickSpawnType(run.wave, run.spawnIndex);
+    if (rebuildActiveThreatWeight(run) + rebuildEnemyThreatWeight(type) > MAX_ACTIVE_THREAT_WEIGHT) break;
+    if (type === "tank" && liveEnemies.filter((enemy) => enemy.type === "tank").length >= MAX_ACTIVE_TANKS) break;
     if (type === "boss") run.bossSpawned = true;
     run.enemies.push(createEnemy(`enemy-${run.spawnIndex}`, type, side, x, now));
     run.spawnIndex += 1;

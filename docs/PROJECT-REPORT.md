@@ -33,7 +33,7 @@ flow, and a live Firebase leaderboard submission/read check.
 | Source files | 64 TypeScript modules |
 | Production code | ~3,960 LOC |
 | Test code | ~1,070 LOC |
-| Tests | **257 passing**, 44 Vitest suites + 22 browser tests |
+| Tests | **259 passing**, 44 Vitest suites + 22 browser tests |
 | Build | `tsc --noEmit` + Vite, clean |
 | Dependencies | `firebase`, `phaser` (+ dev: vite, typescript, vitest, jsdom, Playwright, @types/node) |
 
@@ -139,6 +139,8 @@ index.html
   the first parry strip appears with all 3 hearts intact.
 - Forward spawns now keep a deterministic 96px gap from the furthest active
   threat, preventing dense waves from rendering as a single overlapping stack.
+- Active threats now use the specified weighted capacity of 6; tanks and bosses
+  count as weight 2, and no more than two tanks can be active simultaneously.
 - The player walk presentation masks a detached top-strip artifact present in
   the supplied walk PNGs while leaving every combat reaction uncropped. A live
   production screenshot confirms a clean grounded player with no stray boot

@@ -4,6 +4,8 @@ import {
   createRebuildRun,
   dodgeRebuildRun,
   parryRebuildRun,
+  rebuildActiveThreatWeight,
+  rebuildEnemyThreatWeight,
   releaseChargeRebuildRun,
   rebuildSpawnIntervalForWave,
   rebuildWaveTarget,
@@ -65,6 +67,39 @@ describe("rebuild run model", () => {
 
     expect(next.enemies.filter((enemy) => enemy.state !== "dead")).toHaveLength(1);
     expect(next.defeatedThisWave + next.enemies.filter((enemy) => enemy.state !== "dead").length).toBe(rebuildWaveTarget(next.wave));
+  });
+
+  it("enforces weighted active threat capacity for tanks and bosses", () => {
+    expect(rebuildEnemyThreatWeight("grunt")).toBe(1);
+    expect(rebuildEnemyThreatWeight("tank")).toBe(2);
+    expect(rebuildEnemyThreatWeight("boss")).toBe(2);
+
+    const run = createRebuildRun(0);
+    run.wave = 6;
+    run.enemies.forEach((enemy) => { enemy.state = "dead"; });
+    run.spawnIndex = 4;
+    run.nextSpawnAt = 0;
+
+    const next = advanceRebuildRun(run, 10_000);
+    expect(rebuildActiveThreatWeight(next)).toBeLessThanOrEqual(6);
+    expect(next.enemies.filter((enemy) => enemy.state !== "dead").filter((enemy) => enemy.type === "tank").length).toBeLessThanOrEqual(2);
+  });
+
+  it("never adds a third active tank even when weighted capacity remains", () => {
+    const run = createRebuildRun(0);
+    run.wave = 6;
+    run.enemies.forEach((enemy) => {
+      enemy.type = "tank";
+      enemy.state = "approaching";
+      enemy.hp = 2;
+      enemy.maxHp = 2;
+    });
+    run.spawnIndex = 4;
+    run.nextSpawnAt = 0;
+
+    const next = advanceRebuildRun(run, 1);
+    expect(next.enemies.filter((enemy) => enemy.state !== "dead")).toHaveLength(2);
+    expect(next.enemies.filter((enemy) => enemy.state !== "dead" && enemy.type === "tank")).toHaveLength(2);
   });
 
   it("slash damages enemies in range and awards their score on defeat", () => {
