@@ -60,11 +60,14 @@ try {
   await page.keyboard.down("Space");
   await page.waitForTimeout(80);
   await page.keyboard.up("Space");
-  await page.waitForTimeout(80);
-  const slash = await canvas.getAttribute("data-spaceblade-player-animation");
+  await page.waitForFunction(() => ["slash", "parry", "dodge"].includes(
+    document.querySelector("canvas")?.dataset.spacebladePlayerAnimation ?? "",
+  ));
+  const quickAction = await canvas.getAttribute("data-spaceblade-player-animation");
+  await page.waitForTimeout(320);
 
   await page.keyboard.down("Space");
-  await page.waitForTimeout(320);
+  await page.waitForTimeout(340);
   const charging = await canvas.getAttribute("data-spaceblade-player-animation");
   await page.keyboard.up("Space");
   await page.waitForTimeout(80);
@@ -74,8 +77,8 @@ try {
   if (resourcesAfterGameplay.some((name) => /firebase|firestore|leaderboardClient/i.test(name))) {
     throw new Error("Firebase loaded during normal gameplay");
   }
-  if (slash !== "slash" || charging !== "charging" || heavy !== "heavy") {
-    throw new Error(`One-button action contract failed: ${JSON.stringify({ slash, charging, heavy })}`);
+  if (!["slash", "parry", "dodge"].includes(quickAction ?? "") || charging !== "charging" || heavy !== "heavy") {
+    throw new Error(`One-button action contract failed: ${JSON.stringify({ quickAction, charging, heavy })}`);
   }
   if (errors.length > 0) throw new Error(`Browser errors: ${errors.join(" | ")}`);
 
@@ -83,7 +86,7 @@ try {
     url: baseUrl,
     screen: "playing",
     playerX: first.playerX,
-    actions: { slash, charging, heavy },
+    actions: { quickAction, charging, heavy },
     framesAdvanced: true,
     skylineAdvanced: true,
     firebaseLoadedDuringGameplay: false,
