@@ -14,6 +14,7 @@ The legacy sheets remain available for tooling and rollback.
   turret enemies, projectile frames, hit frames, and enemy explosion frames.
 - Local preview: `mockups/public-assets/warped-city-preview.png`
 - Runtime asset plate: `mockups/public-assets/public-runtime-asset-preview.png`
+- Deployed asset plate: `/public-asset-previews/public-runtime-asset-preview.png`
 - Runtime conversion: `scripts/build-public-runtime-frames.sh`
 - Runtime asset preview: `scripts/build-public-asset-preview.sh`
 - Runtime preview: `mockups/public-assets/runtime-public-frames.png`

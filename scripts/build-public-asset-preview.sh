@@ -4,6 +4,7 @@ set -euo pipefail
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source_dir="$root/public/assets/public/warped-city"
 output="$root/mockups/public-assets/public-runtime-asset-preview.png"
+public_output="$root/public/public-asset-previews/public-runtime-asset-preview.png"
 work_dir="$(mktemp -d)"
 trap 'rm -rf "$work_dir"' EXIT
 
@@ -37,9 +38,11 @@ for source in "${sources[@]}"; do
 done
 
 mkdir -p "$(dirname "$output")"
+mkdir -p "$(dirname "$public_output")"
 montage "$work_dir"/*.png \
   -tile 5x3 -geometry +14+28 \
   -background "#0b0918" -fill "#fff4d5" -pointsize 14 \
   -title "SPACEBLADE  ·  WARPED CITY PUBLIC RUNTIME ASSETS" \
   "$output"
+cp "$output" "$public_output"
 printf 'public runtime asset preview generated at %s\n' "$output"
