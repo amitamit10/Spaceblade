@@ -10,7 +10,7 @@ export const REBUILD_GROUND_Y = 552;
 const AUTO_PARKOUR_CYCLE_MS = 3200;
 const AUTO_PARKOUR_JUMP_MS = 760;
 const FLOOR_CLIMB_DURATION_MS = 1500;
-const OBSTACLE_PARKOUR_CYCLE_MS = 5200;
+const OBSTACLE_PARKOUR_CYCLE_MS = 7600;
 
 export type RebuildFloorTraversalPhase = "vault" | "wall-climb" | "landing" | "complete";
 
@@ -83,27 +83,28 @@ export function rebuildObstacleParkourOffset(
 ): { readonly offset: { readonly x: number; readonly y: number; readonly angle: number }; readonly phase: RebuildFloorTraversalPhase } {
   const phase = ((now % OBSTACLE_PARKOUR_CYCLE_MS) + OBSTACLE_PARKOUR_CYCLE_MS) % OBSTACLE_PARKOUR_CYCLE_MS;
   const direction = facing === "left" ? -1 : 1;
-  if (phase < 900) {
-    const progress = phase / 900;
+  if (phase < 620) {
+    const progress = phase / 620;
     const arc = Math.sin(progress * Math.PI);
     return {
-      offset: { x: Math.round(direction * arc * 34), y: -Math.round(arc * 74), angle: progress < 0.5 ? -8 : 6 },
+      offset: { x: Math.round(direction * arc * 42), y: -Math.round(arc * 72), angle: progress < 0.5 ? -5 : 4 },
       phase: "vault",
     };
   }
-  if (phase < 1600) return { offset: { x: 0, y: 0, angle: 0 }, phase: "complete" };
-  if (phase < 3000) {
-    const progress = (phase - 1600) / 1400;
+  if (phase < 3400) return { offset: { x: 0, y: 0, angle: 0 }, phase: "complete" };
+  if (phase < 4050) {
+    const progress = (phase - 3400) / 650;
+    const eased = progress * progress * (3 - 2 * progress);
     return {
-      offset: { x: direction * 20, y: -Math.round(progress * 142), angle: direction * -8 },
+      offset: { x: direction * 16, y: -Math.round(eased * 112), angle: direction * -5 },
       phase: "wall-climb",
     };
   }
-  if (phase < 3900) {
-    const progress = (phase - 3000) / 900;
-    const arc = Math.sin((1 - progress) * Math.PI / 2);
+  if (phase < 4550) {
+    const progress = (phase - 4050) / 500;
+    const eased = 1 - progress * progress * (3 - 2 * progress);
     return {
-      offset: { x: Math.round(direction * (20 - progress * 20)), y: -Math.round(arc * 142), angle: direction * Math.round(8 - progress * 8) },
+      offset: { x: Math.round(direction * (16 - progress * 16)), y: -Math.round(eased * 112), angle: direction * Math.round(5 - progress * 5) },
       phase: "landing",
     };
   }

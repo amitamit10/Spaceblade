@@ -38,10 +38,10 @@ describe("rebuild camera feedback", () => {
 
   it("automatically uses the obstacle route from vault to wall climb to landing", () => {
     expect(rebuildObstacleParkourOffset(400, "right").phase).toBe("vault");
-    expect(rebuildObstacleParkourOffset(2800, "right").phase).toBe("wall-climb");
-    expect(rebuildObstacleParkourOffset(2800, "right").offset.y).toBeLessThan(-100);
-    expect(rebuildObstacleParkourOffset(3400, "right").phase).toBe("landing");
-    expect(rebuildObstacleParkourOffset(4500, "right").phase).toBe("complete");
+    expect(rebuildObstacleParkourOffset(3700, "right").phase).toBe("wall-climb");
+    expect(rebuildObstacleParkourOffset(3800, "right").offset.y).toBeLessThan(-50);
+    expect(rebuildObstacleParkourOffset(4300, "right").phase).toBe("landing");
+    expect(rebuildObstacleParkourOffset(5000, "right").phase).toBe("complete");
   });
 
   it("climbs to the next building floor automatically between waves", () => {
