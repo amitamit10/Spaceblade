@@ -8,6 +8,8 @@ export const playerConfig = {
   heavySlashRecoveryMs: 280,
   dodgeDistance: 150,
   dodgeDurationMs: 260,
-  hurtLockMs: 600,
+  // Keep the hit reaction readable without taking the one-button combat loop
+  // away from the player for an entire enemy cycle.
+  hurtLockMs: 220,
   parryStunMs: 650,
 } as const;

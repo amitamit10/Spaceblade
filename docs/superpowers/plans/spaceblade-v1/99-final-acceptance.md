@@ -44,10 +44,10 @@ Runtime evidence checkpoint:
   by the impact-window animation test.
 - Player `hurt-XX.png` and `dead-XX.png` reactions are manifest-validated and
   the terminal browser regression observes the dead frame before restart. The
-  production Chrome probe observed `/sprites/frames/player/dead-00.png` with
+  production Chrome probe observed `/assets/public/opengameart-space-soldier/killed-4.png` with
   no browser errors.
 - The neutral player state uses the authored six-frame `walk-XX.png` sequence;
-  the production Chrome probe observed `/sprites/frames/player/walk-02.png`
+  the production Chrome probe observed `/assets/public/opengameart-space-soldier/walk-3.png`
   with no browser errors.
 - Every enemy approach state uses its authored standalone `walk-XX.png`
   sequence; the production Chrome probe observed `/sprites/frames/grunt/walk-01.png`

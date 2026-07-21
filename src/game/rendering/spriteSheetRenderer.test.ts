@@ -63,7 +63,7 @@ describe("drawSheetFrame", () => {
       drawImage,
     } as unknown as CanvasRenderingContext2D;
     const standaloneFrame = { naturalWidth: 32, naturalHeight: 24 } as HTMLImageElement;
-    const source = "/sprites/frames/player/charge-00.png?v=test";
+    const source = "/assets/public/opengameart-space-soldier/attack-1.png?v=test";
     const sheet = {
       image: { id: "sheet" } as unknown as HTMLImageElement,
       width: 32,

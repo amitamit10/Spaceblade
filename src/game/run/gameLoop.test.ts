@@ -71,6 +71,20 @@ describe("createGameLoop combat integration", () => {
     expect(tank.stunnedUntil).toBeNull();
   });
 
+  it("allows a counterattack shortly after a close enemy impact", () => {
+    const { controller, loop, player } = createLoopFixture();
+    const grunt = createEnemy("grunt", "grunt", "right");
+    grunt.state = "approaching";
+    grunt.x = PLAYER_X + 40;
+    controller.addEnemy(grunt);
+
+    player.applyDamage(0);
+    loop.processInput("tap", 250);
+
+    expect(player.getSnapshot().state).toBe("slashing");
+    expect(controller.state.activeEnemies).toHaveLength(0);
+  });
+
   it("auto-faces the nearest target before quick slash so hit and arc direction match", () => {
     const { controller, effects, loop, player } = createLoopFixture();
     const behind = createEnemy("behind", "grunt", "left");

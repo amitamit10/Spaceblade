@@ -4,15 +4,15 @@ import { spriteFrameSources, versionSpriteAsset } from "./spriteAssetPath";
 export const PLAYER_SHEET: SpriteSheetDef = {
   id: "player",
   src: versionSpriteAsset("/sprites/player.png"),
-  frameWidth: 96,
-  frameHeight: 96,
-  scale: 3,
-  anchorX: 48,
-  anchorY: 95,
+  frameWidth: 32,
+  frameHeight: 32,
+  scale: 4,
+  anchorX: 16,
+  anchorY: 31,
   defaultFacing: "right",
   animations: {
-    idle: { row: 0, frames: 4, frameDurationMs: 130, loop: true, frameSources: spriteFrameSources("player", "walk", 4) },
-    walk: { row: 1, frames: 6, frameDurationMs: 90, loop: true, frameSources: spriteFrameSources("player", "walk", 6) },
+    idle: { row: 0, frames: 4, frameDurationMs: 130, loop: true, frameSources: spriteFrameSources("player", "idle", 4) },
+    walk: { row: 1, frames: 8, frameDurationMs: 90, loop: true, frameSources: spriteFrameSources("player", "walk", 8) },
     slash: {
       row: 2,
       frames: 4,

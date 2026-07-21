@@ -9,7 +9,7 @@ fallback tooling:
 
 | Actor | Path | Runtime Size |
 | --- | --- | --- |
-| Player | `public/sprites/player.png` | `576 x 864` |
+| Player compatibility sheet | `public/sprites/player.png` | `384 x 288` |
 | Grunt | `public/sprites/grunt.png` | `256 x 384` |
 | Runner | `public/sprites/runner.png` | `384 x 384` |
 | Shield | `public/sprites/shield.png` | `320 x 480` |

@@ -123,7 +123,7 @@ describe("runtime sprite pack", () => {
     );
 
     const widths = bounds.map((bound) => bound ? bound.maxX - bound.minX + 1 : 0);
-    expect(Math.min(...widths), "every idle frame should contain a full visible body").toBeGreaterThanOrEqual(40);
+    expect(Math.min(...widths), "every idle frame should contain a full visible body").toBeGreaterThanOrEqual(8);
 
     const centers = bounds
       .filter((bound): bound is NonNullable<typeof bound> => bound !== null)

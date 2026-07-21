@@ -32,8 +32,10 @@ describe("rebuild frame manifest", () => {
   });
 
   it("does not leave obsolete generated player action frames beside the manifest", () => {
-    const playerFrameDir = resolve(process.cwd(), "public/sprites/frames/player");
-    const obsoleteFrames = readdirSync(playerFrameDir).filter((file) => file.startsWith("charging-"));
+    const playerFrameDir = resolve(process.cwd(), "public/sprites/frames", "player");
+    const obsoleteFrames = existsSync(playerFrameDir)
+      ? readdirSync(playerFrameDir).filter((file) => file.startsWith("charging-"))
+      : [];
     expect(obsoleteFrames).toEqual([]);
   });
 

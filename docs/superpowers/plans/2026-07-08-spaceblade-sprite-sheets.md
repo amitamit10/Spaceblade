@@ -50,7 +50,7 @@ import type { SpriteSheetDef } from "./spriteManifest";
 
 const good: SpriteSheetDef = {
   id: "player",
-  src: "/sprites/player.png",
+  src: "/assets/public/opengameart-space-soldier/idle-1.png",
   frameWidth: 64,
   frameHeight: 64,
   scale: 3,

@@ -4,7 +4,7 @@ import type { SpriteSheetDef } from "./spriteManifest";
 
 const good: SpriteSheetDef = {
   id: "player",
-  src: "/sprites/player.png",
+  src: "/assets/public/opengameart-space-soldier/idle-1.png",
   frameWidth: 64,
   frameHeight: 64,
   scale: 3,
@@ -49,7 +49,7 @@ describe("validateSpriteSheetDef", () => {
             frames: 2,
             frameDurationMs: 120,
             loop: true,
-            frameSources: ["/sprites/frames/player/walk-00.png"],
+            frameSources: ["/assets/public/opengameart-space-soldier/walk-1.png"],
           },
         },
       }),

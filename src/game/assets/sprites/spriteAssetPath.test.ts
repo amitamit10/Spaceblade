@@ -9,23 +9,23 @@ import {
 
 describe("spriteAssetPath", () => {
   it("adds a stable version query to sprite URLs so browser caches refresh after art fixes", () => {
-    expect(versionSpriteAsset("/sprites/player.png")).toBe(
-      `/sprites/player.png?v=${SPRITE_ASSET_VERSION}`,
+    expect(versionSpriteAsset("/assets/public/opengameart-space-soldier/idle-1.png")).toBe(
+      `/assets/public/opengameart-space-soldier/idle-1.png?v=${SPRITE_ASSET_VERSION}`,
     );
   });
 
   it("maps cache-busted sprite URLs back to the public file path and filename", () => {
-    const src = `/sprites/player.png?v=${SPRITE_ASSET_VERSION}`;
+    const src = `/assets/public/opengameart-space-soldier/idle-1.png?v=${SPRITE_ASSET_VERSION}`;
 
-    expect(spriteAssetPublicPath(src)).toBe("sprites/player.png");
-    expect(spriteAssetFilename(src)).toBe("player.png");
+    expect(spriteAssetPublicPath(src)).toBe("assets/public/opengameart-space-soldier/idle-1.png");
+    expect(spriteAssetFilename(src)).toBe("idle-1.png");
   });
 
   it("creates deterministic standalone frame paths", () => {
     expect(spriteFrameSources("player", "charge", 3)).toEqual([
-      "/sprites/frames/player/charge-00.png?v=2026-07-19a",
-      "/sprites/frames/player/charge-01.png?v=2026-07-19a",
-      "/sprites/frames/player/charge-02.png?v=2026-07-19a",
+      "/assets/public/opengameart-space-soldier/attack-1.png?v=cc0-space-soldier-1",
+      "/assets/public/opengameart-space-soldier/attack-2.png?v=cc0-space-soldier-1",
+      "/assets/public/opengameart-space-soldier/attack-3.png?v=cc0-space-soldier-1",
     ]);
   });
 });
