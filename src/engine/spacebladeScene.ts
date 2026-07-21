@@ -811,12 +811,12 @@ export class SpacebladePlayScene extends Phaser.Scene {
     }
   }
 
-  private submitRunIfEligible(): void {
-    if (!this.run || this.leaderboardSubmitted) return;
+  private submitRunIfEligible(): Promise<void> {
+    if (!this.run || this.leaderboardSubmitted) return Promise.resolve();
     this.leaderboardSubmitted = true;
-    void submitRebuildRun(this.run, this.playerName).then((outcome) => {
+    return submitRebuildRun(this.run, this.playerName).then((outcome) => {
       this.submitOutcome = outcome;
-      if (this.screen === "gameOver") this.refreshOverlay();
+      if (this.screen === "gameOver" || this.screen === "highscores") this.refreshOverlay();
     });
   }
 
@@ -872,8 +872,8 @@ export class SpacebladePlayScene extends Phaser.Scene {
     }
     if (this.nameEntryError) this.nameEntryError.textContent = "";
     this.submitOutcome = "pending";
-    this.setScreen("gameOver");
-    this.submitRunIfEligible();
+    this.setScreen("highscores");
+    void this.submitRunIfEligible().then(() => this.loadHighscores());
   }
 
   private resetEnemyPresentation(): void {
@@ -981,6 +981,8 @@ export class SpacebladePlayScene extends Phaser.Scene {
       } else if (action === "friends") {
         this.highscoresTab = action;
         this.refreshOverlay();
+      } else if (action === "restart") {
+        this.startGameplay();
       } else if (action === "title") {
         this.setScreen("title");
       }
@@ -1035,7 +1037,7 @@ export class SpacebladePlayScene extends Phaser.Scene {
     this.titleEnemyPreview?.setVisible(screen === "title");
     this.titlePreviewLabels.forEach((label) => label.setVisible(screen === "title"));
     this.menuActions = screen === "paused" || screen === "settings" || screen === "gameOver" || screen === "highscores"
-      ? (screen === "paused" ? ["resume", "settings", "tutorial", "restart", "title"] : screen === "settings" ? ["volume", "screenShake", "reducedEffects", "callsign", "back"] : screen === "gameOver" ? ["restart", "highscores", "title"] : ["global", "friends", "title"])
+      ? (screen === "paused" ? ["resume", "settings", "tutorial", "restart", "title"] : screen === "settings" ? ["volume", "screenShake", "reducedEffects", "callsign", "back"] : screen === "gameOver" ? ["restart", "highscores", "title"] : ["global", "friends", "restart", "title"])
       : [];
     this.menuFocus = 0;
     this.game.canvas.dataset.spacebladeMenuMode = this.menuActions.length > 0 ? "mouse" : "none";

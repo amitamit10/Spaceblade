@@ -548,12 +548,12 @@ test("publishes the terminal run status and restarts from the end screen", async
   await expect(page.locator("input[data-spaceblade-player-name]")).toBeVisible();
   await page.locator("input[data-spaceblade-player-name]").fill("Test Pilot");
   await page.locator("button.spaceblade-name-submit").click();
-  await expect(canvas).toHaveAttribute("data-spaceblade-screen", "gameOver", { timeout: 5_000 });
+  await expect(canvas).toHaveAttribute("data-spaceblade-screen", "highscores", { timeout: 5_000 });
   await expect(canvas).toHaveAttribute("data-spaceblade-run-status", "gameOver");
-  await expect(canvas).toHaveAttribute("data-spaceblade-screen-title", "GAME OVER");
+  await expect(canvas).toHaveAttribute("data-spaceblade-highscores-tab", "global");
   await expect(canvas).toHaveAttribute("data-spaceblade-grade", /UNRANKED|B|C|A|S|SS|SSS/);
 
-  await page.mouse.click(640, 510);
+  await page.mouse.click(640, 656);
   await expect(canvas).toHaveAttribute("data-spaceblade-screen", "playing");
   await expect(canvas).toHaveAttribute("data-spaceblade-run-status", "playing");
   expect(consoleErrors).toEqual([]);
@@ -566,15 +566,8 @@ test("switches the highscores screen between Global and Friends with Space", asy
   await expect(canvas).toHaveAttribute("data-spaceblade-screen", "nameEntry", { timeout: 18_000 });
   await page.locator("input[data-spaceblade-player-name]").fill("Score Pilot");
   await page.locator("button.spaceblade-name-submit").click();
-  await expect(canvas).toHaveAttribute("data-spaceblade-screen", "gameOver", { timeout: 5_000 });
+  await expect(canvas).toHaveAttribute("data-spaceblade-screen", "highscores", { timeout: 5_000 });
 
-  await page.keyboard.down("Space");
-  await page.waitForTimeout(120);
-  await page.keyboard.up("Space");
-  await page.keyboard.down("Space");
-  await page.waitForTimeout(650);
-  await page.keyboard.up("Space");
-  await expect(canvas).toHaveAttribute("data-spaceblade-screen", "highscores");
   await expect(canvas).toHaveAttribute("data-spaceblade-highscores-tab", "global");
   await expect(canvas).toHaveAttribute("data-spaceblade-highscores-state", "disabled");
 
