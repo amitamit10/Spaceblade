@@ -351,6 +351,19 @@ export class SpacebladePlayScene extends Phaser.Scene {
     this.refreshOverlay();
   }
 
+  private menuIndexAtPointer(pointer: Phaser.Input.Pointer): number {
+    if (this.menuActions.length === 0 || !["paused", "settings", "gameOver", "highscores"].includes(this.screen)) return -1;
+    const firstY = this.screen === "gameOver" ? 510 : this.screen === "highscores" ? 560 : 430;
+    const index = Math.round((pointer.y - firstY) / 48);
+    const expectedY = firstY + index * 48;
+    return pointer.x >= 450 && pointer.x <= 830
+      && index >= 0
+      && index < this.menuActions.length
+      && Math.abs(pointer.y - expectedY) <= 20
+      ? index
+      : -1;
+  }
+
   private buildMenuButtons(): void {
     this.clearMenuButtons();
     if (this.menuActions.length === 0) return;
@@ -373,10 +386,6 @@ export class SpacebladePlayScene extends Phaser.Scene {
       button.on("pointerover", () => {
         this.menuFocus = index;
         this.refreshMenuButtons();
-      });
-      button.on("pointerup", () => {
-        this.menuFocus = index;
-        this.confirmMenuAction();
       });
       this.menuButtonBackgrounds.push(button);
       this.menuButtonLabels.push(label);
@@ -725,9 +734,25 @@ export class SpacebladePlayScene extends Phaser.Scene {
       return;
     }
     if (this.screen === "highscores") {
+      const index = this.menuIndexAtPointer(pointer);
+      if (index >= 0) {
+        this.menuFocus = index;
+        this.confirmMenuAction();
+      }
       return;
     }
     if (this.screen === "nameEntry") return;
+    if (this.screen === "paused" || this.screen === "settings" || this.screen === "gameOver") {
+      // Phaser's text overlay can sit above the row rectangles in the display
+      // list, so resolve menu clicks at the scene level as a reliable fallback.
+      if (this.screen === "settings" && pointer.x >= 676 && pointer.x <= 816 && pointer.y >= 413 && pointer.y <= 447) return;
+      const index = this.menuIndexAtPointer(pointer);
+      if (index >= 0) {
+        this.menuFocus = index;
+        this.confirmMenuAction();
+      }
+      return;
+    }
     void pointer;
   }
 

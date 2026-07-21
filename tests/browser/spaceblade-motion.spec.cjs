@@ -249,6 +249,29 @@ test("changes volume with the visible settings slider", async ({ page }) => {
   expect(await page.evaluate(() => window.localStorage.getItem("spaceblade.volume"))).toBe("0.75");
 });
 
+test("settings toggles respond to mouse clicks", async ({ page }) => {
+  await page.goto("/");
+  await startPhaserGameplay(page);
+  await page.mouse.click(1194, 76);
+  await expect(page.locator("canvas")).toHaveAttribute("data-spaceblade-screen", "paused");
+  await page.keyboard.down("Space");
+  await page.waitForTimeout(120);
+  await page.keyboard.up("Space");
+  await page.keyboard.down("Space");
+  await page.waitForTimeout(650);
+  await page.keyboard.up("Space");
+  await expect(page.locator("canvas")).toHaveAttribute("data-spaceblade-screen", "settings");
+
+  await page.mouse.click(640, 478);
+  await expect.poll(() => page.evaluate(() => window.localStorage.getItem("spaceblade.screenShake"))).toBe("false");
+  await page.mouse.click(640, 526);
+  await expect.poll(() => page.evaluate(() => window.localStorage.getItem("spaceblade.reducedEffects"))).toBe("true");
+  await page.mouse.click(640, 574);
+  await expect.poll(() => page.evaluate(() => window.localStorage.getItem("spaceblade.playerName"))).toBe("Nova");
+  await page.mouse.click(640, 622);
+  await expect(page.locator("canvas")).toHaveAttribute("data-spaceblade-screen", "paused");
+});
+
 test("opens How To Play from pause and returns without restarting", async ({ page }) => {
   await page.goto("/");
   await startPhaserGameplay(page);
