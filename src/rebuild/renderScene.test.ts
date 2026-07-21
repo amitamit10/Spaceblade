@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { rebuildAutoParkourOffset, rebuildFloorTransitionOffset, rebuildFloorTraversalPhase, rebuildObstacleParkourOffset, rebuildPlayerVisualOffset, rebuildShakeOffset } from "./renderScene";
+import { rebuildAutoParkourOffset, rebuildFloorTransitionOffset, rebuildFloorTraversalPhase, rebuildObstacleCourse, rebuildObstacleParkourOffset, rebuildPlayerVisualOffset, rebuildShakeOffset } from "./renderScene";
 
 describe("rebuild camera feedback", () => {
   it("does not move an idle scene", () => {
@@ -37,11 +37,19 @@ describe("rebuild camera feedback", () => {
   });
 
   it("automatically uses the obstacle route from vault to wall climb to landing", () => {
-    expect(rebuildObstacleParkourOffset(400, "right").phase).toBe("vault");
-    expect(rebuildObstacleParkourOffset(3700, "right").phase).toBe("wall-climb");
-    expect(rebuildObstacleParkourOffset(3800, "right").offset.y).toBeLessThan(-50);
-    expect(rebuildObstacleParkourOffset(4300, "right").phase).toBe("landing");
-    expect(rebuildObstacleParkourOffset(5000, "right").phase).toBe("complete");
+    expect(rebuildObstacleParkourOffset(1_100, "right").phase).toBe("wall-climb");
+    expect(rebuildObstacleParkourOffset(1_100, "right").offset.y).toBeLessThan(-50);
+    expect(rebuildObstacleParkourOffset(1_300, "right").phase).toBe("landing");
+    expect(rebuildObstacleParkourOffset(4_000, "right").phase).toBe("vault");
+    expect(rebuildObstacleParkourOffset(2_000, "right").phase).toBe("complete");
+  });
+
+  it("generates a repeatable mixed obstacle course for each floor", () => {
+    const first = rebuildObstacleCourse(2_000, 1);
+    const second = rebuildObstacleCourse(2_000, 1);
+    expect(first).toEqual(second);
+    expect(new Set(first.map((obstacle) => obstacle.kind)).size).toBeGreaterThan(1);
+    expect(first[1].x - first[0].x).toBe(620);
   });
 
   it("climbs to the next building floor automatically between waves", () => {

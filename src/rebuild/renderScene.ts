@@ -10,9 +10,30 @@ export const REBUILD_GROUND_Y = 552;
 const AUTO_PARKOUR_CYCLE_MS = 3200;
 const AUTO_PARKOUR_JUMP_MS = 760;
 const FLOOR_CLIMB_DURATION_MS = 1500;
-const OBSTACLE_PARKOUR_CYCLE_MS = 7600;
+export const REBUILD_OBSTACLE_SCROLL_SPEED = 0.2;
+export const REBUILD_OBSTACLE_SLOT_WIDTH = 620;
 
 export type RebuildFloorTraversalPhase = "vault" | "wall-climb" | "landing" | "complete";
+export type RebuildObstacleKind = "barrier" | "wall" | "platform";
+
+export function rebuildObstacleKind(floor: number, slot: number): RebuildObstacleKind {
+  const value = Math.abs((floor * 17 + slot * 31 + floor * slot * 7) % 9);
+  if (value <= 3) return "barrier";
+  if (value <= 6) return "platform";
+  return "wall";
+}
+
+export function rebuildObstacleCourse(now: number, floor: number): readonly { readonly x: number; readonly kind: RebuildObstacleKind }[] {
+  const distance = Math.max(0, now) * REBUILD_OBSTACLE_SCROLL_SPEED + floor * 240;
+  const firstSlot = Math.floor(distance / REBUILD_OBSTACLE_SLOT_WIDTH) - 1;
+  return Array.from({ length: 6 }, (_, index) => {
+    const slot = firstSlot + index;
+    return {
+      x: 1100 + slot * REBUILD_OBSTACLE_SLOT_WIDTH - distance,
+      kind: rebuildObstacleKind(floor, slot),
+    };
+  });
+}
 
 type Actor = {
   readonly sprite: RebuildSprite;
@@ -80,35 +101,49 @@ export function rebuildAutoParkourOffset(
 export function rebuildObstacleParkourOffset(
   now: number,
   facing: "left" | "right",
+  floor = 1,
 ): { readonly offset: { readonly x: number; readonly y: number; readonly angle: number }; readonly phase: RebuildFloorTraversalPhase } {
-  const phase = ((now % OBSTACLE_PARKOUR_CYCLE_MS) + OBSTACLE_PARKOUR_CYCLE_MS) % OBSTACLE_PARKOUR_CYCLE_MS;
+  const distance = Math.max(0, now) * REBUILD_OBSTACLE_SCROLL_SPEED + floor * 240;
+  const slot = Math.floor(distance / REBUILD_OBSTACLE_SLOT_WIDTH);
+  const obstacleX = 1100 + slot * REBUILD_OBSTACLE_SLOT_WIDTH - distance;
+  const kind = rebuildObstacleKind(floor, slot);
   const direction = facing === "left" ? -1 : 1;
-  if (phase < 620) {
-    const progress = phase / 620;
-    const arc = Math.sin(progress * Math.PI);
-    return {
-      offset: { x: Math.round(direction * arc * 42), y: -Math.round(arc * 72), angle: progress < 0.5 ? -5 : 4 },
-      phase: "vault",
-    };
+  const triggerStart = 560;
+  const triggerEnd = 720;
+  if (obstacleX < triggerStart || obstacleX > triggerEnd) {
+    return { offset: { x: 0, y: 0, angle: 0 }, phase: "complete" };
   }
-  if (phase < 3400) return { offset: { x: 0, y: 0, angle: 0 }, phase: "complete" };
-  if (phase < 4050) {
-    const progress = (phase - 3400) / 650;
-    const eased = progress * progress * (3 - 2 * progress);
+
+  const progress = (triggerEnd - obstacleX) / (triggerEnd - triggerStart);
+  if (kind === "wall") {
+    const climbProgress = Math.min(1, progress / 0.65);
+    const eased = climbProgress * climbProgress * (3 - 2 * climbProgress);
+    if (progress < 0.65) {
+      return {
+        offset: { x: direction * 16, y: -Math.round(eased * 112), angle: direction * -5 },
+        phase: "wall-climb",
+      };
+    }
+    const landing = Math.min(1, (progress - 0.65) / 0.35);
+    const landingEased = 1 - landing * landing * (3 - 2 * landing);
     return {
-      offset: { x: direction * 16, y: -Math.round(eased * 112), angle: direction * -5 },
-      phase: "wall-climb",
-    };
-  }
-  if (phase < 4550) {
-    const progress = (phase - 4050) / 500;
-    const eased = 1 - progress * progress * (3 - 2 * progress);
-    return {
-      offset: { x: Math.round(direction * (16 - progress * 16)), y: -Math.round(eased * 112), angle: direction * Math.round(5 - progress * 5) },
+      offset: { x: Math.round(direction * (16 - landing * 16)), y: -Math.round(landingEased * 112), angle: direction * Math.round(5 - landing * 5) },
       phase: "landing",
     };
   }
-  return { offset: { x: 0, y: 0, angle: 0 }, phase: "complete" };
+
+  if (kind === "platform") {
+    const arc = Math.sin(progress * Math.PI);
+    return {
+      offset: { x: Math.round(direction * arc * 48), y: -Math.round(arc * 88), angle: progress < 0.5 ? -5 : 4 },
+      phase: "vault",
+    };
+  }
+  const arc = Math.sin(progress * Math.PI);
+  return {
+    offset: { x: Math.round(direction * arc * 42), y: -Math.round(arc * 72), angle: progress < 0.5 ? -5 : 4 },
+    phase: "vault",
+  };
 }
 
 /** Automatic vertical traversal between building floors after a wave clears. */

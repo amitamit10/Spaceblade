@@ -12,7 +12,7 @@ import {
   type RebuildEnemy,
   type RebuildRun,
 } from "../rebuild/rebuildGame";
-import { rebuildFloorTransitionOffset, rebuildFloorTraversalPhase, rebuildObstacleParkourOffset, rebuildPlayerVisualOffset } from "../rebuild/renderScene";
+import { rebuildFloorTransitionOffset, rebuildFloorTraversalPhase, rebuildObstacleCourse, rebuildObstacleParkourOffset, rebuildPlayerVisualOffset } from "../rebuild/renderScene";
 import { SPACEBLADE_HEIGHT, SPACEBLADE_WIDTH } from "./spacebladeConstants";
 import { loadSpacebladeBest, loadSpacebladeSettings, saveSpacebladeBest, saveSpacebladeSettings, spacebladeMotionDefaults, type SpacebladeSettings } from "./spacebladePersistence";
 import { createSoundBus, type SoundBus, type SoundCue } from "../game/audio/soundBus";
@@ -1046,7 +1046,7 @@ export class SpacebladePlayScene extends Phaser.Scene {
       ? null
       : rebuildFloorTransitionOffset(now - this.floorClimbAt, facing);
     if (this.floorClimbAt !== null && floorOffset === null) this.floorClimbAt = null;
-    const obstacleTraversal = floorOffset === null ? rebuildObstacleParkourOffset(now, facing) : null;
+    const obstacleTraversal = floorOffset === null ? rebuildObstacleParkourOffset(now, facing, run.wave) : null;
     const traversalPhase = floorOffset === null
       ? obstacleTraversal?.phase ?? "complete"
       : rebuildFloorTraversalPhase(now - (this.floorClimbAt ?? now));
@@ -1205,21 +1205,18 @@ export class SpacebladePlayScene extends Phaser.Scene {
   ): void {
     if (!this.obstacleCourse) return;
     const graphics = this.obstacleCourse;
-    const scroll = (now * (0.08 + Math.min(0.035, floor * 0.002)) + floor * 140) % SPACEBLADE_WIDTH;
-    const obstacleXs = [180, 560, 940, 1320];
     graphics.clear();
 
-    for (const baseX of obstacleXs) {
-      const x = baseX - scroll;
-      const wrappedX = x < -120 ? x + SPACEBLADE_WIDTH + 160 : x;
-      const pattern = (Math.floor(baseX / 380) + floor) % 3;
-      if (pattern === 0) {
+    for (const obstacle of rebuildObstacleCourse(now, floor)) {
+      const wrappedX = obstacle.x;
+      if (wrappedX < -180 || wrappedX > SPACEBLADE_WIDTH + 180) continue;
+      if (obstacle.kind === "barrier") {
         // Low vaultable crate.
         graphics.fillStyle(0x241d48, 1).fillRect(wrappedX - 34, GROUND_Y - 48, 68, 46);
         graphics.fillStyle(0x3b2f69, 1).fillRect(wrappedX - 27, GROUND_Y - 40, 54, 7);
         graphics.lineStyle(2, 0xffc52f, 0.9).strokeRect(wrappedX - 34, GROUND_Y - 48, 68, 46);
         graphics.lineStyle(2, 0x57eaff, 0.55).lineBetween(wrappedX - 26, GROUND_Y - 27, wrappedX + 26, GROUND_Y - 27);
-      } else if (pattern === 1) {
+      } else if (obstacle.kind === "wall") {
         // Wall section with a climb rail, matching the automatic floor route.
         graphics.fillStyle(0x101d31, 0.98).fillRect(wrappedX - 22, GROUND_Y - 174, 44, 172);
         graphics.fillStyle(0x14243a, 1).fillRect(wrappedX - 34, GROUND_Y - 180, 68, 8);
