@@ -1086,6 +1086,7 @@ export class SpacebladePlayScene extends Phaser.Scene {
     this.game.canvas.dataset.spacebladeRunStatus = run.status;
     this.game.canvas.dataset.spacebladePlayerX = String(VIEW_PLAYER_X);
     this.game.canvas.dataset.spacebladeBuilding = "interior";
+    this.game.canvas.dataset.spacebladeFloorStyle = "steel-tower";
     this.game.canvas.dataset.spacebladeObstacles = "6";
     const nextObstacle = rebuildObstacleCourse(now, run.wave).find((obstacle) => obstacle.x > 0 && obstacle.x < SPACEBLADE_WIDTH);
     this.game.canvas.dataset.spacebladeNextObstacle = nextObstacle?.kind ?? "none";
@@ -1230,11 +1231,22 @@ export class SpacebladePlayScene extends Phaser.Scene {
 
     // A restrained interior shell keeps the public city art behind the action
     // while making the active room, walls, and vertical shaft legible.
-    graphics.fillStyle(0x071322, 0.72).fillRect(42, 82, SPACEBLADE_WIDTH - 84, GROUND_Y - 82);
+    graphics.fillStyle(0x071322, 0.78).fillRect(42, 82, SPACEBLADE_WIDTH - 84, GROUND_Y - 82);
     graphics.fillStyle(0x101d31, 0.96).fillRect(42, 82, 22, GROUND_Y - 82);
     graphics.fillStyle(0x101d31, 0.96).fillRect(SPACEBLADE_WIDTH - 64, 82, 22, GROUND_Y - 82);
     graphics.fillStyle(0x14243a, 0.92).fillRect(42, 82, SPACEBLADE_WIDTH - 84, 14);
     graphics.lineStyle(2, 0x2cb7d3, 0.56).lineBetween(64, 96, SPACEBLADE_WIDTH - 64, 96);
+
+    // Structural ribs make the room read as a tower interior instead of a
+    // flat skyline card, while the small light bars keep the scene moving.
+    for (let column = 0; column < 6; column += 1) {
+      const x = 82 + column * 224;
+      graphics.fillStyle(0x0d1a2c, 0.9).fillRect(x, 104, 12, GROUND_Y - 118);
+      graphics.lineStyle(1, 0x23506a, 0.5).lineBetween(x + 12, 104, x + 12, GROUND_Y - 18);
+      const lightY = 118 + ((floor + column) % 4) * 30;
+      graphics.fillStyle(column % 3 === floor % 3 ? 0xff4fa3 : 0x57eaff, 0.5);
+      graphics.fillRect(x - 3, lightY, 4, 22);
+    }
 
     const windowColors = [0x12304a, 0x17304e, 0x241d48] as const;
     for (let row = 0; row < 2; row += 1) {
@@ -1258,8 +1270,22 @@ export class SpacebladePlayScene extends Phaser.Scene {
     graphics.lineStyle(2, 0x57eaff, traversalPhase === "wall-climb" ? 0.8 : 0.32);
     for (let y = 136; y < GROUND_Y - 24; y += 38) graphics.lineBetween(88, y, 116, y);
 
-    graphics.fillStyle(0x0b1728, 0.98).fillRect(42, GROUND_Y - 12, SPACEBLADE_WIDTH - 84, 12);
+    // Cover the public ground strip with a dark metal floor that belongs to
+    // the building. Perspective seams make the auto-run direction legible.
+    graphics.fillStyle(0x050b15, 1).fillRect(42, GROUND_Y - 12, SPACEBLADE_WIDTH - 84, SPACEBLADE_HEIGHT - GROUND_Y + 12);
+    graphics.fillStyle(0x0c1828, 1).fillRect(42, GROUND_Y - 12, SPACEBLADE_WIDTH - 84, 12);
     graphics.lineStyle(3, 0xffc52f, 0.9).lineBetween(42, GROUND_Y - 2, SPACEBLADE_WIDTH - 42, GROUND_Y - 2);
+    for (let row = 0; row < 6; row += 1) {
+      const y = GROUND_Y + 18 + row * 25;
+      const inset = 24 + row * 22;
+      graphics.lineStyle(row === 0 ? 2 : 1, row % 2 === 0 ? 0x1d5167 : 0x163449, row === 0 ? 0.7 : 0.58);
+      graphics.lineBetween(42 + inset, y, SPACEBLADE_WIDTH - 42 - inset, y);
+      for (let panel = 0; panel < 8; panel += 1) {
+        const x = 86 + panel * 154 + ((row % 2) * 38);
+        graphics.lineStyle(1, 0x10273a, 0.8);
+        graphics.lineBetween(x, y - 10, x + 42, y - 10);
+      }
+    }
     graphics.lineStyle(1, 0x57eaff, 0.42).lineBetween(64, GROUND_Y + 12, SPACEBLADE_WIDTH - 64, GROUND_Y + 12);
 
     if (traversalPhase === "wall-climb") {
