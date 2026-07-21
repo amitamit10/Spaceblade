@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { rebuildAutoParkourOffset, rebuildFloorTransitionOffset, rebuildFloorTraversalPhase, rebuildObstacleCourse, rebuildObstacleParkourOffset, rebuildPlayerVisualOffset, rebuildShakeOffset } from "./renderScene";
+import { rebuildAutoParkourOffset, rebuildFloorTransitionOffset, rebuildFloorTraversalPhase, rebuildObstacleCourse, rebuildObstacleParkourOffset, rebuildObstacleScrollSpeed, rebuildPlayerVisualOffset, rebuildShakeOffset } from "./renderScene";
 
 describe("rebuild camera feedback", () => {
   it("does not move an idle scene", () => {
@@ -50,6 +50,12 @@ describe("rebuild camera feedback", () => {
     expect(first).toEqual(second);
     expect(new Set(first.map((obstacle) => obstacle.kind)).size).toBeGreaterThan(1);
     expect(first[1].x - first[0].x).toBe(620);
+  });
+
+  it("ramps the forward course speed as floors get harder", () => {
+    expect(rebuildObstacleScrollSpeed(1)).toBe(0.2);
+    expect(rebuildObstacleScrollSpeed(6)).toBeGreaterThan(rebuildObstacleScrollSpeed(1));
+    expect(rebuildObstacleScrollSpeed(30)).toBe(0.32);
   });
 
   it("climbs to the next building floor automatically between waves", () => {

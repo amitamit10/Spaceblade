@@ -16,6 +16,10 @@ export const REBUILD_OBSTACLE_SLOT_WIDTH = 620;
 export type RebuildFloorTraversalPhase = "vault" | "wall-climb" | "landing" | "complete";
 export type RebuildObstacleKind = "barrier" | "wall" | "platform";
 
+export function rebuildObstacleScrollSpeed(floor: number): number {
+  return REBUILD_OBSTACLE_SCROLL_SPEED + Math.min(0.12, Math.max(0, floor - 1) * 0.01);
+}
+
 export function rebuildObstacleKind(floor: number, slot: number): RebuildObstacleKind {
   const value = Math.abs((floor * 17 + slot * 31 + floor * slot * 7) % 9);
   if (value <= 3) return "barrier";
@@ -24,7 +28,7 @@ export function rebuildObstacleKind(floor: number, slot: number): RebuildObstacl
 }
 
 export function rebuildObstacleCourse(now: number, floor: number): readonly { readonly x: number; readonly kind: RebuildObstacleKind }[] {
-  const distance = Math.max(0, now) * REBUILD_OBSTACLE_SCROLL_SPEED + floor * 240;
+  const distance = Math.max(0, now) * rebuildObstacleScrollSpeed(floor) + floor * 240;
   const firstSlot = Math.floor(distance / REBUILD_OBSTACLE_SLOT_WIDTH) - 1;
   return Array.from({ length: 6 }, (_, index) => {
     const slot = firstSlot + index;
@@ -103,7 +107,7 @@ export function rebuildObstacleParkourOffset(
   facing: "left" | "right",
   floor = 1,
 ): { readonly offset: { readonly x: number; readonly y: number; readonly angle: number }; readonly phase: RebuildFloorTraversalPhase } {
-  const distance = Math.max(0, now) * REBUILD_OBSTACLE_SCROLL_SPEED + floor * 240;
+  const distance = Math.max(0, now) * rebuildObstacleScrollSpeed(floor) + floor * 240;
   const slot = Math.floor(distance / REBUILD_OBSTACLE_SLOT_WIDTH);
   const obstacleX = 1100 + slot * REBUILD_OBSTACLE_SLOT_WIDTH - distance;
   const kind = rebuildObstacleKind(floor, slot);

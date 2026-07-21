@@ -12,7 +12,7 @@ import {
   type RebuildEnemy,
   type RebuildRun,
 } from "../rebuild/rebuildGame";
-import { rebuildFloorTransitionOffset, rebuildFloorTraversalPhase, rebuildObstacleCourse, rebuildObstacleParkourOffset, rebuildPlayerVisualOffset } from "../rebuild/renderScene";
+import { rebuildFloorTransitionOffset, rebuildFloorTraversalPhase, rebuildObstacleCourse, rebuildObstacleParkourOffset, rebuildObstacleScrollSpeed, rebuildPlayerVisualOffset } from "../rebuild/renderScene";
 import { SPACEBLADE_HEIGHT, SPACEBLADE_WIDTH } from "./spacebladeConstants";
 import { loadSpacebladeBest, loadSpacebladeSettings, saveSpacebladeBest, saveSpacebladeSettings, spacebladeMotionDefaults, type SpacebladeSettings } from "./spacebladePersistence";
 import { createSoundBus, type SoundBus, type SoundCue } from "../game/audio/soundBus";
@@ -1015,6 +1015,7 @@ export class SpacebladePlayScene extends Phaser.Scene {
     this.game.canvas.dataset.spacebladeGrade = gradeForScore(run.score) ?? "UNRANKED";
     this.game.canvas.dataset.spacebladeReducedEffects = String(this.settings.reducedEffectsEnabled);
     this.game.canvas.dataset.spacebladeFloor = String(run.wave);
+    this.game.canvas.dataset.spacebladeRunSpeed = String(rebuildObstacleScrollSpeed(run.wave));
     this.game.canvas.dataset.spacebladeRunStatus = run.status;
     this.game.canvas.dataset.spacebladePlayerX = String(VIEW_PLAYER_X);
     this.game.canvas.dataset.spacebladeBuilding = "interior";
@@ -1096,7 +1097,7 @@ export class SpacebladePlayScene extends Phaser.Scene {
     this.drawBuildingInterior(now, run.wave, traversalPhase);
     this.drawBuildingObstacles(now, run.wave, traversalPhase);
     this.drawSkylineMotion(now, run.wave);
-    this.drawRunnerMotion(now, facing);
+    this.drawRunnerMotion(now, facing, run.wave);
     const bossActive = run.enemies.some((enemy) => enemy.type === "boss" && enemy.state !== "dead");
     const boss = run.enemies.find((enemy) => enemy.type === "boss" && enemy.state !== "dead");
     this.game.canvas.dataset.spacebladeBossActive = String(Boolean(boss));
@@ -1110,9 +1111,10 @@ export class SpacebladePlayScene extends Phaser.Scene {
     }
   }
 
-  private drawRunnerMotion(now: number, facing: "left" | "right"): void {
+  private drawRunnerMotion(now: number, facing: "left" | "right", floor: number): void {
     if (!this.runnerMotion) return;
-    const offset = (now * 0.18) % 180;
+    const speed = rebuildObstacleScrollSpeed(floor);
+    const offset = (now * speed * 0.92) % 180;
     this.runnerMotion.clear();
     this.runnerMotion.lineStyle(2, 0x1a5d73, 0.55);
     for (let x = -180 + offset; x < SPACEBLADE_WIDTH + 180; x += 180) {
@@ -1125,7 +1127,7 @@ export class SpacebladePlayScene extends Phaser.Scene {
     }
 
     const direction = facing === "right" ? 1 : -1;
-    const trailPhase = now / 95;
+    const trailPhase = now * speed * 4.4;
     for (let index = 0; index < 4; index += 1) {
       const length = 26 + ((index * 13) % 24);
       const y = GROUND_Y - 54 - index * 18 + Math.sin(trailPhase + index) * 3;
@@ -1137,12 +1139,12 @@ export class SpacebladePlayScene extends Phaser.Scene {
 
   private drawSkylineMotion(now: number, wave: number): void {
     if (!this.skylineMotion) return;
-    const offset = (now * 0.06) % 320;
+    const offset = (now * rebuildObstacleScrollSpeed(wave) * 0.34) % 320;
     this.skylineMotion.clear().setVisible(false);
     const floorOffset = Math.max(0, wave - 1) * 42;
     this.publicSkylineFar?.setTilePosition(now * -0.012, -floorOffset * 0.35);
     this.publicSkylineNear?.setTilePosition(now * -0.028, -floorOffset);
-    this.publicGround?.setTilePosition(now * -0.06, 0);
+    this.publicGround?.setTilePosition(now * -rebuildObstacleScrollSpeed(wave) * 0.28, 0);
     this.game.canvas.dataset.spacebladeBackgroundOffset = String(Math.round(offset));
   }
 
