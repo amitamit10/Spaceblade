@@ -1019,7 +1019,9 @@ export class SpacebladePlayScene extends Phaser.Scene {
     this.game.canvas.dataset.spacebladeRunStatus = run.status;
     this.game.canvas.dataset.spacebladePlayerX = String(VIEW_PLAYER_X);
     this.game.canvas.dataset.spacebladeBuilding = "interior";
-    this.game.canvas.dataset.spacebladeObstacles = "4";
+    this.game.canvas.dataset.spacebladeObstacles = "6";
+    const nextObstacle = rebuildObstacleCourse(now, run.wave).find((obstacle) => obstacle.x > 0 && obstacle.x < SPACEBLADE_WIDTH);
+    this.game.canvas.dataset.spacebladeNextObstacle = nextObstacle?.kind ?? "none";
     this.syncWaveBanner(now);
     const facing = facingFor(run);
     const playerVisualState = run.status === "gameOver"
@@ -1212,6 +1214,14 @@ export class SpacebladePlayScene extends Phaser.Scene {
     for (const obstacle of rebuildObstacleCourse(now, floor)) {
       const wrappedX = obstacle.x;
       if (wrappedX < -180 || wrappedX > SPACEBLADE_WIDTH + 180) continue;
+      const approaching = wrappedX > 560 && wrappedX < 860;
+      if (approaching) {
+        const cueColor = obstacle.kind === "wall" ? 0xffc52f : obstacle.kind === "platform" ? 0x57eaff : 0xff4fa3;
+        graphics.lineStyle(3, cueColor, 0.72);
+        graphics.lineBetween(wrappedX, GROUND_Y - 214, wrappedX, GROUND_Y - 186);
+        graphics.fillStyle(cueColor, 0.82);
+        graphics.fillTriangle(wrappedX - 9, GROUND_Y - 190, wrappedX + 9, GROUND_Y - 190, wrappedX, GROUND_Y - 176);
+      }
       if (obstacle.kind === "barrier") {
         // Low vaultable crate.
         graphics.fillStyle(0x241d48, 1).fillRect(wrappedX - 34, GROUND_Y - 48, 68, 46);

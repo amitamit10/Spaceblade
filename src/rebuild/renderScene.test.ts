@@ -37,10 +37,12 @@ describe("rebuild camera feedback", () => {
   });
 
   it("automatically uses the obstacle route from vault to wall climb to landing", () => {
-    expect(rebuildObstacleParkourOffset(1_100, "right").phase).toBe("wall-climb");
-    expect(rebuildObstacleParkourOffset(1_100, "right").offset.y).toBeLessThan(-50);
-    expect(rebuildObstacleParkourOffset(1_300, "right").phase).toBe("landing");
-    expect(rebuildObstacleParkourOffset(4_000, "right").phase).toBe("vault");
+    expect(rebuildObstacleParkourOffset(7_700, "right").phase).toBe("pause");
+    expect(rebuildObstacleParkourOffset(8_000, "right").phase).toBe("wall-climb");
+    expect(rebuildObstacleParkourOffset(8_000, "right").offset.y).toBeLessThan(-50);
+    expect(rebuildObstacleParkourOffset(8_050, "right").phase).toBe("pause");
+    expect(rebuildObstacleParkourOffset(8_150, "right").phase).toBe("landing");
+    expect(rebuildObstacleParkourOffset(6_200, "right").phase).toBe("vault");
     expect(rebuildObstacleParkourOffset(2_000, "right").phase).toBe("complete");
   });
 
@@ -49,13 +51,13 @@ describe("rebuild camera feedback", () => {
     const second = rebuildObstacleCourse(2_000, 1);
     expect(first).toEqual(second);
     expect(new Set(first.map((obstacle) => obstacle.kind)).size).toBeGreaterThan(1);
-    expect(first[1].x - first[0].x).toBe(620);
+    expect(first[1].x - first[0].x).toBe(500);
   });
 
   it("ramps the forward course speed as floors get harder", () => {
-    expect(rebuildObstacleScrollSpeed(1)).toBe(0.2);
+    expect(rebuildObstacleScrollSpeed(1)).toBe(0.28);
     expect(rebuildObstacleScrollSpeed(6)).toBeGreaterThan(rebuildObstacleScrollSpeed(1));
-    expect(rebuildObstacleScrollSpeed(30)).toBe(0.32);
+    expect(rebuildObstacleScrollSpeed(30)).toBe(0.46);
   });
 
   it("climbs to the next building floor automatically between waves", () => {

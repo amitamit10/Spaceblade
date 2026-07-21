@@ -86,16 +86,16 @@ const MAX_ACTIVE_TANKS = 2;
 const WAVE_TARGET_BASE = 6;
 const FORWARD_SPAWN_GAP = 96;
 const FLOOR_PACING_CAP = 1.55;
-const MIN_SPAWN_INTERVAL_MS = 520;
+const MIN_SPAWN_INTERVAL_MS = 420;
 const MIN_ATTACK_WINDUP_MS = 160;
 
 const ENEMY_STATS: Record<RebuildEnemyType, EnemyStats> = {
-  grunt: { hp: 1, speed: 88, attackRange: 72, windupMs: 380, recoveryMs: 360, damage: 1, score: 100 },
-  runner: { hp: 1, speed: 172, attackRange: 64, windupMs: 220, recoveryMs: 280, damage: 1, score: 125 },
-  shield: { hp: 2, speed: 58, attackRange: 78, windupMs: 480, recoveryMs: 440, damage: 1, score: 200 },
-  tank: { hp: 4, speed: 34, attackRange: 94, windupMs: 760, recoveryMs: 680, damage: 1, score: 325 },
-  glitch: { hp: 2, speed: 122, attackRange: 70, windupMs: 280, recoveryMs: 320, damage: 1, score: 350 },
-  boss: { hp: 18, speed: 28, attackRange: 124, windupMs: 780, recoveryMs: 640, damage: 2, score: 1500 },
+  grunt: { hp: 1, speed: 120, attackRange: 72, windupMs: 380, recoveryMs: 360, damage: 1, score: 100 },
+  runner: { hp: 1, speed: 220, attackRange: 64, windupMs: 220, recoveryMs: 280, damage: 1, score: 125 },
+  shield: { hp: 2, speed: 78, attackRange: 78, windupMs: 480, recoveryMs: 440, damage: 1, score: 200 },
+  tank: { hp: 4, speed: 45, attackRange: 94, windupMs: 760, recoveryMs: 680, damage: 1, score: 325 },
+  glitch: { hp: 2, speed: 160, attackRange: 70, windupMs: 280, recoveryMs: 320, damage: 1, score: 350 },
+  boss: { hp: 18, speed: 36, attackRange: 124, windupMs: 780, recoveryMs: 640, damage: 2, score: 1500 },
 };
 
 const cloneRun = (run: RebuildRun): RebuildRun => ({
@@ -184,7 +184,7 @@ function awardDefeat(run: RebuildRun, enemy: RebuildEnemy): void {
 }
 
 export function rebuildSpawnIntervalForWave(wave: number): number {
-  const baseInterval = wave <= 3 ? 1900 : wave <= 6 ? 1550 : wave <= 10 ? 1200 : wave <= 13 ? 950 : 700;
+  const baseInterval = wave <= 3 ? 1500 : wave <= 6 ? 1300 : wave <= 10 ? 1050 : wave <= 13 ? 820 : 620;
   return Math.max(MIN_SPAWN_INTERVAL_MS, Math.round(baseInterval / rebuildFloorPacingMultiplier(wave)));
 }
 

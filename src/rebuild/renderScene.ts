@@ -10,14 +10,14 @@ export const REBUILD_GROUND_Y = 552;
 const AUTO_PARKOUR_CYCLE_MS = 3200;
 const AUTO_PARKOUR_JUMP_MS = 760;
 const FLOOR_CLIMB_DURATION_MS = 1500;
-export const REBUILD_OBSTACLE_SCROLL_SPEED = 0.2;
-export const REBUILD_OBSTACLE_SLOT_WIDTH = 620;
+export const REBUILD_OBSTACLE_SCROLL_SPEED = 0.28;
+export const REBUILD_OBSTACLE_SLOT_WIDTH = 500;
 
-export type RebuildFloorTraversalPhase = "vault" | "wall-climb" | "landing" | "complete";
+export type RebuildFloorTraversalPhase = "vault" | "pause" | "wall-climb" | "landing" | "complete";
 export type RebuildObstacleKind = "barrier" | "wall" | "platform";
 
 export function rebuildObstacleScrollSpeed(floor: number): number {
-  return REBUILD_OBSTACLE_SCROLL_SPEED + Math.min(0.12, Math.max(0, floor - 1) * 0.01);
+  return REBUILD_OBSTACLE_SCROLL_SPEED + Math.min(0.18, Math.max(0, floor - 1) * 0.012);
 }
 
 export function rebuildObstacleKind(floor: number, slot: number): RebuildObstacleKind {
@@ -107,10 +107,10 @@ export function rebuildObstacleParkourOffset(
   facing: "left" | "right",
   floor = 1,
 ): { readonly offset: { readonly x: number; readonly y: number; readonly angle: number }; readonly phase: RebuildFloorTraversalPhase } {
-  const distance = Math.max(0, now) * rebuildObstacleScrollSpeed(floor) + floor * 240;
-  const slot = Math.floor(distance / REBUILD_OBSTACLE_SLOT_WIDTH);
-  const obstacleX = 1100 + slot * REBUILD_OBSTACLE_SLOT_WIDTH - distance;
-  const kind = rebuildObstacleKind(floor, slot);
+  const obstacle = rebuildObstacleCourse(now, floor).find(({ x }) => x >= 540 && x <= 720);
+  if (!obstacle) return { offset: { x: 0, y: 0, angle: 0 }, phase: "complete" };
+  const obstacleX = obstacle.x;
+  const kind = obstacle.kind;
   const direction = facing === "left" ? -1 : 1;
   const triggerStart = 560;
   const triggerEnd = 720;
@@ -120,15 +120,29 @@ export function rebuildObstacleParkourOffset(
 
   const progress = (triggerEnd - obstacleX) / (triggerEnd - triggerStart);
   if (kind === "wall") {
-    const climbProgress = Math.min(1, progress / 0.65);
+    // Let the runner visibly brake at the wall, hold at the top, then drop
+    // back to the floor instead of sliding through one continuous arc.
+    if (progress < 0.16) {
+      return {
+        offset: { x: direction * Math.round(progress * 16 / 0.16), y: 0, angle: direction * -2 },
+        phase: "pause",
+      };
+    }
+    if (progress >= 0.68 && progress < 0.8) {
+      return {
+        offset: { x: direction * 16, y: -112, angle: direction * -5 },
+        phase: "pause",
+      };
+    }
+    const climbProgress = Math.min(1, (progress - 0.16) / 0.52);
     const eased = climbProgress * climbProgress * (3 - 2 * climbProgress);
-    if (progress < 0.65) {
+    if (progress < 0.68) {
       return {
         offset: { x: direction * 16, y: -Math.round(eased * 112), angle: direction * -5 },
         phase: "wall-climb",
       };
     }
-    const landing = Math.min(1, (progress - 0.65) / 0.35);
+    const landing = Math.min(1, (progress - 0.8) / 0.2);
     const landingEased = 1 - landing * landing * (3 - 2 * landing);
     return {
       offset: { x: Math.round(direction * (16 - landing * 16)), y: -Math.round(landingEased * 112), angle: direction * Math.round(5 - landing * 5) },
