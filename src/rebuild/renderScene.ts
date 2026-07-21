@@ -10,14 +10,14 @@ export const REBUILD_GROUND_Y = 552;
 const AUTO_PARKOUR_CYCLE_MS = 3200;
 const AUTO_PARKOUR_JUMP_MS = 760;
 const FLOOR_CLIMB_DURATION_MS = 1500;
-export const REBUILD_OBSTACLE_SCROLL_SPEED = 0.28;
+export const REBUILD_OBSTACLE_SCROLL_SPEED = 0.22;
 export const REBUILD_OBSTACLE_SLOT_WIDTH = 500;
 
 export type RebuildFloorTraversalPhase = "vault" | "pause" | "wall-climb" | "landing" | "complete";
 export type RebuildObstacleKind = "barrier" | "wall" | "platform";
 
 export function rebuildObstacleScrollSpeed(floor: number): number {
-  return REBUILD_OBSTACLE_SCROLL_SPEED + Math.min(0.18, Math.max(0, floor - 1) * 0.012);
+  return REBUILD_OBSTACLE_SCROLL_SPEED + Math.min(0.10, Math.max(0, floor - 1) * 0.008);
 }
 
 export function rebuildObstacleKind(floor: number, slot: number): RebuildObstacleKind {

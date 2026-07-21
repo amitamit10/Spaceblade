@@ -77,8 +77,8 @@ describe("rebuild run model", () => {
     expect(intervals[1]).toBeGreaterThan(intervals[2]);
     expect(intervals[2]).toBeGreaterThan(intervals[3]);
     expect(intervals[3]).toBeGreaterThan(intervals[4]);
-    expect(intervals[4]).toBe(420);
-    expect(intervals[5]).toBe(420);
+    expect(intervals[4]).toBe(500);
+    expect(intervals[5]).toBe(500);
   });
 
   it("gives each enemy role distinct health and speed", () => {

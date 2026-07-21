@@ -19,31 +19,31 @@ const authoredFramePaths = (folder: string, action: string, count: number): stri
     `/sprites/frames/${folder}/${action}-${String(index).padStart(2, "0")}.png?v=public-robot-pack-1`,
   );
 
-const soldierPose = (pose: string): string =>
-  `/assets/public/kenney-platformer-characters/PNG/Soldier/Poses/soldier_${pose}.png?v=kenney-soldier-1`;
+const warpedCityPlayerFrame = (frame: string): string =>
+  `/assets/public/warped-city/player/${frame}.png?v=public-pack-3`;
 
 export const REBUILD_PLAYER: RebuildSprite = {
   id: "player",
-  width: 80,
-  height: 110,
-  scale: 1.9,
-  anchorX: 40,
-  anchorY: 109,
+  width: 71,
+  height: 67,
+  scale: 3,
+  anchorX: 35,
+  anchorY: 66,
   animations: {
-    idle: { frames: [soldierPose("idle")], frameDurationMs: 110, loop: true },
-    run: { frames: [soldierPose("walk1"), soldierPose("walk2")], frameDurationMs: 90, loop: true },
-    walk: { frames: [soldierPose("walk1"), soldierPose("walk2")], frameDurationMs: 110, loop: true },
-    climb: { frames: [soldierPose("climb1"), soldierPose("climb2")], frameDurationMs: 180, loop: true },
-    hang: { frames: [soldierPose("hang")], frameDurationMs: 180, loop: true },
-    jump: { frames: [soldierPose("jump")], frameDurationMs: 180, loop: false },
-    fall: { frames: [soldierPose("fall")], frameDurationMs: 180, loop: false },
-    slash: { frames: [soldierPose("action1"), soldierPose("action2")], frameDurationMs: 90, loop: false },
-    charging: { frames: [soldierPose("hold1"), soldierPose("hold2")], frameDurationMs: 120, loop: true },
-    heavy: { frames: [soldierPose("action2"), soldierPose("action1")], frameDurationMs: 90, loop: false },
-    dodge: { frames: [soldierPose("kick"), soldierPose("jump")], frameDurationMs: 90, loop: false },
-    parry: { frames: [soldierPose("hold1"), soldierPose("hold2")], frameDurationMs: 90, loop: false },
-    hurt: { frames: [soldierPose("hurt")], frameDurationMs: 120, loop: false },
-    dead: { frames: [soldierPose("fall")], frameDurationMs: 180, loop: false },
+    idle: { frames: [warpedCityPlayerFrame("idle-1"), warpedCityPlayerFrame("idle-2"), warpedCityPlayerFrame("idle-3"), warpedCityPlayerFrame("idle-4")], frameDurationMs: 110, loop: true },
+    run: { frames: Array.from({ length: 8 }, (_, index) => warpedCityPlayerFrame(`run-${index + 1}`)), frameDurationMs: 90, loop: true },
+    walk: { frames: Array.from({ length: 8 }, (_, index) => warpedCityPlayerFrame(`run-${index + 1}`)), frameDurationMs: 105, loop: true },
+    climb: { frames: [warpedCityPlayerFrame("run-3"), warpedCityPlayerFrame("run-6")], frameDurationMs: 180, loop: true },
+    hang: { frames: [warpedCityPlayerFrame("idle-2")], frameDurationMs: 180, loop: true },
+    jump: { frames: [warpedCityPlayerFrame("run-2")], frameDurationMs: 180, loop: false },
+    fall: { frames: [warpedCityPlayerFrame("run-6")], frameDurationMs: 180, loop: false },
+    slash: { frames: [warpedCityPlayerFrame("shoot"), warpedCityPlayerFrame("run-shoot-2")], frameDurationMs: 90, loop: false },
+    charging: { frames: [warpedCityPlayerFrame("shoot")], frameDurationMs: 120, loop: true },
+    heavy: { frames: [warpedCityPlayerFrame("run-shoot-1"), warpedCityPlayerFrame("run-shoot-5")], frameDurationMs: 90, loop: false },
+    dodge: { frames: [warpedCityPlayerFrame("run-2"), warpedCityPlayerFrame("run-5")], frameDurationMs: 90, loop: false },
+    parry: { frames: [warpedCityPlayerFrame("shoot")], frameDurationMs: 90, loop: false },
+    hurt: { frames: [warpedCityPlayerFrame("hurt")], frameDurationMs: 120, loop: false },
+    dead: { frames: [warpedCityPlayerFrame("hurt")], frameDurationMs: 180, loop: false },
   },
 };
 
