@@ -7,6 +7,7 @@ import {
   rebuildActiveThreatWeight,
   rebuildEnemyThreatWeight,
   rebuildEnemySpeedForFloor,
+  rebuildEnemyStats,
   rebuildEnergyProjectileHitRadius,
   rebuildEnemyWindupForFloor,
   rebuildFloorPacingMultiplier,
@@ -77,6 +78,14 @@ describe("rebuild run model", () => {
     expect(intervals[3]).toBeGreaterThan(intervals[4]);
     expect(intervals[4]).toBe(520);
     expect(intervals[5]).toBe(520);
+  });
+
+  it("gives each enemy role distinct health and speed", () => {
+    expect(rebuildEnemyStats.runner.speed).toBeGreaterThan(rebuildEnemyStats.grunt.speed);
+    expect(rebuildEnemyStats.shield.hp).toBeGreaterThan(rebuildEnemyStats.grunt.hp);
+    expect(rebuildEnemyStats.tank.hp).toBeGreaterThan(rebuildEnemyStats.shield.hp);
+    expect(rebuildEnemyStats.tank.speed).toBeLessThan(rebuildEnemyStats.shield.speed);
+    expect(rebuildEnemyStats.boss.hp).toBeGreaterThan(rebuildEnemyStats.tank.hp);
   });
 
   it("keeps the small runner reachable by the energy shot", () => {
@@ -161,7 +170,7 @@ describe("rebuild run model", () => {
 
     expect(first.enemies[0].state).not.toBe("dead");
     expect(second.enemies[0].state).toBe("dead");
-    expect(second.score).toBe(275);
+    expect(second.score).toBe(325);
   });
 
   it("moves a threat toward the player and damages an unprotected player", () => {

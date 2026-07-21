@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
-import { REBUILD_PLAYER, REBUILD_SPRITES } from "./frameManifest";
+import { REBUILD_ENEMIES, REBUILD_PLAYER, REBUILD_SPRITES } from "./frameManifest";
 import { readPngMetadata } from "../../game/rendering/runtimeSpritePack";
 
 describe("rebuild frame manifest", () => {
@@ -71,6 +71,14 @@ describe("rebuild frame manifest", () => {
         expect(enemyFrames[left]).not.toEqual(enemyFrames[right]);
       }
     }
+  });
+
+  it("uses a readable size ladder for enemy roles", () => {
+    const scales = Object.fromEntries(REBUILD_ENEMIES.map((enemy) => [enemy.id, enemy.scale]));
+    expect(scales.runner).toBeLessThan(scales.grunt);
+    expect(scales.grunt).toBeLessThan(scales.shield);
+    expect(scales.shield).toBeLessThan(scales.tank);
+    expect(scales.tank).toBeLessThan(scales.boss);
   });
 
   it("ships dedicated player hurt and death reactions", () => {

@@ -90,12 +90,12 @@ const MIN_SPAWN_INTERVAL_MS = 520;
 const MIN_ATTACK_WINDUP_MS = 160;
 
 const ENEMY_STATS: Record<RebuildEnemyType, EnemyStats> = {
-  grunt: { hp: 1, speed: 84, attackRange: 78, windupMs: 380, recoveryMs: 360, damage: 1, score: 100 },
-  runner: { hp: 1, speed: 145, attackRange: 72, windupMs: 240, recoveryMs: 300, damage: 1, score: 125 },
-  shield: { hp: 1, speed: 62, attackRange: 82, windupMs: 460, recoveryMs: 420, damage: 1, score: 175 },
-  tank: { hp: 2, speed: 44, attackRange: 98, windupMs: 680, recoveryMs: 620, damage: 1, score: 275 },
-  glitch: { hp: 1, speed: 106, attackRange: 76, windupMs: 300, recoveryMs: 340, damage: 1, score: 300 },
-  boss: { hp: 12, speed: 40, attackRange: 130, windupMs: 720, recoveryMs: 580, damage: 2, score: 1500 },
+  grunt: { hp: 1, speed: 88, attackRange: 72, windupMs: 380, recoveryMs: 360, damage: 1, score: 100 },
+  runner: { hp: 1, speed: 172, attackRange: 64, windupMs: 220, recoveryMs: 280, damage: 1, score: 125 },
+  shield: { hp: 2, speed: 58, attackRange: 78, windupMs: 480, recoveryMs: 440, damage: 1, score: 200 },
+  tank: { hp: 4, speed: 34, attackRange: 94, windupMs: 760, recoveryMs: 680, damage: 1, score: 325 },
+  glitch: { hp: 2, speed: 122, attackRange: 70, windupMs: 280, recoveryMs: 320, damage: 1, score: 350 },
+  boss: { hp: 18, speed: 28, attackRange: 124, windupMs: 780, recoveryMs: 640, damage: 2, score: 1500 },
 };
 
 const cloneRun = (run: RebuildRun): RebuildRun => ({
