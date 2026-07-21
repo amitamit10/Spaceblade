@@ -155,6 +155,10 @@ export class SpacebladePlayScene extends Phaser.Scene {
   private screenBody: Phaser.GameObjects.Text | null = null;
   private screenHint: Phaser.GameObjects.Text | null = null;
   private screenBackdrop: Phaser.GameObjects.Rectangle | null = null;
+  private titleDecor: Phaser.GameObjects.Graphics | null = null;
+  private titleHeroPreview: Phaser.GameObjects.Image | null = null;
+  private titleEnemyPreview: Phaser.GameObjects.Image | null = null;
+  private readonly titlePreviewLabels: Phaser.GameObjects.Text[] = [];
   private tutorialGuideBackground: Phaser.GameObjects.Graphics | null = null;
   private tutorialGuideImages: Phaser.GameObjects.Image[] = [];
   private tutorialGuideLabels: Phaser.GameObjects.Text[] = [];
@@ -203,6 +207,61 @@ export class SpacebladePlayScene extends Phaser.Scene {
     for (const label of this.menuButtonLabels) label.destroy();
     this.menuButtonBackgrounds = [];
     this.menuButtonLabels = [];
+  }
+
+  private drawTitleLaunchBay(): void {
+    this.titleDecor = this.add.graphics().setDepth(11);
+    this.titleDecor.fillStyle(0x071322, 0.72).fillRect(48, 92, SPACEBLADE_WIDTH - 96, 532);
+    this.titleDecor.lineStyle(2, PUBLIC_PALETTE.cyan, 0.58).strokeRect(48, 92, SPACEBLADE_WIDTH - 96, 532);
+    this.titleDecor.lineStyle(1, PUBLIC_PALETTE.cyan, 0.24);
+    this.titleDecor.lineBetween(82, 132, SPACEBLADE_WIDTH - 82, 132);
+    this.titleDecor.lineBetween(82, 532, SPACEBLADE_WIDTH - 82, 532);
+    this.titleDecor.lineStyle(3, PUBLIC_PALETTE.amber, 0.8);
+    this.titleDecor.lineBetween(82, 536, 340, 536);
+    this.titleDecor.lineBetween(SPACEBLADE_WIDTH - 340, 536, SPACEBLADE_WIDTH - 82, 536);
+    for (let index = 0; index < 18; index += 1) {
+      const x = 88 + index * 64;
+      const height = 14 + (index % 4) * 10;
+      this.titleDecor.fillStyle(index % 5 === 0 ? PUBLIC_PALETTE.magenta : PUBLIC_PALETTE.cyan, 0.18);
+      this.titleDecor.fillRect(x, 514 - height, 32, height);
+    }
+
+    this.titleHeroPreview = this.add.image(276, 536, frameKey(REBUILD_PLAYER.animations.run.frames[0]))
+      .setOrigin(0.5, 1)
+      .setScale(1.45)
+      .setDepth(13);
+    const grunt = REBUILD_ENEMIES.find((enemy) => enemy.id === "grunt") ?? REBUILD_ENEMIES[0];
+    this.titleEnemyPreview = this.add.image(1000, 536, frameKey(animationFor(grunt, "walk").frames[0]))
+      .setOrigin(0.5, 1)
+      .setScale(1.35)
+      .setFlipX(true)
+      .setDepth(13);
+    const labelStyle = {
+      color: PUBLIC_PALETTE.muted,
+      fontFamily: "monospace",
+      fontSize: "13px",
+      fontStyle: "bold",
+    } as const;
+    this.titlePreviewLabels.push(
+      this.add.text(102, 154, "RUN 01  //  TOWER ENTRY", labelStyle).setDepth(14),
+      this.add.text(102, 178, "ONE KEY  ·  AUTO-CLIMB", { ...labelStyle, color: "#ffc52f" }).setDepth(14),
+      this.add.text(884, 154, "THREAT SIGNAL", labelStyle).setDepth(14),
+      this.add.text(884, 178, "15 FLOORS  ·  NO EXIT", { ...labelStyle, color: "#ff4fa3" }).setDepth(14),
+    );
+  }
+
+  private syncTitleLaunchBay(now: number): void {
+    const visible = this.screen === "title";
+    this.titleDecor?.setVisible(visible);
+    this.titleHeroPreview?.setVisible(visible);
+    this.titleEnemyPreview?.setVisible(visible);
+    this.titlePreviewLabels.forEach((label) => label.setVisible(visible));
+    if (!visible) return;
+    const playerRun = REBUILD_PLAYER.animations.run;
+    const grunt = REBUILD_ENEMIES.find((enemy) => enemy.id === "grunt") ?? REBUILD_ENEMIES[0];
+    const enemyWalk = animationFor(grunt, "walk");
+    this.titleHeroPreview?.setTexture(frameKey(playerRun.frames[frameIndexAt(playerRun, now)]));
+    this.titleEnemyPreview?.setTexture(frameKey(enemyWalk.frames[frameIndexAt(enemyWalk, now)]));
   }
 
   private createTutorialGuide(): void {
@@ -426,13 +485,14 @@ export class SpacebladePlayScene extends Phaser.Scene {
 
     this.screenBackdrop = this.add.rectangle(SPACEBLADE_WIDTH / 2, SPACEBLADE_HEIGHT / 2, SPACEBLADE_WIDTH, SPACEBLADE_HEIGHT, PUBLIC_PALETTE.background, 0.96)
       .setDepth(10);
+    this.drawTitleLaunchBay();
     this.screenTitle = this.add.text(SPACEBLADE_WIDTH / 2, 190, "SPACEBLADE", {
       color: PUBLIC_PALETTE.ink,
       fontFamily: "monospace",
       fontSize: "58px",
       fontStyle: "bold",
     }).setOrigin(0.5).setDepth(11);
-    this.screenBody = this.add.text(SPACEBLADE_WIDTH / 2, 350, "ONE KEY. ENDLESS RUN.\n\nAuto-run through Neon-Sector 04.\nCut down threats before they reach you.", {
+    this.screenBody = this.add.text(SPACEBLADE_WIDTH / 2, 350, "ONE KEY. ENDLESS FIGHT.\n\nAUTO-RUN THE TOWER\nClimb every floor. Read the threat. Strike on the beat.", {
       color: PUBLIC_PALETTE.muted,
       fontFamily: "monospace",
       fontSize: "24px",
@@ -472,6 +532,7 @@ export class SpacebladePlayScene extends Phaser.Scene {
     this.publicSkylineFar?.setTilePosition(this.time.now * -0.012, 0);
     this.publicSkylineNear?.setTilePosition(this.time.now * -0.028, 0);
     this.publicGround?.setTilePosition(this.time.now * -0.06, 0);
+    this.syncTitleLaunchBay(this.time.now);
     if (this.screen !== "playing" || !this.run) return;
     const now = this.time.now;
     const heartsBefore = this.run.hearts;
@@ -894,6 +955,11 @@ export class SpacebladePlayScene extends Phaser.Scene {
       view.healthBar.setVisible(inGameplay);
     }
     this.screenBackdrop?.setVisible(!inGameplay);
+    this.screenBackdrop?.setAlpha(screen === "title" ? 0.78 : 0.96);
+    this.titleDecor?.setVisible(screen === "title");
+    this.titleHeroPreview?.setVisible(screen === "title");
+    this.titleEnemyPreview?.setVisible(screen === "title");
+    this.titlePreviewLabels.forEach((label) => label.setVisible(screen === "title"));
     this.menuActions = screen === "paused" || screen === "settings" || screen === "gameOver" || screen === "highscores"
       ? (screen === "paused" ? ["resume", "settings", "tutorial", "restart", "title"] : screen === "settings" ? ["volume", "screenShake", "reducedEffects", "callsign", "back"] : screen === "gameOver" ? ["restart", "highscores", "title"] : ["global", "friends", "title"])
       : [];
@@ -926,7 +992,7 @@ export class SpacebladePlayScene extends Phaser.Scene {
     const run = this.run;
     const isMobileWarning = this.screen === "mobileWarning";
     this.screenTitle.setFontSize(isMobileWarning ? "72px" : "58px");
-    this.screenBody.setFontSize(isMobileWarning ? "34px" : this.screen === "tutorial" ? "19px" : "24px");
+    this.screenBody.setFontSize(isMobileWarning ? "34px" : this.screen === "tutorial" ? "19px" : this.screen === "title" ? "20px" : "24px");
     this.screenHint.setFontSize(isMobileWarning ? "32px" : "25px");
     this.screenBody.setWordWrapWidth(this.screen === "tutorial" ? 1160 : 0, true);
     this.screenTitle.setY(this.screen === "tutorial" ? 66 : this.screen === "gameOver" || this.screen === "highscores" ? 120 : 190);
@@ -935,8 +1001,8 @@ export class SpacebladePlayScene extends Phaser.Scene {
     if (this.screen === "title") {
       this.screenTitle.setText("SPACEBLADE");
       this.game.canvas.dataset.spacebladeTitleTagline = "ONE KEY. ENDLESS FIGHT.";
-      this.screenBody.setText(`ONE KEY. ENDLESS FIGHT.\n\nAuto-run through Neon-Sector 04.\nCut down threats before they reach you.\n\nBEST  ${this.bestScore}  ·  WAVE ${this.bestWave}`);
-      this.screenHint.setText("CLICK TO START");
+      this.screenBody.setText(`ONE KEY. ENDLESS FIGHT.\n\nAUTO-RUN THE TOWER\nClimb every floor. Read the threat. Strike on the beat.\n\nBEST  ${this.bestScore}  ·  FLOOR ${this.bestWave}`);
+      this.screenHint.setText("CLICK TO START  ·  SPACE TO VIEW BRIEF");
     } else if (this.screen === "mobileWarning") {
       this.screenTitle.setText("KEYBOARD RECOMMENDED");
       this.screenBody.setText("ONE BUTTON. SPACE OR TOUCH.\n\nROTATE TO LANDSCAPE FOR GAMEPLAY.");
