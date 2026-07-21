@@ -19,31 +19,31 @@ const authoredFramePaths = (folder: string, action: string, count: number): stri
     `/sprites/frames/${folder}/${action}-${String(index).padStart(2, "0")}.png?v=public-robot-pack-1`,
   );
 
-const warpedCityPlayerFrame = (frame: string): string =>
-  `/assets/public/warped-city/player/${frame}.png?v=public-pack-3`;
+const spaceSoldierPlayerFrame = (frame: string): string =>
+  `/assets/public/opengameart-space-soldier/${frame}.png?v=cc0-space-soldier-1`;
 
 export const REBUILD_PLAYER: RebuildSprite = {
   id: "player",
-  width: 71,
-  height: 67,
-  scale: 3,
-  anchorX: 35,
-  anchorY: 66,
+  width: 32,
+  height: 32,
+  scale: 4,
+  anchorX: 16,
+  anchorY: 31,
   animations: {
-    idle: { frames: [warpedCityPlayerFrame("idle-1"), warpedCityPlayerFrame("idle-2"), warpedCityPlayerFrame("idle-3"), warpedCityPlayerFrame("idle-4")], frameDurationMs: 110, loop: true },
-    run: { frames: Array.from({ length: 8 }, (_, index) => warpedCityPlayerFrame(`run-${index + 1}`)), frameDurationMs: 90, loop: true },
-    walk: { frames: Array.from({ length: 8 }, (_, index) => warpedCityPlayerFrame(`run-${index + 1}`)), frameDurationMs: 105, loop: true },
-    climb: { frames: [warpedCityPlayerFrame("run-3"), warpedCityPlayerFrame("run-6")], frameDurationMs: 180, loop: true },
-    hang: { frames: [warpedCityPlayerFrame("idle-2")], frameDurationMs: 180, loop: true },
-    jump: { frames: [warpedCityPlayerFrame("run-2")], frameDurationMs: 180, loop: false },
-    fall: { frames: [warpedCityPlayerFrame("run-6")], frameDurationMs: 180, loop: false },
-    slash: { frames: [warpedCityPlayerFrame("shoot"), warpedCityPlayerFrame("run-shoot-2")], frameDurationMs: 90, loop: false },
-    charging: { frames: [warpedCityPlayerFrame("shoot")], frameDurationMs: 120, loop: true },
-    heavy: { frames: [warpedCityPlayerFrame("run-shoot-1"), warpedCityPlayerFrame("run-shoot-5")], frameDurationMs: 90, loop: false },
-    dodge: { frames: [warpedCityPlayerFrame("run-2"), warpedCityPlayerFrame("run-5")], frameDurationMs: 90, loop: false },
-    parry: { frames: [warpedCityPlayerFrame("shoot")], frameDurationMs: 90, loop: false },
-    hurt: { frames: [warpedCityPlayerFrame("hurt")], frameDurationMs: 120, loop: false },
-    dead: { frames: [warpedCityPlayerFrame("hurt")], frameDurationMs: 180, loop: false },
+    idle: { frames: Array.from({ length: 4 }, (_, index) => spaceSoldierPlayerFrame(`idle-${index + 1}`)), frameDurationMs: 130, loop: true },
+    run: { frames: Array.from({ length: 12 }, (_, index) => spaceSoldierPlayerFrame(`run-${index + 1}`)), frameDurationMs: 75, loop: true },
+    walk: { frames: Array.from({ length: 8 }, (_, index) => spaceSoldierPlayerFrame(`walk-${index + 1}`)), frameDurationMs: 95, loop: true },
+    climb: { frames: [spaceSoldierPlayerFrame("jump-3"), spaceSoldierPlayerFrame("jump-5")], frameDurationMs: 150, loop: true },
+    hang: { frames: [spaceSoldierPlayerFrame("idle-2")], frameDurationMs: 180, loop: true },
+    jump: { frames: Array.from({ length: 8 }, (_, index) => spaceSoldierPlayerFrame(`jump-${index + 1}`)), frameDurationMs: 80, loop: false },
+    fall: { frames: [spaceSoldierPlayerFrame("jump-6")], frameDurationMs: 180, loop: false },
+    slash: { frames: [spaceSoldierPlayerFrame("attack-2"), spaceSoldierPlayerFrame("attack-6")], frameDurationMs: 90, loop: false },
+    charging: { frames: [spaceSoldierPlayerFrame("attack-1")], frameDurationMs: 120, loop: true },
+    heavy: { frames: [spaceSoldierPlayerFrame("attack-3"), spaceSoldierPlayerFrame("attack-6")], frameDurationMs: 90, loop: false },
+    dodge: { frames: [spaceSoldierPlayerFrame("crouch-2"), spaceSoldierPlayerFrame("crouch-6")], frameDurationMs: 85, loop: false },
+    parry: { frames: [spaceSoldierPlayerFrame("attack-4")], frameDurationMs: 90, loop: false },
+    hurt: { frames: [spaceSoldierPlayerFrame("killed-1")], frameDurationMs: 120, loop: false },
+    dead: { frames: [spaceSoldierPlayerFrame("killed-4")], frameDurationMs: 180, loop: false },
   },
 };
 

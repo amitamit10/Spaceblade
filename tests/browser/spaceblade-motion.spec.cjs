@@ -389,7 +389,7 @@ test("standalone player and enemy frames advance during gameplay", async ({ page
 
   expect(first.player).toBeTruthy();
   expect(first.playerAnimation).toBe("run");
-  expect(first.player).toContain("/assets/public/warped-city/player/");
+  expect(first.player).toContain("/assets/public/opengameart-space-soldier/");
   expect(first.enemy).toBeTruthy();
   expect(second.player).not.toBe(first.player);
   expect(second.enemy).not.toBe(first.enemy);

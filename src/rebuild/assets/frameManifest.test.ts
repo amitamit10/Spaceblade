@@ -11,7 +11,7 @@ describe("rebuild frame manifest", () => {
         expect(animation.frames.length).toBeGreaterThan(0);
         for (const frame of animation.frames) {
           if (sprite === REBUILD_PLAYER) {
-            expect(frame).toMatch(/^\/assets\/public\/warped-city\/player\/[a-z0-9-]+\.png\?v=public-pack-3$/);
+            expect(frame).toMatch(/^\/assets\/public\/opengameart-space-soldier\/[a-z0-9-]+\.png\?v=cc0-space-soldier-1$/);
           } else {
             expect(frame).toMatch(/^\/sprites\/frames\/[^?]+\/(?:run|walk|windup|attack|hurt|recover|dead|specialAttack|charge|heavy|dodge|parry|idle|slash)-\d+\.png\?v=public-robot-pack-1$/);
           }
@@ -55,7 +55,7 @@ describe("rebuild frame manifest", () => {
   });
 
   it("ships dedicated player action sequences", () => {
-    expect(REBUILD_PLAYER.animations.run.frames).toHaveLength(8);
+    expect(REBUILD_PLAYER.animations.run.frames).toHaveLength(12);
     expect(REBUILD_PLAYER.animations.run.loop).toBe(true);
     expect(REBUILD_PLAYER.animations.walk.frames).toHaveLength(8);
     expect(REBUILD_PLAYER.animations.walk.loop).toBe(true);
