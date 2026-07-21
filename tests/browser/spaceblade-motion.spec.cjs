@@ -230,6 +230,25 @@ test("changes the saved callsign with the one-button settings menu", async ({ pa
   expect(await page.evaluate(() => window.localStorage.getItem("spaceblade.playerName"))).toBe("Nova");
 });
 
+test("changes volume with the visible settings slider", async ({ page }) => {
+  await page.goto("/");
+  await startPhaserGameplay(page);
+  await page.mouse.click(1194, 76);
+  await expect(page.locator("canvas")).toHaveAttribute("data-spaceblade-screen", "paused");
+
+  await page.keyboard.down("Space");
+  await page.waitForTimeout(120);
+  await page.keyboard.up("Space");
+  await page.keyboard.down("Space");
+  await page.waitForTimeout(650);
+  await page.keyboard.up("Space");
+  await expect(page.locator("canvas")).toHaveAttribute("data-spaceblade-screen", "settings");
+
+  await page.mouse.click(774, 430);
+  await expect(page.locator("canvas")).toHaveAttribute("data-spaceblade-volume", "75");
+  expect(await page.evaluate(() => window.localStorage.getItem("spaceblade.volume"))).toBe("0.75");
+});
+
 test("opens How To Play from pause and returns without restarting", async ({ page }) => {
   await page.goto("/");
   await startPhaserGameplay(page);

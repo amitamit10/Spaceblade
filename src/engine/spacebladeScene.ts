@@ -166,6 +166,8 @@ export class SpacebladePlayScene extends Phaser.Scene {
   private pauseButtonLabel: Phaser.GameObjects.Text | null = null;
   private menuButtonBackgrounds: Phaser.GameObjects.Rectangle[] = [];
   private menuButtonLabels: Phaser.GameObjects.Text[] = [];
+  private volumeSlider: Phaser.GameObjects.Graphics | null = null;
+  private volumeSliderHitArea: Phaser.GameObjects.Rectangle | null = null;
   private menuFocus = 0;
   private tutorialReturnScreen: "title" | "paused" = "title";
   private menuActions: readonly string[] = [];
@@ -205,8 +207,12 @@ export class SpacebladePlayScene extends Phaser.Scene {
   private clearMenuButtons(): void {
     for (const button of this.menuButtonBackgrounds) button.destroy();
     for (const label of this.menuButtonLabels) label.destroy();
+    this.volumeSlider?.destroy();
+    this.volumeSliderHitArea?.destroy();
     this.menuButtonBackgrounds = [];
     this.menuButtonLabels = [];
+    this.volumeSlider = null;
+    this.volumeSliderHitArea = null;
   }
 
   private drawTitleLaunchBay(): void {
@@ -314,9 +320,35 @@ export class SpacebladePlayScene extends Phaser.Scene {
       button.setFillStyle(focused ? PUBLIC_PALETTE.amber : 0x18132d, focused ? 0.96 : 0.92);
       button.setStrokeStyle(focused ? PUBLIC_PALETTE.amber : 0x57456e, 1);
       this.menuButtonLabels[index]
+        ?.setText(this.menuButtonText(this.menuActions[index] ?? "back"))
         ?.setColor(focused ? "#0b0918" : PUBLIC_PALETTE.ink)
         .setBackgroundColor(focused ? "#ffc52f" : "#18132d");
     });
+    this.drawVolumeSlider();
+    this.game.canvas.dataset.spacebladeVolume = String(Math.round(this.settings.volume * 100));
+  }
+
+  private drawVolumeSlider(): void {
+    if (!this.volumeSlider || this.screen !== "settings") return;
+    const x = 690;
+    const y = 430;
+    const width = 112;
+    const filled = Math.round(width * this.settings.volume);
+    this.volumeSlider.clear();
+    this.volumeSlider.fillStyle(0x0b0918, 1).fillRect(x - 4, y - 7, width + 8, 14);
+    this.volumeSlider.fillStyle(0x14243a, 1).fillRect(x, y - 3, width, 6);
+    this.volumeSlider.fillStyle(PUBLIC_PALETTE.cyan, 1).fillRect(x, y - 3, filled, 6);
+    this.volumeSlider.fillStyle(PUBLIC_PALETTE.amber, 1).fillRect(x + Math.max(0, filled - 3), y - 8, 6, 16);
+    this.volumeSlider.lineStyle(1, PUBLIC_PALETTE.cyan, 0.8).strokeRect(x - 4, y - 7, width + 8, 14);
+  }
+
+  private setVolumeFromPointer(pointerX: number): void {
+    if (this.screen !== "settings") return;
+    const next = Math.max(0, Math.min(1, (pointerX - 690) / 112));
+    this.settings = { ...this.settings, volume: Math.round(next * 20) / 20 };
+    this.persistSettings();
+    this.refreshMenuButtons();
+    this.refreshOverlay();
   }
 
   private buildMenuButtons(): void {
@@ -349,6 +381,19 @@ export class SpacebladePlayScene extends Phaser.Scene {
       this.menuButtonBackgrounds.push(button);
       this.menuButtonLabels.push(label);
     });
+    if (this.screen === "settings") {
+      this.volumeSlider = this.add.graphics().setDepth(32);
+      this.volumeSliderHitArea = this.add.rectangle(746, 430, 140, 34, 0x000000, 0)
+        .setDepth(33)
+        .setInteractive({ useHandCursor: true });
+      this.volumeSliderHitArea.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
+        pointer.event?.stopPropagation();
+        this.setVolumeFromPointer(pointer.x);
+      });
+      this.volumeSliderHitArea.on("pointerup", (pointer: Phaser.Input.Pointer) => {
+        pointer.event?.stopPropagation();
+      });
+    }
     this.refreshMenuButtons();
   }
 
@@ -596,6 +641,10 @@ export class SpacebladePlayScene extends Phaser.Scene {
   private handlePointerDown(pointer: Phaser.Input.Pointer): void {
     // Combat is intentionally Space-only. The pause control has its own
     // interactive handler and remains available as a UI exception.
+    if (this.screen === "settings" && pointer.x >= 676 && pointer.x <= 816 && pointer.y >= 413 && pointer.y <= 447) {
+      this.setVolumeFromPointer(pointer.x);
+      return;
+    }
     void pointer;
   }
 
