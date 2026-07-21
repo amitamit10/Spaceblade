@@ -10,7 +10,7 @@ describe("rebuild frame manifest", () => {
       for (const animation of Object.values(sprite.animations)) {
         expect(animation.frames.length).toBeGreaterThan(0);
         for (const frame of animation.frames) {
-          expect(frame).toMatch(/^\/sprites\/frames\/[^?]+\/(?:run|walk|windup|attack|hurt|recover|dead|specialAttack|charge|heavy|dodge|parry|idle|slash)-\d+\.png\?v=public-pack-3$/);
+          expect(frame).toMatch(/^\/sprites\/frames\/[^?]+\/(?:run|walk|windup|attack|hurt|recover|dead|specialAttack|charge|heavy|dodge|parry|idle|slash)-\d+\.png\?v=unique-enemies-1$/);
           expect(frame).toMatch(/^\/sprites\/frames\//);
           expect(frame).not.toContain("player.png");
         }
@@ -62,13 +62,15 @@ describe("rebuild frame manifest", () => {
     expect(REBUILD_PLAYER.animations.parry.frames).toHaveLength(2);
   });
 
-  it("gives the small runner a different public silhouette from the grunt", () => {
-    const grunt = REBUILD_SPRITES.find((sprite) => sprite.id === "grunt");
-    const runner = REBUILD_SPRITES.find((sprite) => sprite.id === "runner");
-    expect(grunt).toBeDefined();
-    expect(runner).toBeDefined();
-    expect(readFileSync(resolve(process.cwd(), "public", grunt!.animations.walk.frames[0].split("?")[0].slice(1))))
-      .not.toEqual(readFileSync(resolve(process.cwd(), "public", runner!.animations.walk.frames[0].split("?")[0].slice(1))));
+  it("gives every enemy class its own authored walk silhouette", () => {
+    const enemyFrames = REBUILD_SPRITES.slice(1).map((sprite) => readFileSync(
+      resolve(process.cwd(), "public", sprite.animations.walk.frames[0].split("?")[0].slice(1)),
+    ));
+    for (let left = 0; left < enemyFrames.length; left += 1) {
+      for (let right = left + 1; right < enemyFrames.length; right += 1) {
+        expect(enemyFrames[left]).not.toEqual(enemyFrames[right]);
+      }
+    }
   });
 
   it("ships dedicated player hurt and death reactions", () => {

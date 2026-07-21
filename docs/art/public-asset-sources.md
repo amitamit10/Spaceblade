@@ -1,8 +1,9 @@
 # Public Asset Sources
 
-Spaceblade now uses a vendored public-asset pack under
-`public/assets/public/warped-city/` for its active standalone runtime frames.
-The legacy sheets remain available for tooling and rollback.
+Spaceblade uses a vendored public-asset pack under
+`public/assets/public/warped-city/` for the player, environment, effects, and
+audio. Each enemy class uses its own authored sheet under `public/sprites/` so
+the runtime does not reuse one drone or turret silhouette for the whole roster.
 
 ## Warped City
 
@@ -47,11 +48,12 @@ swallows autoplay failures without affecting gameplay.
    procedural fallback for missing sword, parry, shield, and boss animations.
 4. Run the sprite contract tests and browser motion check before promotion.
 
-The public pack now supplies the active standalone runtime frames. The game
-still draws sword/parry and shield feedback as gameplay effects because those
-states are not present in the source pack; no still frame is falsely labeled as
-a sword animation. Active frame URLs use a revision query (`v=public-pack-3`)
-so installed clients cannot reuse the retired custom frame cache.
+The public pack supplies the player, environment, and effects, while the six
+authored enemy sheets supply the active enemy frames. The game still draws
+sword/parry and shield feedback as gameplay effects because those states are
+not present in the source pack; no still frame is falsely labeled as a sword
+animation. Active frame URLs use a revision query (`v=unique-enemies-1`) so
+installed clients cannot reuse the retired two-silhouette cache.
 
 ## Pixel Style Contract
 
