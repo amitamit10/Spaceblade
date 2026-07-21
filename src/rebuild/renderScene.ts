@@ -253,6 +253,7 @@ function drawActor(ctx: CanvasRenderingContext2D, frames: LoadedFrames, actor: A
   }
 
   if (actor.kind !== "enemy") return;
+  drawEnemySignature(ctx, actor, dx, dy, width, height, now);
   if (actor.maxHp && actor.maxHp > 1) {
     const barWidth = Math.max(48, width * 0.7);
     const barX = actor.x - barWidth / 2;
@@ -317,6 +318,64 @@ function drawActor(ctx: CanvasRenderingContext2D, frames: LoadedFrames, actor: A
       ctx.stroke();
     }
   }
+}
+
+function drawEnemySignature(
+  ctx: CanvasRenderingContext2D,
+  actor: Actor,
+  dx: number,
+  dy: number,
+  width: number,
+  height: number,
+  now: number,
+): void {
+  const centerX = dx + width / 2;
+  const top = dy + height * 0.18;
+  ctx.save();
+  ctx.imageSmoothingEnabled = false;
+
+  switch (actor.enemyType) {
+    case "grunt":
+      ctx.fillStyle = "#ff5d4d";
+      ctx.fillRect(centerX - 5, top + 18, 10, 4);
+      ctx.fillRect(centerX - 2, top + 14, 4, 12);
+      break;
+    case "runner":
+      ctx.fillStyle = "#45e7ff";
+      for (let index = 0; index < 3; index += 1) {
+        const length = 16 + index * 6;
+        ctx.fillRect(dx - length, dy + height * 0.48 + index * 8, length, 3);
+      }
+      break;
+    case "shield":
+      ctx.strokeStyle = "#5ee8ff";
+      ctx.lineWidth = 5;
+      ctx.strokeRect(dx + width * 0.04, dy + height * 0.18, width * 0.92, height * 0.64);
+      break;
+    case "tank":
+      ctx.fillStyle = "#ffd34d";
+      ctx.fillRect(dx + width * 0.16, dy + height * 0.08, width * 0.68, 7);
+      ctx.fillStyle = "#ff8b31";
+      ctx.fillRect(centerX - 7, dy + height * 0.08 - 9, 14, 9);
+      break;
+    case "glitch":
+      ctx.globalAlpha = 0.78;
+      ctx.fillStyle = "#f04dca";
+      for (let index = 0; index < 3; index += 1) {
+        const offset = Math.round(Math.sin(now / 70 + index) * 5);
+        ctx.fillRect(dx + offset + index * 9, top + index * 13, 13, 4);
+      }
+      break;
+    case "boss":
+      ctx.fillStyle = "#ffd34d";
+      ctx.fillRect(centerX - width * 0.24, dy - 15, width * 0.48, 6);
+      ctx.fillRect(centerX - width * 0.17, dy - 23, 7, 8);
+      ctx.fillRect(centerX + width * 0.12, dy - 23, 7, 8);
+      break;
+    default:
+      break;
+  }
+  ctx.restore();
 }
 
 function drawPlayerAction(
