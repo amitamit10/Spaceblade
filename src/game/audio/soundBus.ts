@@ -23,7 +23,7 @@ export const SOUND_ASSETS: Readonly<Record<SoundCue, string | null>> = {
   parkourJump: "/audio/kenney/parkour-jump.ogg",
   wallClimb: "/audio/kenney/wall-climb.ogg",
   landing: "/audio/kenney/landing.ogg",
-  ambient: null,
+  ambient: "/audio/opengameart/tense-future-loop.ogg",
 };
 
 type AudioCtor = new (src?: string) => HTMLAudioElement;
@@ -49,6 +49,20 @@ export function createSoundBus(getVolume: () => number): SoundBus {
     if (!Ctor || !source) return;
     const master = clampVolume(getVolume());
     if (master <= 0) return;
+
+    if (cue === "ambient") {
+      if (ambient) return;
+      ambient = new Ctor(source);
+      ambient.preload = "auto";
+      ambient.loop = true;
+      ambient.volume = master * 0.35;
+      try {
+        void Promise.resolve(ambient.play()).catch(() => undefined);
+      } catch {
+        // Browsers may reject autoplay before the first user gesture.
+      }
+      return;
+    }
 
     const audio = new Ctor(source);
     audio.preload = "auto";

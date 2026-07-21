@@ -27,6 +27,7 @@ describe("createSoundBus", () => {
     expect(SOUND_ASSETS.parkourJump).toMatch(/\/audio\/kenney\/parkour-jump\.ogg$/);
     expect(SOUND_ASSETS.wallClimb).toMatch(/\/audio\/kenney\/wall-climb\.ogg$/);
     expect(SOUND_ASSETS.landing).toMatch(/\/audio\/kenney\/landing\.ogg$/);
+    expect(SOUND_ASSETS.ambient).toMatch(/\/audio\/opengameart\/tense-future-loop\.ogg$/);
   });
 
   it("does not throw when Web Audio is unavailable", () => {
