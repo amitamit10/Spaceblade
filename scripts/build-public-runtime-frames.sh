@@ -3,6 +3,7 @@ set -euo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source_dir="$root/public/assets/public/warped-city"
+robot_source_dir="$root/public/assets/public/kenney-robot-pack/PNG/Side view"
 frame_dir="$root/public/sprites/frames"
 
 # The manifest renamed this loop to `charge`; remove the old generated name so
@@ -25,7 +26,9 @@ write_sequence() {
   local sources=("$@")
   local index=0
   for source in "${sources[@]}"; do
-    normalize_frame "$source_dir/$source" \
+    local source_path="$source"
+    [[ "$source_path" != /* ]] && source_path="$source_dir/$source_path"
+    normalize_frame "$source_path" \
       "$frame_dir/$actor/$action-$(printf '%02d' "$index").png" \
       "$width" "$height" "$scale_percent"
     index=$((index + 1))
@@ -40,9 +43,8 @@ repeat_sources() {
 }
 
 player_source() { printf 'player/%s' "$1"; }
-drone_source() { printf 'enemies/drone-%s.png' "$1"; }
-turret_source() { printf 'enemies/turret-%s.png' "$1"; }
 explosion_source() { printf 'effects/enemy-explosion-%s.png' "$1"; }
+robot_source() { printf '%s/robot_%s%s.png' "$robot_source_dir" "$1" "$2"; }
 
 player_walk=()
 for index in 1 2 3 4 5 6; do player_walk+=("$(player_source "walk-$index.png")"); done
@@ -64,45 +66,34 @@ repeat_sources player parry 96 96 100 2 "$(player_source shoot.png)"
 repeat_sources player hurt 96 96 100 2 "$(player_source hurt.png)"
 repeat_sources player dead 96 96 100 2 "$(player_source hurt.png)"
 
-drone_walk=()
-for index in 1 2 3 4; do drone_walk+=("$(drone_source "$index")"); done
 drone_explosion=()
 for index in 1 2 3; do drone_explosion+=("$(explosion_source "$index")"); done
 
-for actor in grunt glitch; do
-  width=64; height=64; scale=100
-  [[ "$actor" == glitch ]] && width=80 && height=80 && scale=130
-  write_sequence "$actor" walk "$width" "$height" "$scale" "" "${drone_walk[@]}"
-  write_sequence "$actor" windup "$width" "$height" "$scale" "" "${drone_walk[1]}" "${drone_walk[2]}"
-  write_sequence "$actor" attack "$width" "$height" "$scale" "" "${drone_walk[1]}" "${drone_walk[2]}" "${drone_walk[3]}"
-  write_sequence "$actor" recover "$width" "$height" "$scale" "" "${drone_walk[2]}" "${drone_walk[3]}"
-  repeat_sources "$actor" hurt "$width" "$height" "$scale" 2 "${drone_walk[0]}"
+write_robot_actor() {
+  local actor="$1" color="$2" width="$3" height="$4" scale="$5"
+  local drive1 drive2 jump damage1 damage2 hurt
+  drive1="$(robot_source "$color" Drive1)"
+  drive2="$(robot_source "$color" Drive2)"
+  jump="$(robot_source "$color" Jump)"
+  damage1="$(robot_source "$color" Damage1)"
+  damage2="$(robot_source "$color" Damage2)"
+  hurt="$(robot_source "$color" Hurt)"
+
+  write_sequence "$actor" walk "$width" "$height" "$scale" "" "$drive1" "$drive2" "$drive1" "$drive2"
+  write_sequence "$actor" windup "$width" "$height" "$scale" "" "$jump" "$drive2"
+  write_sequence "$actor" attack "$width" "$height" "$scale" "" "$damage1" "$damage2" "$damage1"
+  write_sequence "$actor" recover "$width" "$height" "$scale" "" "$drive2" "$drive1"
+  write_sequence "$actor" hurt "$width" "$height" "$scale" "" "$hurt" "$damage1"
   write_sequence "$actor" dead "$width" "$height" "$scale" "" "${drone_explosion[@]}"
-done
+}
 
-turret_frames=()
-for index in 1 2 3 4 5 6; do turret_frames+=("$(turret_source "$index")"); done
-
-# Keep the fast runner visually distinct from the drone-based grunt. The
-# compact turret is normalized into the same cell, then rendered at the
-# existing actor scale so its hit target stays easy to read.
-write_sequence runner walk 64 64 120 "" "${turret_frames[0]}" "${turret_frames[1]}" "${turret_frames[2]}" "${turret_frames[3]}"
-write_sequence runner windup 64 64 120 "" "${turret_frames[1]}" "${turret_frames[2]}" "${turret_frames[3]}"
-write_sequence runner attack 64 64 120 "" "${turret_frames[2]}" "${turret_frames[3]}" "${turret_frames[4]}" "${turret_frames[5]}"
-write_sequence runner recover 64 64 120 "" "${turret_frames[4]}" "${turret_frames[5]}"
-repeat_sources runner hurt 64 64 120 2 "${turret_frames[0]}"
-write_sequence runner dead 64 64 120 "" "${drone_explosion[@]}"
-
-for actor in shield tank boss; do
-  width=80; height=80; scale=240
-  [[ "$actor" == tank ]] && width=96 && height=96 && scale=320
-  [[ "$actor" == boss ]] && width=160 && height=160 && scale=600
-  write_sequence "$actor" walk "$width" "$height" "$scale" "" "${turret_frames[0]}" "${turret_frames[1]}" "${turret_frames[2]}" "${turret_frames[3]}"
-  write_sequence "$actor" windup "$width" "$height" "$scale" "" "${turret_frames[1]}" "${turret_frames[2]}" "${turret_frames[3]}"
-  write_sequence "$actor" attack "$width" "$height" "$scale" "" "${turret_frames[2]}" "${turret_frames[3]}" "${turret_frames[4]}"
-  write_sequence "$actor" recover "$width" "$height" "$scale" "" "${turret_frames[4]}" "${turret_frames[5]}"
-  repeat_sources "$actor" hurt "$width" "$height" "$scale" 2 "${turret_frames[1]}"
-  write_sequence "$actor" dead "$width" "$height" "$scale" "" "${drone_explosion[@]}"
-done
+# These profiles deliberately use distinct online source variants and sizes;
+# no authored Spaceblade enemy sheet is part of the shipped runtime anymore.
+write_robot_actor grunt blue 64 64 40
+write_robot_actor runner red 64 64 38
+write_robot_actor shield green 80 80 48
+write_robot_actor tank yellow 96 96 58
+write_robot_actor glitch blue 80 80 52
+write_robot_actor boss red 160 160 82
 
 printf 'public runtime frames generated under %s\n' "$frame_dir"

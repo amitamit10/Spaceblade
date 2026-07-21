@@ -1,9 +1,9 @@
 # Public Asset Sources
 
-Spaceblade uses a vendored public-asset pack under
-`public/assets/public/warped-city/` for the player, environment, effects, and
-audio. Each enemy class uses its own authored sheet under `public/sprites/` so
-the runtime does not reuse one drone or turret silhouette for the whole roster.
+Spaceblade uses vendored public-asset packs under
+`public/assets/public/` for the player, environment, effects, audio, and enemy
+frames. Enemy classes are built from the Kenney Robot Pack instead of the old
+authored Spaceblade sheets.
 
 ## Warped City
 
@@ -24,6 +24,19 @@ the runtime does not reuse one drone or turret silhouette for the whole roster.
 This is intentionally vendored into the repository instead of loaded from a
 remote URL. That keeps deployment deterministic, avoids runtime network
 requests, and stays cheap on static hosting.
+
+## Kenney Robot Pack
+
+- Source: https://opengameart.org/content/robot-pack
+- Author: Kenney
+- License: CC0, included locally at
+  `public/assets/public/kenney-robot-pack/License.txt`
+- Staged content: four side-view robot color variants with body, drive, jump,
+  damage, and hurt poses.
+- Runtime conversion: `scripts/build-public-runtime-frames.sh`
+- Runtime mapping: grunt blue, runner red, shield green, tank yellow, glitch
+  blue special pose, and boss red special pose. The larger classes use larger
+  normalized canvases and scales, so their hit geometry remains readable.
 
 ## Kenney Digital Audio
 
@@ -48,12 +61,12 @@ swallows autoplay failures without affecting gameplay.
    procedural fallback for missing sword, parry, shield, and boss animations.
 4. Run the sprite contract tests and browser motion check before promotion.
 
-The public pack supplies the player, environment, and effects, while the six
-authored enemy sheets supply the active enemy frames. The game still draws
+The public packs supply the player, environment, effects, and active enemy
+frames. The game still draws
 sword/parry and shield feedback as gameplay effects because those states are
 not present in the source pack; no still frame is falsely labeled as a sword
-animation. Active frame URLs use a revision query (`v=unique-enemies-1`) so
-installed clients cannot reuse the retired two-silhouette cache.
+animation. Active frame URLs use a revision query (`v=public-robot-pack-1`) so
+installed clients cannot reuse the retired authored enemy cache.
 
 ## Pixel Style Contract
 

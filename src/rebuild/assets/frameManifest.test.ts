@@ -10,7 +10,7 @@ describe("rebuild frame manifest", () => {
       for (const animation of Object.values(sprite.animations)) {
         expect(animation.frames.length).toBeGreaterThan(0);
         for (const frame of animation.frames) {
-          expect(frame).toMatch(/^\/sprites\/frames\/[^?]+\/(?:run|walk|windup|attack|hurt|recover|dead|specialAttack|charge|heavy|dodge|parry|idle|slash)-\d+\.png\?v=unique-enemies-1$/);
+          expect(frame).toMatch(/^\/sprites\/frames\/[^?]+\/(?:run|walk|windup|attack|hurt|recover|dead|specialAttack|charge|heavy|dodge|parry|idle|slash)-\d+\.png\?v=public-robot-pack-1$/);
           expect(frame).toMatch(/^\/sprites\/frames\//);
           expect(frame).not.toContain("player.png");
         }
