@@ -104,6 +104,7 @@ type EnemyView = {
   readonly sprite: Phaser.GameObjects.Image;
   readonly marker: Phaser.GameObjects.Text;
   readonly healthBar: Phaser.GameObjects.Graphics;
+  readonly healthLabel: Phaser.GameObjects.Text;
   readonly definition: RebuildSprite;
 };
 
@@ -883,6 +884,7 @@ export class SpacebladePlayScene extends Phaser.Scene {
       view.sprite.setVisible(false).setAlpha(0).setAngle(0);
       view.marker.setVisible(false);
       view.healthBar.clear().setVisible(false);
+      view.healthLabel.setVisible(false);
       const pool = this.enemyViewPools.get(view.definition.id) ?? [];
       pool.push(view);
       this.enemyViewPools.set(view.definition.id, pool);
@@ -1029,6 +1031,7 @@ export class SpacebladePlayScene extends Phaser.Scene {
       view.sprite.setVisible(inGameplay);
       view.marker.setVisible(false);
       view.healthBar.setVisible(inGameplay);
+      view.healthLabel.setVisible(inGameplay);
     }
     this.screenBackdrop?.setVisible(!inGameplay);
     this.screenBackdrop?.setAlpha(screen === "title" ? 0.78 : 0.96);
@@ -1546,11 +1549,13 @@ export class SpacebladePlayScene extends Phaser.Scene {
           sprite: this.add.image(screenX, GROUND_Y, frameKey(firstFrame)).setOrigin(0.5, 1).setScale(definition.scale).setDepth(2),
           marker: this.add.text(screenX, GROUND_Y - definition.height * definition.scale - 18, "", { color: "#ff3f62", fontFamily: "monospace", fontSize: "28px", fontStyle: "bold" }).setOrigin(0.5).setDepth(4),
           healthBar: this.add.graphics().setDepth(4),
+          healthLabel: this.add.text(screenX, GROUND_Y, "", { color: "#f4fbff", fontFamily: "monospace", fontSize: definition.id === "boss" ? "16px" : "12px", fontStyle: "bold", stroke: "#071322", strokeThickness: 3 }).setOrigin(0.5).setDepth(5),
           definition,
         };
       view.sprite.setOrigin(0.5, 1).setScale(definition.scale).setVisible(true);
       view.marker.setOrigin(0.5).setVisible(false);
       view.healthBar.setVisible(true);
+      view.healthLabel.setOrigin(0.5).setVisible(true);
       this.enemyViews.set(enemy.id, view);
     }
     if (enemy.state === "dead") {
@@ -1580,6 +1585,7 @@ export class SpacebladePlayScene extends Phaser.Scene {
         view.sprite.setVisible(false).setAlpha(0);
         view.marker.setVisible(false);
         view.healthBar.setVisible(false);
+        view.healthLabel.setVisible(false);
         explosionView.setVisible(false).setAlpha(0);
         this.enemyExplosionViews.delete(enemy.id);
         this.enemyExplosionViewPool.push(explosionView);
@@ -1604,6 +1610,7 @@ export class SpacebladePlayScene extends Phaser.Scene {
         .setAlpha(1 - deathProgress);
       view.marker.setVisible(false);
       view.healthBar.setVisible(false);
+      view.healthLabel.setVisible(false);
       this.syncEnemyHitLabel(enemy.id, renderX, GROUND_Y - definition.height * definition.scale, now);
       return;
     }
@@ -1685,9 +1692,16 @@ export class SpacebladePlayScene extends Phaser.Scene {
     view.marker.setVisible(enemy.type === "boss" || enemy.state === "attacking").setPosition(visualX, visualY - view.definition.height * view.definition.scale - 18).setText(marker);
     const barWidth = enemy.type === "boss" ? 180 : 72;
     const barY = visualY - view.definition.height * view.definition.scale - 8;
-    view.healthBar.clear().setPosition(visualX - barWidth / 2, barY).setVisible(true);
-    view.healthBar.fillStyle(0x180d18, 0.95).fillRect(0, 0, barWidth, 7);
-    view.healthBar.fillStyle(enemy.type === "boss" ? 0xff3f62 : 0x57eaff, 1).fillRect(0, 0, barWidth * Math.max(0, enemy.hp / enemy.maxHp), 7);
+    const isDamaged = enemy.hp < enemy.maxHp;
+    view.healthLabel
+      .setPosition(visualX, barY - 8)
+      .setText(`${Math.max(0, Math.ceil(enemy.hp))}/${Math.ceil(enemy.maxHp)}`)
+      .setVisible(true);
+    view.healthBar.clear().setPosition(visualX - barWidth / 2, barY).setVisible(isDamaged);
+    if (isDamaged) {
+      view.healthBar.fillStyle(0x180d18, 0.95).fillRect(0, 0, barWidth, 7);
+      view.healthBar.fillStyle(enemy.type === "boss" ? 0xff3f62 : 0x57eaff, 1).fillRect(0, 0, barWidth * Math.max(0, enemy.hp / enemy.maxHp), 7);
+    }
     if (hitVisible) this.drawEnemyHitFx(visualX, visualY - definition.height * definition.scale * 0.55, hitElapsed, definition.scale);
     this.syncEnemyHitLabel(enemy.id, visualX, visualY - definition.height * definition.scale - 24, now);
     if (enemy.type === "boss") this.drawBossTelegraphFx(visualX, now, enemy, definition);
