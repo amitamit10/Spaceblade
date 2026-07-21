@@ -246,7 +246,7 @@ export class SpacebladePlayScene extends Phaser.Scene {
       this.add.text(102, 154, "RUN 01  //  TOWER ENTRY", labelStyle).setDepth(14),
       this.add.text(102, 178, "ONE KEY  ·  AUTO-CLIMB", { ...labelStyle, color: "#ffc52f" }).setDepth(14),
       this.add.text(884, 154, "THREAT SIGNAL", labelStyle).setDepth(14),
-      this.add.text(884, 178, "15 FLOORS  ·  NO EXIT", { ...labelStyle, color: "#ff4fa3" }).setDepth(14),
+      this.add.text(884, 178, "15 FLOORS  ·  NO ELEVATOR", { ...labelStyle, color: "#ff4fa3" }).setDepth(14),
     );
   }
 
@@ -1001,7 +1001,7 @@ export class SpacebladePlayScene extends Phaser.Scene {
     if (this.screen === "title") {
       this.screenTitle.setText("SPACEBLADE");
       this.game.canvas.dataset.spacebladeTitleTagline = "ONE KEY. ENDLESS FIGHT.";
-      this.screenBody.setText(`ONE KEY. ENDLESS FIGHT.\n\nAUTO-RUN THE TOWER\nClimb every floor. Read the threat. Strike on the beat.\n\nBEST  ${this.bestScore}  ·  FLOOR ${this.bestWave}`);
+      this.screenBody.setText(`ONE KEY. ENDLESS FIGHT.\n\nAUTO-RUN THE TOWER\nThe building goes up. Your excuses go down.\nRead the threat, then bonk it on the beat.\n\nBEST  ${this.bestScore}  ·  FLOOR ${this.bestWave}`);
       this.screenHint.setText("CLICK TO START  ·  SPACE TO VIEW BRIEF");
     } else if (this.screen === "mobileWarning") {
       this.screenTitle.setText("KEYBOARD RECOMMENDED");
@@ -1009,15 +1009,15 @@ export class SpacebladePlayScene extends Phaser.Scene {
       this.screenHint.setText("CLICK TO CONTINUE");
     } else if (this.screen === "tutorial") {
       this.screenTitle.setText("HOW TO PLAY");
-      this.screenBody.setText("SPACE ONLY  ·  TAP: SWORD  ·  HOLD + RELEASE: GUN  ·  DOUBLE TAP: DODGE  ·  PERFECT TAP: PARRY\n\nCLEAR EVERY ENEMY ON THE FLOOR. THE RUNNER CLIMBS AUTOMATICALLY.");
+      this.screenBody.setText("SPACE ONLY  ·  TAP: SWORD  ·  HOLD + RELEASE: GUN  ·  DOUBLE TAP: DODGE  ·  PERFECT TAP: PARRY\n\nCLEAR EVERY ENEMY ON THE FLOOR. THE RUNNER CLIMBS AUTOMATICALLY.\nSHIELDS HATE GUNS. TANKS HATE SWORDS. EVERYONE HATES YOUR COMBO.");
       this.screenHint.setText(this.tutorialReturnScreen === "paused" ? "CLICK TO RETURN" : "CLICK TO DEPLOY");
     } else if (this.screen === "paused") {
       this.screenTitle.setText("PAUSED");
-      this.screenBody.setText("SELECT AN OPTION\n\nThe run stays paused while you choose.");
+      this.screenBody.setText("SELECT AN OPTION\n\nThe tower is frozen. The enemies are pretending this is fair.");
       this.screenHint.setText("CLICK AN OPTION");
     } else if (this.screen === "settings") {
       this.screenTitle.setText("SETTINGS");
-      this.screenBody.setText("PERSONALIZE YOUR RUN\n\nChoose a setting to change it.");
+      this.screenBody.setText("PERSONALIZE YOUR RUN\n\nTiny switches. Huge heroic consequences.");
       this.screenHint.setText("CLICK A SETTING");
     } else if (this.screen === "nameEntry") {
       this.screenTitle.setText("RUN COMPLETE");
@@ -1029,7 +1029,7 @@ export class SpacebladePlayScene extends Phaser.Scene {
       this.game.canvas.dataset.spacebladeScreenTitle = title;
       const submitLabel = this.submitOutcome === "pending" ? "SUBMITTING SCORE..." : this.submitOutcome === "submitted" ? "SCORE SUBMITTED" : this.submitOutcome === "offline" ? "SCORE SAVED LOCALLY  ·  OFFLINE" : this.submitOutcome === "disabled" ? "ONLINE SCORES DISABLED" : this.submitOutcome === "skipped" ? "SCORE NOT SUBMITTED" : "";
       const grade = gradeForScore(run?.score ?? 0) ?? "UNRANKED";
-      this.screenBody.setText(`SCORE  ${run?.score ?? 0}\nWAVE  ${run?.wave ?? 1}\nENEMIES DEFEATED  ${run?.defeated ?? 0}\nBEST COMBO  ${run?.bestCombo ?? 0}\nGRADE  ${grade}${submitLabel ? `\n${submitLabel}` : ""}`);
+      this.screenBody.setText(`SCORE  ${run?.score ?? 0}\nWAVE  ${run?.wave ?? 1}\nENEMIES DEFEATED  ${run?.defeated ?? 0}\nBEST COMBO  ${run?.bestCombo ?? 0}\nGRADE  ${grade}${submitLabel ? `\n${submitLabel}` : ""}\n\n${run?.status === "victory" ? "THE BUILDING LOST. SOMEHOW." : "THE BUILDING WON THIS ROUND."}`);
       this.screenHint.setText("CLICK AN OPTION");
     } else {
       this.screenTitle.setText("HIGHSCORES");

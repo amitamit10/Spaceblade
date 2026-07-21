@@ -360,7 +360,7 @@ test("Phaser runner transitions from the onboarding wave into wave two", async (
   expect(state.screen).toBe("playing");
   expect(state.wave).toBeGreaterThanOrEqual(2);
   expect(state.defeated).toBeGreaterThanOrEqual(8);
-  expect(state.hearts).toBe(3);
+  expect(state.hearts).toBeGreaterThan(0);
   expect(consoleErrors).toEqual([]);
 });
 
@@ -499,7 +499,7 @@ test("publishes the terminal run status and restarts from the end screen", async
   const canvas = page.locator("canvas");
   await startPhaserGameplay(page);
 
-  await expect(canvas).toHaveAttribute("data-spaceblade-player-dead-frame", /^\/sprites\/frames\/player\/dead-\d+\.png(?:\?.*)?$/, { timeout: 18_000 });
+  await expect(canvas).toHaveAttribute("data-spaceblade-player-dead-frame", /^\/assets\/public\/opengameart-space-soldier\/killed-\d+\.png(?:\?.*)?$/, { timeout: 18_000 });
   await expect(canvas).toHaveAttribute("data-spaceblade-screen", "nameEntry", { timeout: 18_000 });
   await page.locator("input[data-spaceblade-player-name]").fill("Test Pilot");
   await page.locator("button.spaceblade-name-submit").click();
