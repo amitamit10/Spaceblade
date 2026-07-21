@@ -1026,10 +1026,10 @@ export class SpacebladePlayScene extends Phaser.Scene {
         this.nameEntryInput?.focus();
       }
     }
-    this.screenHint?.setY(this.menuActions.length > 0 ? 688 : 590);
+    this.screenHint?.setY(this.menuActions.length > 0 ? 688 : this.screen === "nameEntry" ? 688 : 590);
     this.screenTitle?.setVisible(!inGameplay);
     this.screenBody?.setVisible(!inGameplay);
-    this.screenHint?.setVisible(!inGameplay);
+    this.screenHint?.setVisible(!inGameplay && this.screen !== "nameEntry");
     this.screenTitle?.setDepth(this.menuActions.length > 0 ? 40 : 20);
     this.screenBody?.setDepth(this.menuActions.length > 0 ? 40 : 20);
     this.screenHint?.setDepth(this.menuActions.length > 0 ? 40 : 20);
@@ -1070,8 +1070,8 @@ export class SpacebladePlayScene extends Phaser.Scene {
       this.screenHint.setText("CLICK A SETTING");
     } else if (this.screen === "nameEntry") {
       this.screenTitle.setText("RUN COMPLETE");
-      this.screenBody.setText(`SCORE  ${run?.score ?? 0}\nWAVE  ${run?.wave ?? 1}\n\nTYPE YOUR NAME TO PUBLISH THIS RUN`);
-      this.screenHint.setText("SUBMIT YOUR SCORE");
+      this.screenBody.setText(`SCORE  ${run?.score ?? 0}\nWAVE  ${run?.wave ?? 1}`);
+      this.screenHint.setText("ENTER YOUR NAME ABOVE  ·  SUBMIT SCORE");
     } else if (this.screen === "gameOver") {
       const title = run?.status === "victory" ? "SECTOR CLEARED" : "GAME OVER";
       this.screenTitle.setText(title);

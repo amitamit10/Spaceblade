@@ -520,6 +520,9 @@ test("publishes the terminal run status and restarts from the end screen", async
 
   await expect(canvas).toHaveAttribute("data-spaceblade-player-dead-frame", /^\/assets\/public\/opengameart-space-soldier\/killed-\d+\.png(?:\?.*)?$/, { timeout: 18_000 });
   await expect(canvas).toHaveAttribute("data-spaceblade-screen", "nameEntry", { timeout: 18_000 });
+  const nameEntryBox = await page.locator("form[data-spaceblade-name-entry]").boundingBox();
+  expect(nameEntryBox?.y ?? 0).toBeGreaterThan(350);
+  await expect(page.locator("input[data-spaceblade-player-name]")).toBeVisible();
   await page.locator("input[data-spaceblade-player-name]").fill("Test Pilot");
   await page.locator("button.spaceblade-name-submit").click();
   await expect(canvas).toHaveAttribute("data-spaceblade-screen", "gameOver", { timeout: 5_000 });

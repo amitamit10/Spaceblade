@@ -28,13 +28,20 @@ body {
 
 .spaceblade-name-entry {
   position: fixed;
-  inset: 0;
+  top: 70%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   z-index: 100;
   display: none;
   align-content: center;
   justify-items: center;
   gap: 12px;
   pointer-events: auto;
+  min-width: min(440px, 86vw);
+  padding: 16px 20px 18px;
+  border: 1px solid #2cb7d3;
+  background: rgba(11, 9, 24, .96);
+  box-shadow: 4px 4px 0 rgba(255, 79, 163, .32), 0 0 24px rgba(87, 234, 255, .18);
   font-family: monospace;
 }
 
