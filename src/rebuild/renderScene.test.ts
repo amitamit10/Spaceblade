@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { rebuildAutoParkourOffset, rebuildFloorTransitionOffset, rebuildFloorTraversalPhase, rebuildPlayerVisualOffset, rebuildShakeOffset } from "./renderScene";
+import { rebuildAutoParkourOffset, rebuildFloorTransitionOffset, rebuildFloorTraversalPhase, rebuildObstacleParkourOffset, rebuildPlayerVisualOffset, rebuildShakeOffset } from "./renderScene";
 
 describe("rebuild camera feedback", () => {
   it("does not move an idle scene", () => {
@@ -34,6 +34,14 @@ describe("rebuild camera feedback", () => {
 
   it("vaults forward in the direction the runner is facing", () => {
     expect(rebuildAutoParkourOffset(180, "left").x).toBeLessThan(0);
+  });
+
+  it("automatically uses the obstacle route from vault to wall climb to landing", () => {
+    expect(rebuildObstacleParkourOffset(400, "right").phase).toBe("vault");
+    expect(rebuildObstacleParkourOffset(2800, "right").phase).toBe("wall-climb");
+    expect(rebuildObstacleParkourOffset(2800, "right").offset.y).toBeLessThan(-100);
+    expect(rebuildObstacleParkourOffset(3400, "right").phase).toBe("landing");
+    expect(rebuildObstacleParkourOffset(4500, "right").phase).toBe("complete");
   });
 
   it("climbs to the next building floor automatically between waves", () => {

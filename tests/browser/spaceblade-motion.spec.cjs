@@ -397,6 +397,12 @@ test("standalone player and enemy frames advance during gameplay", async ({ page
   expect(consoleErrors).toEqual([]);
 });
 
+test("automatically vaults and climbs the visible building obstacles", async ({ page }) => {
+  await page.goto("/");
+  await startPhaserGameplay(page);
+  await expect(page.locator("canvas")).toHaveAttribute("data-spaceblade-traversal-phase", /vault|wall-climb|landing/, { timeout: 6_000 });
+});
+
 test("defeated enemies play their authored death frames before disappearing", async ({ page }) => {
   const consoleErrors = [];
   page.on("console", (message) => {

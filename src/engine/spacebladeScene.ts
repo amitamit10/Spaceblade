@@ -12,7 +12,7 @@ import {
   type RebuildEnemy,
   type RebuildRun,
 } from "../rebuild/rebuildGame";
-import { rebuildAutoParkourOffset, rebuildFloorTransitionOffset, rebuildFloorTraversalPhase, rebuildPlayerVisualOffset } from "../rebuild/renderScene";
+import { rebuildFloorTransitionOffset, rebuildFloorTraversalPhase, rebuildObstacleParkourOffset, rebuildPlayerVisualOffset } from "../rebuild/renderScene";
 import { SPACEBLADE_HEIGHT, SPACEBLADE_WIDTH } from "./spacebladeConstants";
 import { loadSpacebladeBest, loadSpacebladeSettings, saveSpacebladeBest, saveSpacebladeSettings, spacebladeMotionDefaults, type SpacebladeSettings } from "./spacebladePersistence";
 import { createSoundBus, type SoundBus, type SoundCue } from "../game/audio/soundBus";
@@ -145,6 +145,7 @@ export class SpacebladePlayScene extends Phaser.Scene {
   private floorClimbAt: number | null = null;
   private floorLandingPlayedAt: number | null = null;
   private parkourWasAirborne = false;
+  private lastObstacleTraversalPhase: ReturnType<typeof rebuildFloorTraversalPhase> = "complete";
   private lastSeenWave = 1;
   private bossWasPresent = false;
   private lastFxActionAt: number | null = null;
@@ -1045,13 +1046,18 @@ export class SpacebladePlayScene extends Phaser.Scene {
       ? null
       : rebuildFloorTransitionOffset(now - this.floorClimbAt, facing);
     if (this.floorClimbAt !== null && floorOffset === null) this.floorClimbAt = null;
+    const obstacleTraversal = floorOffset === null ? rebuildObstacleParkourOffset(now, facing) : null;
     const traversalPhase = floorOffset === null
-      ? "complete"
+      ? obstacleTraversal?.phase ?? "complete"
       : rebuildFloorTraversalPhase(now - (this.floorClimbAt ?? now));
     const parkourOffset = playerVisualState === "dead"
       ? { x: 0, y: 0, angle: 0 }
-      : floorOffset ?? rebuildAutoParkourOffset(now, facing);
+      : floorOffset ?? obstacleTraversal?.offset ?? { x: 0, y: 0, angle: 0 };
     const airborne = parkourOffset.y < 0;
+    if (floorOffset === null && traversalPhase === "wall-climb" && this.lastObstacleTraversalPhase !== "wall-climb") {
+      this.playSound("wallClimb");
+    }
+    this.lastObstacleTraversalPhase = traversalPhase;
     if (airborne && !this.parkourWasAirborne && floorOffset === null) this.playSound("parkourJump");
     if (!airborne && this.parkourWasAirborne) this.playSound("landing");
     this.parkourWasAirborne = airborne;
