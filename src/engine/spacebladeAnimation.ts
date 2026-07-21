@@ -1,4 +1,5 @@
 import type { RebuildPlayerAnimation } from "../rebuild/rebuildGame";
+import type { RebuildFloorTraversalPhase } from "../rebuild/renderScene";
 
 export function clampSpriteCenterX(
   x: number,
@@ -19,6 +20,23 @@ export function playerVisualAnimation(
   if (available.has(action)) return action;
   if (available.has("slash")) return "slash";
   return "idle";
+}
+
+export function playerTraversalAnimation(
+  phase: RebuildFloorTraversalPhase,
+  available: ReadonlySet<string>,
+): string {
+  const preferred = phase === "wall-climb"
+    ? "climb"
+    : phase === "pause"
+      ? "hang"
+      : phase === "landing"
+        ? "fall"
+        : phase === "vault"
+          ? "jump"
+          : "run";
+  if (available.has(preferred)) return preferred;
+  return available.has("run") ? "run" : "idle";
 }
 
 export function enemyVisualAnimation(

@@ -10,6 +10,7 @@ import {
   enemyVisualAnimation,
   parryTimingSignal,
   playerVisualAnimation,
+  playerTraversalAnimation,
 } from "./spacebladeAnimation";
 
 describe("spaceblade visual animation selection", () => {
@@ -37,6 +38,13 @@ describe("spaceblade visual animation selection", () => {
     const reactions = new Set(["idle", "hurt", "dead"]);
     expect(playerVisualAnimation("hurt", reactions)).toBe("hurt");
     expect(playerVisualAnimation("dead", reactions)).toBe("dead");
+  });
+
+  it("selects authored climb poses for automatic traversal", () => {
+    const available = new Set(["run", "climb", "hang", "jump", "fall"]);
+    expect(playerTraversalAnimation("wall-climb", available)).toBe("climb");
+    expect(playerTraversalAnimation("pause", available)).toBe("hang");
+    expect(playerTraversalAnimation("landing", available)).toBe("fall");
   });
 
   it("falls back to slash only when a dedicated action is missing", () => {

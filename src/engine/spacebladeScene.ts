@@ -28,6 +28,7 @@ import {
   clampSpriteCenterX,
   parryTimingSignal,
   enemyVisualAnimation,
+  playerTraversalAnimation,
   playerVisualAnimation,
 } from "./spacebladeAnimation";
 import { enemyVisualMotion, glitchTeleportCueDue, glitchTeleportPresentation } from "./spacebladeMotion";
@@ -1029,8 +1030,16 @@ export class SpacebladePlayScene extends Phaser.Scene {
       : run.player.hurtUntil > now
         ? "hurt"
         : run.player.animation;
-    const playerAnimation = playerVisualState === "idle" && PLAYER_ANIMATION_KEYS.has("run")
-      ? "run"
+    const floorOffset = playerVisualState === "dead" || this.floorClimbAt === null
+      ? null
+      : rebuildFloorTransitionOffset(now - this.floorClimbAt, facing);
+    if (this.floorClimbAt !== null && floorOffset === null) this.floorClimbAt = null;
+    const obstacleTraversal = floorOffset === null ? rebuildObstacleParkourOffset(now, facing, run.wave) : null;
+    const traversalPhase = floorOffset === null
+      ? obstacleTraversal?.phase ?? "complete"
+      : rebuildFloorTraversalPhase(now - (this.floorClimbAt ?? now));
+    const playerAnimation = playerVisualState === "idle"
+      ? playerTraversalAnimation(traversalPhase, PLAYER_ANIMATION_KEYS)
       : playerVisualAnimation(playerVisualState, PLAYER_ANIMATION_KEYS);
     const playerFrames = animationFor(REBUILD_PLAYER, playerAnimation);
     const playerElapsed = playerVisualState === "dead"
@@ -1045,14 +1054,6 @@ export class SpacebladePlayScene extends Phaser.Scene {
     if (playerVisualState === "dead") this.game.canvas.dataset.spacebladePlayerDeadFrame = playerFrame;
     const motionAnimation = playerVisualState === "hurt" || playerVisualState === "dead" ? "idle" : run.player.animation;
     const playerOffset = rebuildPlayerVisualOffset(motionAnimation, playerElapsed, facing);
-    const floorOffset = playerVisualState === "dead" || this.floorClimbAt === null
-      ? null
-      : rebuildFloorTransitionOffset(now - this.floorClimbAt, facing);
-    if (this.floorClimbAt !== null && floorOffset === null) this.floorClimbAt = null;
-    const obstacleTraversal = floorOffset === null ? rebuildObstacleParkourOffset(now, facing, run.wave) : null;
-    const traversalPhase = floorOffset === null
-      ? obstacleTraversal?.phase ?? "complete"
-      : rebuildFloorTraversalPhase(now - (this.floorClimbAt ?? now));
     const parkourOffset = playerVisualState === "dead"
       ? { x: 0, y: 0, angle: 0 }
       : floorOffset ?? obstacleTraversal?.offset ?? { x: 0, y: 0, angle: 0 };

@@ -10,8 +10,11 @@ describe("rebuild frame manifest", () => {
       for (const animation of Object.values(sprite.animations)) {
         expect(animation.frames.length).toBeGreaterThan(0);
         for (const frame of animation.frames) {
-          expect(frame).toMatch(/^\/sprites\/frames\/[^?]+\/(?:run|walk|windup|attack|hurt|recover|dead|specialAttack|charge|heavy|dodge|parry|idle|slash)-\d+\.png\?v=public-robot-pack-1$/);
-          expect(frame).toMatch(/^\/sprites\/frames\//);
+          if (sprite === REBUILD_PLAYER) {
+            expect(frame).toMatch(/^\/assets\/public\/kenney-platformer-characters\/PNG\/Soldier\/Poses\/soldier_[a-z0-9]+\.png\?v=kenney-soldier-1$/);
+          } else {
+            expect(frame).toMatch(/^\/sprites\/frames\/[^?]+\/(?:run|walk|windup|attack|hurt|recover|dead|specialAttack|charge|heavy|dodge|parry|idle|slash)-\d+\.png\?v=public-robot-pack-1$/);
+          }
           expect(frame).not.toContain("player.png");
         }
       }
@@ -47,18 +50,18 @@ describe("rebuild frame manifest", () => {
   });
 
   it("keeps the first action deliberately small and one-shot", () => {
-    expect(REBUILD_PLAYER.animations.slash.frames).toHaveLength(4);
+    expect(REBUILD_PLAYER.animations.slash.frames).toHaveLength(2);
     expect(REBUILD_PLAYER.animations.slash.loop).toBe(false);
   });
 
   it("ships dedicated player action sequences", () => {
-    expect(REBUILD_PLAYER.animations.run.frames).toHaveLength(8);
+    expect(REBUILD_PLAYER.animations.run.frames).toHaveLength(2);
     expect(REBUILD_PLAYER.animations.run.loop).toBe(true);
-    expect(REBUILD_PLAYER.animations.walk.frames).toHaveLength(6);
+    expect(REBUILD_PLAYER.animations.walk.frames).toHaveLength(2);
     expect(REBUILD_PLAYER.animations.walk.loop).toBe(true);
-    expect(REBUILD_PLAYER.animations.charging.frames).toHaveLength(3);
-    expect(REBUILD_PLAYER.animations.heavy.frames).toHaveLength(6);
-    expect(REBUILD_PLAYER.animations.dodge.frames).toHaveLength(3);
+    expect(REBUILD_PLAYER.animations.charging.frames).toHaveLength(2);
+    expect(REBUILD_PLAYER.animations.heavy.frames).toHaveLength(2);
+    expect(REBUILD_PLAYER.animations.dodge.frames).toHaveLength(2);
     expect(REBUILD_PLAYER.animations.parry.frames).toHaveLength(2);
   });
 
@@ -82,8 +85,8 @@ describe("rebuild frame manifest", () => {
   });
 
   it("ships dedicated player hurt and death reactions", () => {
-    expect(REBUILD_PLAYER.animations.hurt?.frames).toHaveLength(2);
-    expect(REBUILD_PLAYER.animations.dead?.frames).toHaveLength(2);
+    expect(REBUILD_PLAYER.animations.hurt?.frames).toHaveLength(1);
+    expect(REBUILD_PLAYER.animations.dead?.frames).toHaveLength(1);
     expect(REBUILD_PLAYER.animations.hurt?.loop).toBe(false);
     expect(REBUILD_PLAYER.animations.dead?.loop).toBe(false);
   });
