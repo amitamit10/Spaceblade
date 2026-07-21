@@ -113,19 +113,24 @@ export function rebuildEnemySpeedForFloor(type: RebuildEnemyType, floor: number)
   return Math.round(ENEMY_STATS[type].speed * rebuildFloorPacingMultiplier(floor));
 }
 
+export function rebuildEnemyHpForFloor(type: RebuildEnemyType, floor: number): number {
+  const levelBonus = Math.min(8, Math.ceil(Math.max(0, floor - 1) / 2));
+  return ENEMY_STATS[type].hp + levelBonus;
+}
+
 export function rebuildEnemyWindupForFloor(type: RebuildEnemyType, floor: number): number {
   return Math.max(MIN_ATTACK_WINDUP_MS, Math.round(ENEMY_STATS[type].windupMs / rebuildFloorPacingMultiplier(floor)));
 }
 
 function createEnemy(id: string, type: RebuildEnemyType, side: "left" | "right", x: number, now: number, floor: number): RebuildEnemy {
-  const stats = ENEMY_STATS[type];
+  const hp = rebuildEnemyHpForFloor(type, floor);
   return {
     id,
     type,
     side,
     x,
-    hp: stats.hp,
-    maxHp: stats.hp,
+    hp,
+    maxHp: hp,
     shielded: type === "shield",
     state: "approaching",
     nextAttackAt: now + rebuildEnemyWindupForFloor(type, floor),

@@ -8,6 +8,7 @@ import {
   rebuildEnemyThreatWeight,
   rebuildEnemySpeedForFloor,
   rebuildEnemyStats,
+  rebuildEnemyHpForFloor,
   rebuildEnergyProjectileHitRadius,
   rebuildEnemyWindupForFloor,
   rebuildFloorPacingMultiplier,
@@ -86,6 +87,14 @@ describe("rebuild run model", () => {
     expect(rebuildEnemyStats.tank.hp).toBeGreaterThan(rebuildEnemyStats.shield.hp);
     expect(rebuildEnemyStats.tank.speed).toBeLessThan(rebuildEnemyStats.shield.speed);
     expect(rebuildEnemyStats.boss.hp).toBeGreaterThan(rebuildEnemyStats.tank.hp);
+  });
+
+  it("raises spawned enemy health on later floors with a cap", () => {
+    expect(rebuildEnemyHpForFloor("grunt", 1)).toBe(1);
+    expect(rebuildEnemyHpForFloor("grunt", 2)).toBe(2);
+    expect(rebuildEnemyHpForFloor("tank", 2)).toBe(5);
+    expect(rebuildEnemyHpForFloor("boss", 15)).toBe(25);
+    expect(rebuildEnemyHpForFloor("boss", 30)).toBe(26);
   });
 
   it("keeps the small runner reachable by the energy shot", () => {
