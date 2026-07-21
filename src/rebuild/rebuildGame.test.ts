@@ -10,6 +10,7 @@ import {
   rebuildEnemyStats,
   rebuildEnemyHpForFloor,
   rebuildEnergyProjectileHitRadius,
+  rebuildEnergyShotForHold,
   rebuildEnemyWindupForFloor,
   rebuildFloorPacingMultiplier,
   releaseChargeRebuildRun,
@@ -83,6 +84,8 @@ describe("rebuild run model", () => {
 
   it("gives each enemy role distinct health and speed", () => {
     expect(rebuildEnemyStats.runner.speed).toBeGreaterThan(rebuildEnemyStats.grunt.speed);
+    expect(rebuildEnemyStats.runner.hp).toBeLessThan(rebuildEnemyStats.tank.hp);
+    expect(rebuildEnemyStats.runner.speed).toBeGreaterThan(rebuildEnemyStats.tank.speed);
     expect(rebuildEnemyStats.shield.hp).toBeGreaterThan(rebuildEnemyStats.grunt.hp);
     expect(rebuildEnemyStats.tank.hp).toBeGreaterThan(rebuildEnemyStats.shield.hp);
     expect(rebuildEnemyStats.tank.speed).toBeLessThan(rebuildEnemyStats.shield.speed);
@@ -92,7 +95,7 @@ describe("rebuild run model", () => {
   it("raises spawned enemy health on later floors with a cap", () => {
     expect(rebuildEnemyHpForFloor("grunt", 1)).toBe(1);
     expect(rebuildEnemyHpForFloor("grunt", 2)).toBe(2);
-    expect(rebuildEnemyHpForFloor("tank", 2)).toBe(5);
+    expect(rebuildEnemyHpForFloor("tank", 2)).toBe(6);
     expect(rebuildEnemyHpForFloor("boss", 15)).toBe(25);
     expect(rebuildEnemyHpForFloor("boss", 30)).toBe(26);
   });
@@ -108,6 +111,16 @@ describe("rebuild run model", () => {
     const impact = advanceRebuildRun(fired, 800);
 
     expect(impact.enemies[0].state).toBe("dead");
+  });
+
+  it("scales energy damage and projectile size with hold duration", () => {
+    expect(rebuildEnergyShotForHold(300)).toEqual({ damage: 1, radius: 34, visualScale: 1 });
+    expect(rebuildEnergyShotForHold(600)).toEqual({ damage: 2, radius: 46, visualScale: 1.25 });
+    expect(rebuildEnergyShotForHold(900)).toEqual({ damage: 3, radius: 60, visualScale: 1.6 });
+
+    const run = createRebuildRun(0);
+    const charged = releaseChargeRebuildRun(startChargeRebuildRun(run, 100), 1000, 900);
+    expect(charged.projectiles[0]).toMatchObject({ damage: 3, radius: 60, visualScale: 1.6 });
   });
 
   it("uses the wave target as a hard cap on live plus defeated threats", () => {

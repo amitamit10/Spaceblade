@@ -21,6 +21,15 @@ export type RebuildProjectile = {
   x: number;
   startedAt: number;
   expiresAt: number;
+  damage: number;
+  radius: number;
+  visualScale: number;
+};
+
+export type RebuildEnergyShot = {
+  damage: number;
+  radius: number;
+  visualScale: number;
 };
 
 export type RebuildPlayerAnimation = "idle" | "slash" | "charging" | "heavy" | "dodge" | "parry";
@@ -76,6 +85,8 @@ const PARRY_BEFORE_IMPACT_MS = 150;
 const PARRY_AFTER_IMPACT_MS = 90;
 const CONTACT_ATTACK_STAGGER_MS = 90;
 const HEAVY_MIN_HOLD_MS = 300;
+const CHARGED_HOLD_MS = 600;
+const OVERCHARGED_HOLD_MS = 900;
 const ENERGY_PROJECTILE_SPEED = 760;
 const ENERGY_PROJECTILE_LIFETIME_MS = 1400;
 const ENERGY_PROJECTILE_HIT_RADIUS = 34;
@@ -91,9 +102,9 @@ const MIN_ATTACK_WINDUP_MS = 160;
 
 const ENEMY_STATS: Record<RebuildEnemyType, EnemyStats> = {
   grunt: { hp: 1, speed: 100, attackRange: 72, windupMs: 380, recoveryMs: 360, damage: 1, score: 100 },
-  runner: { hp: 1, speed: 190, attackRange: 64, windupMs: 220, recoveryMs: 280, damage: 1, score: 125 },
+  runner: { hp: 1, speed: 210, attackRange: 64, windupMs: 220, recoveryMs: 280, damage: 1, score: 125 },
   shield: { hp: 2, speed: 65, attackRange: 78, windupMs: 480, recoveryMs: 440, damage: 1, score: 200 },
-  tank: { hp: 4, speed: 38, attackRange: 94, windupMs: 760, recoveryMs: 680, damage: 1, score: 325 },
+  tank: { hp: 5, speed: 32, attackRange: 94, windupMs: 760, recoveryMs: 680, damage: 1, score: 325 },
   glitch: { hp: 2, speed: 140, attackRange: 70, windupMs: 280, recoveryMs: 320, damage: 1, score: 350 },
   boss: { hp: 18, speed: 30, attackRange: 124, windupMs: 780, recoveryMs: 640, damage: 2, score: 1500 },
 };
@@ -154,6 +165,12 @@ function activeEnemies(run: RebuildRun): RebuildEnemy[] {
 
 export function rebuildEnergyProjectileHitRadius(type: RebuildEnemyType): number {
   return type === "runner" ? 48 : ENERGY_PROJECTILE_HIT_RADIUS;
+}
+
+export function rebuildEnergyShotForHold(holdMs: number): RebuildEnergyShot {
+  if (holdMs >= OVERCHARGED_HOLD_MS) return { damage: 3, radius: 60, visualScale: 1.6 };
+  if (holdMs >= CHARGED_HOLD_MS) return { damage: 2, radius: 46, visualScale: 1.25 };
+  return { damage: 1, radius: ENERGY_PROJECTILE_HIT_RADIUS, visualScale: 1 };
 }
 
 export function rebuildEnemyThreatWeight(type: RebuildEnemyType): number {
@@ -247,7 +264,7 @@ function applyAttack(run: RebuildRun, range: number, damage: number, kind: "quic
 function resolveProjectileHit(run: RebuildRun, projectile: RebuildProjectile, previousX: number): boolean {
   const target = activeEnemies(run)
     .filter((enemy) => {
-      const hitRadius = rebuildEnergyProjectileHitRadius(enemy.type);
+      const hitRadius = Math.max(projectile.radius, rebuildEnergyProjectileHitRadius(enemy.type));
       return enemy.x <= projectile.x + hitRadius && enemy.x >= previousX - hitRadius;
     })
     .sort((left, right) => Math.abs(left.x - projectile.x) - Math.abs(right.x - projectile.x))[0];
@@ -256,7 +273,7 @@ function resolveProjectileHit(run: RebuildRun, projectile: RebuildProjectile, pr
     run.projectilesBlocked += 1;
     return true;
   }
-  target.hp -= 1;
+  target.hp -= projectile.damage;
   if (target.hp <= 0) awardDefeat(run, target);
   return true;
 }
@@ -296,11 +313,15 @@ export function releaseChargeRebuildRun(source: RebuildRun, now: number, holdMs:
   run.player.actionStartedAt = now;
   run.energyReadyAt = now + ENERGY_SHOT_COOLDOWN_MS;
   run.projectileSerial += 1;
+  const shot = rebuildEnergyShotForHold(holdMs);
   run.projectiles.push({
     id: `projectile-${run.projectileSerial}`,
     x: PLAYER_X,
     startedAt: now,
     expiresAt: now + ENERGY_PROJECTILE_LIFETIME_MS,
+    damage: shot.damage,
+    radius: shot.radius,
+    visualScale: shot.visualScale,
   });
   return run;
 }

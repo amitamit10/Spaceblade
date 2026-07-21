@@ -1246,7 +1246,7 @@ export class SpacebladePlayScene extends Phaser.Scene {
     const boss = run.enemies.find((enemy) => enemy.type === "boss" && enemy.state !== "dead");
     this.game.canvas.dataset.spacebladeBossActive = String(Boolean(boss));
     if (boss) this.game.canvas.dataset.spacebladeBossHp = String(boss.hp);
-    const baseStatus = bossActive ? "BOSS SIGNAL  ·  READ THE TELEGRAPH  ·  SPACE TO SURVIVE" : run.status === "playing" ? "TAP: SWORD  ·  HOLD: GUN SHOT  ·  DOUBLE TAP: DODGE" : run.status === "victory" ? "SECTOR CLEARED  ·  PRESS SPACE TO RESTART" : "RUN OVER  ·  PRESS SPACE TO RESTART";
+    const baseStatus = bossActive ? "BOSS SIGNAL  ·  READ THE TELEGRAPH  ·  SPACE TO SURVIVE" : run.status === "playing" ? "TAP: SWORD  ·  HOLD LONGER: BIGGER GUN  ·  DOUBLE TAP: DODGE" : run.status === "victory" ? "SECTOR CLEARED  ·  PRESS SPACE TO RESTART" : "RUN OVER  ·  PRESS SPACE TO RESTART";
     this.status.setText(now < this.combatCalloutUntil ? this.combatCallout : baseStatus);
 
     for (const enemy of run.enemies) {
@@ -1485,7 +1485,6 @@ export class SpacebladePlayScene extends Phaser.Scene {
       if (!view) {
         view = this.projectileViewPool.pop() ?? this.add.image(0, 0, effectKey(PUBLIC_SHOT_SOURCES[0]))
           .setOrigin(0.5)
-          .setScale(3.4)
           .setDepth(3);
         this.projectileViews.set(projectile.id, view);
       }
@@ -1495,6 +1494,7 @@ export class SpacebladePlayScene extends Phaser.Scene {
       view
         .setTexture(effectKey(publicShotSourceAt(age)))
         .setPosition(screenX, GROUND_Y - 112)
+        .setScale(3.4 * projectile.visualScale)
         .setAlpha(pulse)
         .setVisible(true);
     }
