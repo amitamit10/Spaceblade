@@ -1,11 +1,13 @@
-Spaceblade is a game I made for Hack Clubs OneKey challenge
+spaceblade is a game i made for hack clubs onekey challenge
 
-The hardest part was making one key do everything without the controls feeling bad
+the hardest part was making one key control everything without feeling confusing
 
-I also changed the art a few times and rebuilt the game in Phaser halfway through
+i changed the art a few times rebuilt the game in phaser halfway through and spent a lot of time balancing attacks dodges parries enemies and the boss wave
 
-Tap attacks hold and release shoots double tap dodges and a timed tap parries
+tap attacks hold and release shoots double tap dodges and a well timed tap parries
 
-I used free art and sound packs so I could focus more on the gameplay
+i also added automatic parkour and wall climbing so the game feels like you are always moving
 
-You can play it at spaceblade.vercel.app
+i used free art music and sound packs so i could focus more on the gameplay
+
+you can play it at spaceblade.vercel.app
